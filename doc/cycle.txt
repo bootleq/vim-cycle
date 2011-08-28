@@ -1,0 +1,80 @@
+*cycle.txt*                                Cycle text to predefined candidates
+
+Version:    0.0
+Author:     bootleq <bootleq@gmail.com>
+License:    Public Domain
+Repository: https://github.com/bootleq/vim-cycle
+
+
+==============================================================================
+CONTENTS                                                      *cycle-contents*
+
+    Introduction ................... |cycle-introduction|
+    Configuration .................. |cycle-configuration|
+      Examples ..................... |cycle-config-examples|
+
+==============================================================================
+INTRODUCTION                                              *cycle-introduction*
+
+
+==============================================================================
+CONFIGURATION                                            *cycle-configuration*
+
+
+------------------------------------------------------------------------------
+Configuration Examples:                                 *cycle-config-examples*
+>
+    let g:cycle_no_mappings = 1
+    let g:cycle_max_conflict = 1
+    let g:cycle_swapit_compatibility = 1
+    silent! nmap <silent> <LocalLeader>a <Plug>CycleNext
+    silent! vmap <silent> <LocalLeader>a <Plug>CycleNext
+
+    let g:cycle_default_groups = [
+          \   [['true', 'false']],
+          \   [['yes', 'no']],
+          \   [['on', 'off']],
+          \   [['and', 'or']],
+          \   [['+', '-']],
+          \   [['>', '<']],
+          \   [['0', '1']],
+          \   [['是', '否']],
+          \   [["in", "out"]],
+          \   [["get", "post"]],
+          \   [["to", "from"]],
+          \   [["only", "except"]],
+          \   [["exclude", "include"]],
+          \   [["asc", "desc"]],
+          \   [['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+          \     'Friday', 'Saturday'], ['hard_case', {'name': 'Days'}]],
+          \ ]
+    let g:cycle_default_groups += [
+          \   [["if", "unless"]],
+          \   [["blank", "present"]],
+          \   [["while", "until"]],
+          \   [["foreign_key", "primary_key"]],
+          \   [["inspect", "to_yaml"]],
+          \   [["add_column", "remove_column"]],
+          \ ]
+    let g:cycle_default_groups += [
+          \   [["show", "hide"]],
+          \   [["left", "right"]],
+          \   [["top", "bottom"]],
+          \   [["margin", "padding"]],
+          \   [["before", "after"]],
+          \   [["absolute", "relative"]],
+          \   [["first", "last"]],
+          \ ]
+<
+
+==============================================================================
+CREDITS                                                        *cycle-credits*
+
+- Michael Brown ~
+  Author of SwapIt.vim: https://github.com/mjbrownie/swapit
+  SwapIt originally provides lots of awesome features includes visual
+  multi-words, xml tag pairs, omni-complete cycling.
+
+
+==============================================================================
+vim:tw=78:fo=tcroq2mM:et:sts=2:sw=2:ft=help:norl:

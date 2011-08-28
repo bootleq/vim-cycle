@@ -1,0 +1,25 @@
+true  false
+TRUE  FALSE
+trUe  faLse
+
+decoding  encoding
+decode  encode
+40.1px  40.2%  40.9em
+
+Sunday,  Monday,  Tuesday,  Wednesday,  Thursday,  Friday,  Saturday
+
++  -
+0  1
+>  <
+
+是否
+是是是否否否
+
+foo  FO\1B&AR$  ^NO[ac]BA^RM  b+?ar
+foo  "kk\\2m"  rrm  dqm
+foo  pcm  ggm  nem
+yyi  LLK  BA\1R"d{5}rs
+'fook '  FkOO中文  AR  "bark  ~.*[]
+
+Hello World!  GoodBye Cruel World!  See You Next Tuesday!
+中文  中文  中文Hello World!  GoodBye Cruel World!  See You Next Tuesday!
