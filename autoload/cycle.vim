@@ -61,7 +61,7 @@ function! cycle#search(class_name, ...) "{{{
       let new_text.col = ctext.col
       call add(matches, {
             \   'group': group,
-            \   'pairs': {'before': ctext, 'after': new_text},
+            \   'pairs': {'before': deepcopy(ctext), 'after': deepcopy(new_text)},
             \ })
     endif
   endfor
@@ -101,7 +101,7 @@ function! s:conflict(matches) "{{{
     let caption = nr2char(char2nr('A') + index)
     call add(candidates, join([
           \   ' ' . caption . ') ',
-          \   match.group.name . " => ",
+          \   get(match.group.options, 'name', '') . " => ",
           \   match.pairs.after.text
           \ ], ''))
     call add(captions, '&' . caption)
