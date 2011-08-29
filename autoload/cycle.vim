@@ -70,6 +70,8 @@ function! cycle#search(class_name, ...) "{{{
 endfunction "}}}
 
 function! s:substitute(group, before, after, class_name) "{{{
+  let pos = s:getpos()
+  let end_col = a:before.col + strlen(a:after.text) - 1
   " TODO: substitute with difference ways by group options. (e.g. xml tag pairs)
   call setline('.',
         \   substitute(
@@ -81,9 +83,11 @@ function! s:substitute(group, before, after, class_name) "{{{
         \ )
 
   if a:class_name == 'v' || (a:after.text =~ '\W' && g:cycle_auto_visual)
-    call cursor(line('.'), a:before.col)
+    call cursor('.', a:before.col)
     normal v
-    call cursor(line('.'), a:before.col + strlen(a:after.text) - 1)
+    call cursor('.', end_col)
+  elseif end_col < pos.col
+    call cursor('.', end_col)
   endif
 endfunction  "}}}
 
@@ -162,14 +166,14 @@ function! s:group_search(group, ...) "{{{
       " TODO: handle multibyte characters
       if class_name != ''
         let pattern = join([
-              \   '\%' . ctext["col"] . 'c',
+              \   '\%' . ctext.col . 'c',
               \   s:escape_pattern(item),
               \   get(options, 'match_case') ? '\C' : '\c',
               \ ], '')
       else
         let pattern = join([
-              \   '\%>' . max([0, pos["col"] - strlen(item)]) . 'c',
-              \   '\%<' . (pos["col"] + strlen(item)) . 'c' . s:escape_pattern(item),
+              \   '\%>' . max([0, pos.col - strlen(item)]) . 'c',
+              \   '\%<' . (pos.col + strlen(item)) . 'c' . s:escape_pattern(item),
               \   get(options, 'match_case') ? '\C' : '\c',
               \ ], '')
       endif
