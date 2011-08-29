@@ -325,7 +325,7 @@ endfunction
 
 function! s:new_cchar()
   call s:save_reg('a')
-  normal yl
+  normal "ayl
   let cchar = {
         \   "text": @a,
         \   "col": getpos('.')[2],
