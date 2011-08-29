@@ -122,9 +122,8 @@ endfunction "}}}
 " Structure of groups:
 " g:cycle_groups = [                | => a group, scoped by global or buffer
 "   {                               |   =>
-"     'name':    'example',         |   =>
-"     'items':   ['foo', 'bar'],    |   => a group
-"     'options': {'hard_case': 1},  |   =>
+"     'items':   ['foo', 'bar'],    |   =>
+"     'options': {'hard_case': 1},  |   => a group
 "   },                              |   =>
 " ],                                |
 

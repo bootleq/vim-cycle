@@ -9,9 +9,9 @@ Repository: https://github.com/bootleq/vim-cycle
 ==============================================================================
 CONTENTS                                                      *cycle-contents*
 
-    Introduction ................... |cycle-introduction|
-    Configuration .................. |cycle-configuration|
-      Examples ..................... |cycle-config-examples|
+    Introduction  ................... |cycle-introduction|
+    Configuration  .................. |cycle-configuration|
+      Examples  ..................... |cycle-config-examples|
 
 ==============================================================================
 INTRODUCTION                                              *cycle-introduction*
@@ -20,12 +20,22 @@ INTRODUCTION                                              *cycle-introduction*
 ==============================================================================
 CONFIGURATION                                            *cycle-configuration*
 
+g:cycle_default_groups                                *g:cycle_default_groups*
+g:cycle_no_mappings                                      *g:cycle_no_mappings*
+g:cycle_max_conflict                                    *g:cycle_max_conflict*
+g:cycle_auto_visual                                      *g:cycle_auto_visual*
+g:cycle_phased_search                                  *g:cycle_phased_search*
+g:cycle_no_default_groups                          *g:cycle_no_default_groups*
+g:cycle_groups                                                *g:cycle_groups*
+g:cycle_swapit_compatibility                    *g:cycle_swapit_compatibility*
+
 
 ------------------------------------------------------------------------------
 Configuration Examples:                                 *cycle-config-examples*
 >
     let g:cycle_no_mappings = 1
     let g:cycle_max_conflict = 1
+    let g:cycle_phased_search = 1
     let g:cycle_swapit_compatibility = 1
     silent! nmap <silent> <LocalLeader>a <Plug>CycleNext
     silent! vmap <silent> <LocalLeader>a <Plug>CycleNext
