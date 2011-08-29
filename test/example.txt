@@ -1,6 +1,8 @@
 true  false
 TRUE  FALSE
 trUe  faLse
+"trUe"  'faLse'
+" '
 
 decoding  encoding
 decode  encode

@@ -5,6 +5,10 @@ function! cycle#new(class_name, direction, count) "{{{
   let s:count = a:count
 
   let matches = cycle#search(a:class_name, {'direction': a:direction, 'count': a:count})
+  
+  if empty(matches) && g:cycle_phased_search
+    let matches = cycle#search('', {'direction': a:direction, 'count': a:count})
+  endif
 
   if empty(matches)
     return s:fallback()
@@ -142,7 +146,6 @@ function! s:group_search(group, ...) "{{{
   let pos = s:getpos()
   let index = -1
   let ctext = s:new_ctext(class_name)
-  let matched_text = s:new_ctext('')
 
   for item in a:group.items
     if type(get(options, 'regex')) == type('')
@@ -150,7 +153,7 @@ function! s:group_search(group, ...) "{{{
       let text_index = match(getline('.'), pattern)
       if text_index >= 0
         let index = index(a:group.items, item)
-        let matched_text = {
+        let ctext = {
               \   'text': matchstr(getline('.'), pattern),
               \   'col': text_index + 1,
               \ }
@@ -158,23 +161,23 @@ function! s:group_search(group, ...) "{{{
       endif
     else
       " TODO: handle multibyte characters
-      let pattern = join([
-            \   '\%' . ctext["col"] . 'c',
-            \   s:escape_pattern(item),
-            \   get(options, 'match_case') ? '\C' : '\c',
-            \ ], '')
-      let text_index = match(getline('.'), pattern)
-      if text_index == -1 && g:cycle_phased_search
+      if class_name != ''
+        let pattern = join([
+              \   '\%' . ctext["col"] . 'c',
+              \   s:escape_pattern(item),
+              \   get(options, 'match_case') ? '\C' : '\c',
+              \ ], '')
+      else
         let pattern = join([
               \   '\%>' . max([0, pos["col"] - strlen(item)]) . 'c',
               \   '\%<' . (pos["col"] + strlen(item)) . 'c' . s:escape_pattern(item),
               \   get(options, 'match_case') ? '\C' : '\c',
               \ ], '')
-        let text_index = match(getline('.'), pattern)
       endif
+      let text_index = match(getline('.'), pattern)
       if text_index >= 0
         let index = index(a:group.items, item)
-        let matched_text = {
+        let ctext = {
               \   'text': strpart(getline('.'), text_index, len(item)),
               \   'col': text_index + 1,
               \ }
@@ -183,7 +186,7 @@ function! s:group_search(group, ...) "{{{
     endif
   endfor
 
-  return [index, matched_text]
+  return [index, ctext]
 endfunction "}}}
 
 function! s:text_transform(before, after, options) "{{{
