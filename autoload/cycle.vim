@@ -209,7 +209,9 @@ function! s:add_group(scope, group_attrs) "{{{
   let options = {}
 
   if len(a:group_attrs) > 1
-    if type(a:group_attrs[1]) == type([])
+    if type(a:group_attrs[1]) == type({})
+      call extend(options, a:group_attrs[1])
+    elseif type(a:group_attrs[1]) == type([])
       for option in a:group_attrs[1]
         if type(option) == type({})
           call extend(options, option)
@@ -228,7 +230,6 @@ function! s:add_group(scope, group_attrs) "{{{
   let group = {
         \ 'items': a:group_attrs[0],
         \ 'options': options,
-        \ 'name': len(a:group_attrs) > 2 ? a:group_attrs[2] : '',
         \ }
 
   let name = a:scope . ':cycle_groups'
