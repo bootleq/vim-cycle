@@ -173,7 +173,7 @@ function! s:group_search(group, ...) "{{{
       else
         let pattern = join([
               \   '\%>' . max([0, pos.col - strlen(item)]) . 'c',
-              \   '\%<' . (pos.col + strlen(item)) . 'c' . s:escape_pattern(item),
+              \   '\%<' . (pos.col + 1) . 'c' . s:escape_pattern(item),
               \   get(options, 'match_case') ? '\C' : '\c',
               \ ], '')
       endif
@@ -302,10 +302,10 @@ function! s:new_cword()
         \   "col": 0,
         \ }
 
-  if match(ckeyword, cchar.text) >= 0
+  if match(ckeyword, s:escape_pattern(cchar.text)) >= 0
     let cword.col = match(
           \   getline('.'),
-          \   '\%>' . max([0, cchar.col - strlen(ckeyword) - 1]) . 'c' . ckeyword,
+          \   '\%>' . max([0, cchar.col - strlen(ckeyword) - 1]) . 'c' . s:escape_pattern(ckeyword),
           \ ) + 1
     let cword.text = ckeyword
   endif
@@ -355,7 +355,7 @@ endfunction
 " Utils: {{{
 
 function! s:escape_pattern(pattern) "{{{
-  return escape(a:pattern, '~\[^$')
+  return escape(a:pattern, '.*~\[^$')
 endfunction "}}}
 
 function! s:escape_sub_expr(pattern) "{{{
