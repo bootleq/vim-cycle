@@ -6,10 +6,6 @@ function! cycle#new(class_name, direction, count) "{{{
 
   let matches = cycle#search(a:class_name, {'direction': a:direction, 'count': a:count})
   
-  if empty(matches) && g:cycle_phased_search
-    let matches = cycle#search('', {'direction': a:direction, 'count': a:count})
-  endif
-
   if empty(matches)
     return s:fallback()
   endif
@@ -42,17 +38,47 @@ function! cycle#search(class_name, ...) "{{{
   let direction = get(options, 'direction', 1)
   let l:count = get(options, 'count', 1)
   let matches = []
+  let cword = s:new_cword()
+  let cchar = s:new_cchar()
+  
+  if a:class_name == 'w'
+    if len(cchar.text) > 1
+      let phases = ['.', 'w']
+      if cword != cchar
+        call add(phases, '')
+      endif
+    else
+      let phases = ['w', '']
+    endif
+  elseif a:class_name == 'v'
+    let phases = ['v']
+  else
+    let phases = []
+  endif
+  
+  for phase in phases
+    let matches = s:phased_search(phase, groups, direction, l:count)
+    if len(matches)
+      break
+    endif
+  endfor
+  
+  return matches
+endfunction "}}}
+
+function! s:phased_search(class_name, groups, direction, count) "{{{
+  let matches = []
   let new_text = s:new_ctext('')
   let new_index = -1
 
-  for group in groups
+  for group in a:groups
     if len(matches) && g:cycle_max_conflict <= 1
       break
     endif
 
     let [index, ctext] = s:group_search(group, a:class_name)
     if index >= 0
-      let new_index = (index + direction * l:count) % len(group.items)
+      let new_index = (index + a:direction * a:count) % len(group.items)
       let new_text.text = s:text_transform(
             \   ctext.text,
             \   group.items[new_index],
@@ -143,12 +169,11 @@ function! s:groups(...) "{{{
   return groups
 endfunction "}}}
 
-function! s:group_search(group, ...) "{{{
+function! s:group_search(group, class_name) "{{{
   let options = a:group.options
-  let class_name = a:0 ? a:1 : ''
   let pos = s:getpos()
   let index = -1
-  let ctext = s:new_ctext(class_name)
+  let ctext = s:new_ctext(a:class_name)
 
   for item in a:group.items
     if type(get(options, 'regex')) == type('')
@@ -163,8 +188,7 @@ function! s:group_search(group, ...) "{{{
         break
       endif
     else
-      " TODO: handle multibyte characters
-      if class_name != ''
+      if a:class_name != ''
         let pattern = join([
               \   '\%' . ctext.col . 'c',
               \   s:escape_pattern(item),
@@ -178,6 +202,11 @@ function! s:group_search(group, ...) "{{{
               \ ], '')
       endif
       let text_index = match(getline('.'), pattern)
+      
+      if a:class_name == 'w' && item != s:new_cword().text
+        continue
+      endif
+      
       if text_index >= 0
         let index = index(a:group.items, item)
         let ctext = {
@@ -186,6 +215,7 @@ function! s:group_search(group, ...) "{{{
               \ }
         break
       endif
+
     endif
   endfor
 
@@ -283,6 +313,8 @@ function! s:new_ctext(text_class)
     if ctext.col == 0
       let ctext = s:new_cchar()
     endif
+  elseif a:text_class == '.'
+    let ctext = s:new_cchar()
   elseif a:text_class == 'v'
     let ctext = s:new_cvisual()
   else

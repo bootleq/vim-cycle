@@ -16,6 +16,12 @@ Sunday,  Monday,  Tuesday,  Wednesday,  Thursday,  Friday,  Saturday
 
 是否
 是是是否否否
+是true是true否否true否
+是一是一否否一否
+是一一是 => 否一一是
+沒沒沒true是true否否true否
+NNNNNNtrueNN
+Monday
 
 foo  FO\1B&AR$  ^NO[ac]BA^RM  b+?ar
 foo  "kk\\2m"  rrm  dqm
@@ -26,3 +32,5 @@ yyi  LLK  BA\1R"d{5}rs
 
 Hello World!  GoodBye Cruel World!  See You Next Tuesday!
 中文  中文  中文Hello World!  GoodBye Cruel World!  See You Next Tuesday!
+中文  中文  中文Hello World!
+OOOOOOOOOO Hello World! 12345678901234567890
