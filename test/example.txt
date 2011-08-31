@@ -20,6 +20,7 @@ Sunday,  Monday,  Tuesday,  Wednesday,  Thursday,  Friday,  Saturday
 是一是一否否一否
 是一一是 => 否一一是
 沒沒沒true是true否否true否
+弱P中P強K
 NNNNNNtrueNN
 Monday
 
@@ -30,6 +31,7 @@ yyi  LLK  BA\1R"d{5}rs
 'fook '  FkOO中文 AR  "bark  ~.*[]
 . " ~ * +
 
+Rails Metal => Thrash => Technical Death 
 Hello World!  GoodBye Cruel World!  See You Next Tuesday!
 中文  中文  中文Hello World!  GoodBye Cruel World!  See You Next Tuesday!
 中文  中文  中文Hello World!

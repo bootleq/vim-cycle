@@ -1,14 +1,15 @@
 Cycle.vim
 =========
 
-Cycle text to predefined candidates.
+Cycle text within predefined candidates.
 
-  - `true` =&gt; `false`
-  - `No` =&gt; `Yes`
-  - `是` =&gt; `否`
-  - `"` =&gt; `'`
-  - `Rails Metal` =&gt; `Thrash` =&gt; `Technical Death`
-  - `<em>foo</em>` =&gt; `<strong>foo</strong>`
+  - `yes` =&gt; `no` =&gt; `yes`
+  - `January` =&gt; `February` =&gt; `March`
+  - `trUe` =&gt; `faLse` &nbsp; keep case by default
+  - `"` =&gt; `'` &nbsp; can handle non-keywords
+  - 可`是` =&gt; 可`否` &nbsp; multibyte is fine
+  - `Rails Metal` =&gt; `Thrash` =&gt; `Technical Death` &nbsp; handle multi-words by visual selection, or smart auto search
+  - `<em>foo</em>` =&gt; `<strong>foo</strong>` &nbsp; (not implemented yet)
 
 
 Similar Projects
@@ -29,6 +30,7 @@ Under Development.
 
 TODO
 ----
+[wiki/TODO](https://github.com/bootleq/vim-cycle/wiki/Todo)
 
 
 [SwapIt.vim]: https://github.com/mjbrownie/swapit
