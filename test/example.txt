@@ -1,6 +1,3 @@
-true  false
-TRUE  FALSE
-trUe  faLse
 "trUe"  'faLse'
 " '
 
@@ -10,29 +7,39 @@ decode  encode
 
 Sunday,  Monday,  Tuesday,  Wednesday,  Thursday,  Friday,  Saturday
 
+<h1>foo bar</h1><em class="em">em</em>
+<h1 data-foo="bar" hidden
+ dir=auto >
+  <samp>foo bar</samp>
+</h1>
+<img src="img.png">
+<ul>
+  <li>ul /ul</li>
+  <li>
+    ul
+    <ul>
+      <li></li>
+      <?php= $php; ?>
+    </ul>
+  </li>
+</ul>
+
 +  -
 0  1
 >  <
 
-是否
-是是是否否否
 是true是true否否true否
-是一是一否否一否
-是一一是 => 否一一是
-沒沒沒true是true否否true否
+是一一是一一否否一一否
 弱P中P強K
 NNNNNNtrueNN
-Monday
+knee_without_monkey_punch
 
 foo  FO\1B&AR$  ^NO[ac]BA^RM  b+?ar
 foo  "kk\\2m"  rrm  dqm
-foo  pcm  ggm  nem
 yyi  LLK  BA\1R"d{5}rs
 'fook '  FkOO中文 AR  "bark  ~.*[]
 . " ~ * +
 
 Rails Metal => Thrash => Technical Death 
-Hello World!  GoodBye Cruel World!  See You Next Tuesday!
 中文  中文  中文Hello World!  GoodBye Cruel World!  See You Next Tuesday!
-中文  中文  中文Hello World!
 OOOOOOOOOO Hello World! 12345678901234567890
