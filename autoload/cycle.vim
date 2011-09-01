@@ -22,10 +22,10 @@ function! cycle#new(class_name, direction, count) "{{{
 
   if len(matches)
     call s:substitute(
-          \   matches[0].group,
           \   matches[0].pairs.before,
           \   matches[0].pairs.after,
           \   a:class_name,
+          \   matches[0].group.options,
           \ )
   else
     call s:fallback()
@@ -95,10 +95,10 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
   return matches
 endfunction "}}}
 
-function! s:substitute(group, before, after, class_name) "{{{
+function! s:substitute(before, after, class_name, options) "{{{
   let pos = s:getpos()
   let end_col = a:before.col + strlen(a:after.text) - 1
-  " TODO: substitute with difference ways by group options. (e.g. xml tag pairs)
+
   call setline('.',
         \   substitute(
         \     getline('.'),
