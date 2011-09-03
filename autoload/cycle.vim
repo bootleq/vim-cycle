@@ -99,6 +99,17 @@ function! s:substitute(before, after, class_name, options) "{{{
   let pos = s:getpos()
   let end_col = a:before.col + strlen(a:after.text) - 1
 
+  let callbacks = s:parse_callback_options(a:options)
+  for Fn in callbacks.before_sub
+    call call(Fn, [{
+          \     'before': a:before,
+          \     'after':  a:after,
+          \     'class_name': a:class_name,
+          \     'options': a:options,
+          \   }]
+          \ )
+  endfor
+
   call setline('.',
         \   substitute(
         \     getline('.'),
@@ -302,6 +313,19 @@ function! s:add_group_to(scope, group_or_attr, ...) "{{{
   endif
 endfunction "}}}
 
+function! s:parse_callback_options(options) "{{{
+  let options = a:options
+  let callbacks = {
+        \   'before_sub': [],
+        \   'after_sub': [],
+        \ }
+
+  if get(options, 'xmltag')
+    call add(callbacks.before_sub, function('s:sub_tag_pair'))
+  endif
+  return callbacks
+endfunction "}}}
+
 " }}} Group Operations
 
 
@@ -382,6 +406,38 @@ function! s:getpos()
 endfunction
 
 " }}} Text Classes
+
+
+" Optional Callbacks: {{{
+
+function! s:sub_tag_pair(params) "{{{
+  let before = a:params.before
+  let after = a:params.after
+  let timeout = 600
+  let pattern_till_tag_end = '\_[^>]*>'
+
+  if search('\v\</?\m\%' . before.col . 'c' . pattern_till_tag_end, 'n')
+    let backward = search('\v/\m\%' . before.col . 'c', 'n')
+    let opposite = searchpairpos(
+          \   '<' . s:escape_pattern(before.text) . pattern_till_tag_end,
+          \   '',
+          \   '</' . s:escape_pattern(before.text) . '\s*>' . (backward ? '\zs' : ''),
+          \   'nW' . (backward ? 'b' : ''),
+          \   '',
+          \   '',
+          \   timeout,
+          \ )
+    if opposite != [0, 0]
+      let ctext = {
+            \   "text": before.text,
+            \   "line": opposite[0],
+            \   "col": opposite[1],
+            \ }
+    endif
+  endif
+endfunction "}}}
+
+" }}} Optional Callbacks
 
 
 " Utils: {{{
