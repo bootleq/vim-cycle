@@ -11,13 +11,13 @@ Sunday,  Monday,  Tuesday,  Wednesday,  Thursday,  Friday,  Saturday
 <h1 data-foo="bar" hidden
  dir=auto >
   <samp>foo bar</samp>
-</h1>
+</H1>
 <img src="img.png">
 <ul>
   <li>ul /ul</li>
   <li>
     ul
-    <ul>
+    <UL>
       <li></li>
       <?php= $php; ?>
     </ul>

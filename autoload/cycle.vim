@@ -426,15 +426,22 @@ endfunction
 function! s:sub_tag_pair(params) "{{{
   let before = a:params.before
   let after = a:params.after
+  let options = a:params.options
   let timeout = 600
   let pattern_till_tag_end = '\_[^>]*>'
+  let ic_flag = get(options, 'match_case') ? '\C' : '\c'
 
-  if search('\v\</?\m\%' . before.col . 'c' . pattern_till_tag_end, 'n')
-    let in_closing_tag = search('\v/\m\%' . before.col . 'c', 'n')
+  if search(
+        \ '\v\</?\m\%' . before.line . 'l\%' . before.col . 'c'
+        \              . pattern_till_tag_end . '\C',
+        \ 'n',
+        \ )
+    let in_closing_tag = search('/\m\%' . before.line . 'l\%' . before.col . 'c\C', 'n')
     let opposite = searchpairpos(
           \   '<' . s:escape_pattern(before.text) . pattern_till_tag_end,
           \   '',
-          \   '</' . s:escape_pattern(before.text) . '\s*>' . (in_closing_tag ? '\zs' : ''),
+          \   '</' . s:escape_pattern(before.text) . '\s*>'
+          \        . (in_closing_tag ? '\zs' : '') . ic_flag,
           \   'nW' . (in_closing_tag ? 'b' : ''),
           \   '',
           \   '',
@@ -450,10 +457,18 @@ function! s:sub_tag_pair(params) "{{{
             \   ctext,
             \   after,
             \   '-',
-            \   {'no_cursor': 1}
+            \   s:cascade_options_for_callback(options, {'no_cursor': 1}),
             \ )
     endif
   endif
+endfunction "}}}
+
+function! s:cascade_options_for_callback(options, extras) "{{{
+  let filtered =  filter(
+        \   deepcopy(a:options),
+        \   "index(['match_case', 'hard_case'], v:key) >= 0"
+        \ )
+  return extend(filtered, a:extras)
 endfunction "}}}
 
 " }}} Optional Callbacks
