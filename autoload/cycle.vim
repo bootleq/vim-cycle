@@ -84,6 +84,7 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
             \   group.items[new_index],
             \   group.options,
             \ )
+      let new_text.line = ctext.line
       let new_text.col = ctext.col
       call add(matches, {
             \   'group': group,
@@ -110,21 +111,26 @@ function! s:substitute(before, after, class_name, options) "{{{
           \ )
   endfor
 
-  call setline('.',
+  call setline(
+        \   a:before.line,
         \   substitute(
-        \     getline('.'),
+        \     getline(a:before.line),
         \     '\%' . a:before.col . 'c' . s:escape_pattern(a:before.text),
         \     s:escape_sub_expr(a:after.text),
         \     ''
         \   )
         \ )
 
+  if get(a:options, 'no_cursor')
+    return
+  endif
+
   if a:class_name == 'v' || (a:after.text =~ '\W' && g:cycle_auto_visual)
-    call cursor('.', a:before.col)
+    call cursor(a:before.line, a:before.col)
     normal v
-    call cursor('.', end_col)
-  elseif end_col < pos.col
-    call cursor('.', end_col)
+    call cursor(a:after.line, end_col)
+  elseif a:after.line > a:before.line || end_col < pos.col
+    call cursor(a:after.line, end_col)
   endif
 endfunction  "}}}
 
@@ -194,6 +200,7 @@ function! s:group_search(group, class_name) "{{{
         let index = index(a:group.items, item)
         let ctext = {
               \   'text': matchstr(getline('.'), pattern),
+              \   'line': line('.'),
               \   'col': text_index + 1,
               \ }
         break
@@ -222,6 +229,7 @@ function! s:group_search(group, class_name) "{{{
         let index = index(a:group.items, item)
         let ctext = {
               \   'text': strpart(getline('.'), text_index, len(item)),
+              \   'line': line('.'),
               \   'col': text_index + 1,
               \ }
         break
@@ -344,6 +352,7 @@ function! s:new_ctext(text_class)
   else
     let ctext = {
           \   "text": '',
+          \   'line': 0,
           \   "col": 0,
           \ }
   endif
@@ -355,10 +364,12 @@ function! s:new_cword()
   let cchar = s:new_cchar()
   let cword = {
         \   "text": '',
+        \   'line': 0,
         \   "col": 0,
         \ }
 
   if match(ckeyword, s:escape_pattern(cchar.text)) >= 0
+    let cword.line = line('.')
     let cword.col = match(
           \   getline('.'),
           \   '\%>' . max([0, cchar.col - strlen(ckeyword) - 1]) . 'c' . s:escape_pattern(ckeyword),
@@ -375,6 +386,7 @@ function! s:new_cvisual()
   normal gv"ay
   let cvisual = {
         \   "text": @a,
+        \   "line": getpos('v')[1],
         \   "col": getpos('v')[2],
         \ }
 
@@ -391,6 +403,7 @@ function! s:new_cchar()
   normal "ayl
   let cchar = {
         \   "text": @a,
+        \   "line": getpos('.')[1],
         \   "col": getpos('.')[2],
         \ }
   call s:restore_reg('a')
@@ -417,12 +430,12 @@ function! s:sub_tag_pair(params) "{{{
   let pattern_till_tag_end = '\_[^>]*>'
 
   if search('\v\</?\m\%' . before.col . 'c' . pattern_till_tag_end, 'n')
-    let backward = search('\v/\m\%' . before.col . 'c', 'n')
+    let in_closing_tag = search('\v/\m\%' . before.col . 'c', 'n')
     let opposite = searchpairpos(
           \   '<' . s:escape_pattern(before.text) . pattern_till_tag_end,
           \   '',
-          \   '</' . s:escape_pattern(before.text) . '\s*>' . (backward ? '\zs' : ''),
-          \   'nW' . (backward ? 'b' : ''),
+          \   '</' . s:escape_pattern(before.text) . '\s*>' . (in_closing_tag ? '\zs' : ''),
+          \   'nW' . (in_closing_tag ? 'b' : ''),
           \   '',
           \   '',
           \   timeout,
@@ -431,8 +444,14 @@ function! s:sub_tag_pair(params) "{{{
       let ctext = {
             \   "text": before.text,
             \   "line": opposite[0],
-            \   "col": opposite[1],
+            \   "col": opposite[1] + 1 + !in_closing_tag,
             \ }
+      call s:substitute(
+            \   ctext,
+            \   after,
+            \   '-',
+            \   {'no_cursor': 1}
+            \ )
     endif
   endif
 endfunction "}}}
