@@ -247,11 +247,11 @@ endfunction "}}}
 function! s:add_group(scope, group_attrs) "{{{
   let options = {}
 
-  if len(a:group_attrs) > 1
-    if type(a:group_attrs[1]) == type({})
-      call extend(options, a:group_attrs[1])
-    elseif type(a:group_attrs[1]) == type([])
-      for option in a:group_attrs[1]
+  for param in a:group_attrs[1:]
+    if type(param) == type({})
+      call extend(options, param)
+    elseif type(param) == type([])
+      for option in param
         if type(option) == type({})
           call extend(options, option)
         else
@@ -260,11 +260,12 @@ function! s:add_group(scope, group_attrs) "{{{
         unlet option
       endfor
     else
-      for option in split(a:group_attrs[1])
+      for option in split(param)
         let options[option] = 1
       endfor
     endif
-  endif
+    unlet param
+  endfor
 
   let group = {
         \ 'items': a:group_attrs[0],
