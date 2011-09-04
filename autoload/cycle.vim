@@ -329,6 +329,10 @@ function! s:parse_callback_options(options) "{{{
     call add(callbacks.after_sub, function('s:sub_tag_pair'))
   endif
 
+  if get(options, 'sub_pair')
+    call add(callbacks.after_sub, function('s:sub_pair'))
+  endif
+
   return callbacks
 endfunction "}}}
 
@@ -480,6 +484,50 @@ function! s:sub_tag_pair(params) "{{{
       endif
 
     endif
+  endif
+endfunction "}}}
+
+function! s:sub_pair(params) "{{{
+  let before = a:params.before
+  let after = a:params.after
+  let options = a:params.options
+  let timeout = 600
+  let ic_flag = get(options, 'match_case') ? '\C' : '\c'
+
+  if type(get(options, 'end_with')) == type([])
+    let at_begin = 1
+  elseif type(get(options, 'begin_with')) == type([])
+    let at_begin = 0
+  else
+    return
+  endif
+  let pair_at = at_begin ? 'end' : 'begin'
+
+  let pair_before = deepcopy(before)
+  let pair_before.text = get(options[pair_at . '_with'], index(a:params.items, before.text))
+  let pair_after = {}
+  let pair_after.text = get(options[pair_at . '_with'], index(a:params.items, after.text))
+  let opposite = searchpairpos(
+        \   s:escape_pattern(at_begin ? before.text : pair_before.text),
+        \   '',
+        \   s:escape_pattern(at_begin ? pair_before.text : pair_after.text)
+        \        . (at_begin ? '' : '\zs') . ic_flag,
+        \   'nW' . (at_begin ? '' : 'b'),
+        \   '',
+        \   '',
+        \   timeout,
+        \ )
+  if opposite != [0, 0]
+    let pair_before.line = opposite[0]
+    let pair_before.col = opposite[1]
+    call extend(pair_after, pair_before, 'keep')
+    call s:substitute(
+          \   pair_before,
+          \   pair_after,
+          \   '-',
+          \   a:params.items,
+          \   s:cascade_options_for_callback(options),
+          \ )
   endif
 endfunction "}}}
 
