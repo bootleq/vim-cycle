@@ -98,6 +98,12 @@ endfunction "}}}
 
 function! s:substitute(before, after, class_name, options) "{{{
   let callbacks = s:parse_callback_options(a:options)
+  let callback_params = {
+        \   'before': a:before,
+        \   'after':  a:after,
+        \   'class_name': a:class_name,
+        \   'options': a:options,
+        \ }
 
   call setline(
         \   a:before.line,
@@ -110,13 +116,7 @@ function! s:substitute(before, after, class_name, options) "{{{
         \ )
 
   for Fn in callbacks.after_sub
-    call call(Fn, [{
-          \     'before': a:before,
-          \     'after':  a:after,
-          \     'class_name': a:class_name,
-          \     'options': a:options,
-          \   }]
-          \ )
+    call call(Fn, [callback_params])
   endfor
 endfunction  "}}}
 
