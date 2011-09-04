@@ -207,6 +207,10 @@ function! s:group_search(group, class_name) "{{{
       endif
       let text_index = match(getline('.'), pattern)
       
+      if a:class_name == 'v' && item != s:new_cvisual().text
+        continue
+      endif
+
       if a:class_name == 'w' && item != s:new_cword().text
         continue
       endif
