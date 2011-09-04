@@ -25,7 +25,7 @@ function! cycle#new(class_name, direction, count) "{{{
           \   matches[0].pairs.before,
           \   matches[0].pairs.after,
           \   a:class_name,
-          \   matches[0].group.options,
+          \   extend(matches[0].group.options, {'restrict_cursor': 1}),
           \ )
   else
     call s:fallback()
@@ -97,19 +97,7 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
 endfunction "}}}
 
 function! s:substitute(before, after, class_name, options) "{{{
-  let pos = s:getpos()
-  let end_col = a:before.col + strlen(a:after.text) - 1
-
   let callbacks = s:parse_callback_options(a:options)
-  for Fn in callbacks.before_sub
-    call call(Fn, [{
-          \     'before': a:before,
-          \     'after':  a:after,
-          \     'class_name': a:class_name,
-          \     'options': a:options,
-          \   }]
-          \ )
-  endfor
 
   call setline(
         \   a:before.line,
@@ -121,17 +109,15 @@ function! s:substitute(before, after, class_name, options) "{{{
         \   )
         \ )
 
-  if get(a:options, 'no_cursor')
-    return
-  endif
-
-  if a:class_name == 'v' || (a:after.text =~ '\W' && g:cycle_auto_visual)
-    call cursor(a:before.line, a:before.col)
-    normal v
-    call cursor(a:after.line, end_col)
-  elseif a:after.line > a:before.line || end_col < pos.col
-    call cursor(a:after.line, end_col)
-  endif
+  for Fn in callbacks.after_sub
+    call call(Fn, [{
+          \     'before': a:before,
+          \     'after':  a:after,
+          \     'class_name': a:class_name,
+          \     'options': a:options,
+          \   }]
+          \ )
+  endfor
 endfunction  "}}}
 
 function! s:conflict(matches) "{{{
@@ -329,8 +315,13 @@ function! s:parse_callback_options(options) "{{{
         \ }
 
   if get(options, 'xmltag')
-    call add(callbacks.before_sub, function('s:sub_tag_pair'))
+    call add(callbacks.after_sub, function('s:sub_tag_pair'))
   endif
+
+  if get(options, 'restrict_cursor')
+    call add(callbacks.after_sub, function('s:restrict_cursor'))
+  endif
+
   return callbacks
 endfunction "}}}
 
@@ -430,6 +421,7 @@ function! s:sub_tag_pair(params) "{{{
   let timeout = 600
   let pattern_till_tag_end = '\_[^>]*>'
   let ic_flag = get(options, 'match_case') ? '\C' : '\c'
+  let pos = s:getpos()
 
   if search(
         \ '\v\</?\m\%' . before.line . 'l\%' . before.col . 'c'
@@ -447,28 +439,57 @@ function! s:sub_tag_pair(params) "{{{
           \   '',
           \   timeout,
           \ )
+
     if opposite != [0, 0]
       let ctext = {
             \   "text": before.text,
             \   "line": opposite[0],
             \   "col": opposite[1] + 1 + !in_closing_tag,
             \ }
+      let len_diff = strlen(after.text) - strlen(ctext.text)
+
       call s:substitute(
             \   ctext,
             \   after,
             \   '-',
-            \   s:cascade_options_for_callback(options, {'no_cursor': 1}),
+            \   s:cascade_options_for_callback(options),
             \ )
+
+      if in_closing_tag && ctext.line == after.line
+        let new_col = before.col + len_diff
+        if pos.col > new_col + strlen(after.text)
+          call cursor(pos.line, new_col)
+          execute 'normal t>'
+        else
+          call cursor(pos.line, pos.col + len_diff)
+        endif
+      endif
+
     endif
   endif
 endfunction "}}}
 
-function! s:cascade_options_for_callback(options, extras) "{{{
+function! s:restrict_cursor(params) "{{{
+  let before = a:params.before
+  let after = a:params.after
+  let pos = s:getpos()
+  let end_col = before.col + strlen(after.text) - 1
+  if a:params.class_name == 'v' || (after.text =~ '\W' && g:cycle_auto_visual)
+    call cursor(before.line, before.col)
+    normal v
+    call cursor(after.line, end_col)
+  elseif after.line > before.line || end_col < pos.col
+    call cursor(after.line, end_col)
+  endif
+endfunction "}}}
+
+function! s:cascade_options_for_callback(options, ...) "{{{
+  let extras = a:0 ? a:1 : {}
   let filtered =  filter(
         \   deepcopy(a:options),
         \   "index(['match_case', 'hard_case'], v:key) >= 0"
         \ )
-  return extend(filtered, a:extras)
+  return extend(filtered, extras)
 endfunction "}}}
 
 " }}} Optional Callbacks
