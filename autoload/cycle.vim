@@ -25,6 +25,7 @@ function! cycle#new(class_name, direction, count) "{{{
           \   matches[0].pairs.before,
           \   matches[0].pairs.after,
           \   a:class_name,
+          \   matches[0].group.items,
           \   extend(matches[0].group.options, {'restrict_cursor': 1}),
           \ )
   else
@@ -96,12 +97,13 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
   return matches
 endfunction "}}}
 
-function! s:substitute(before, after, class_name, options) "{{{
+function! s:substitute(before, after, class_name, items, options) "{{{
   let callbacks = s:parse_callback_options(a:options)
   let callback_params = {
         \   'before': a:before,
         \   'after':  a:after,
         \   'class_name': a:class_name,
+        \   'items': a:items,
         \   'options': a:options,
         \ }
 
@@ -457,6 +459,7 @@ function! s:sub_tag_pair(params) "{{{
             \   ctext,
             \   after,
             \   '-',
+            \   [],
             \   s:cascade_options_for_callback(options),
             \ )
 
