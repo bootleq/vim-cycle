@@ -319,12 +319,12 @@ function! s:parse_callback_options(options) "{{{
         \   'after_sub': [],
         \ }
 
-  if get(options, 'xmltag')
-    call add(callbacks.after_sub, function('s:sub_tag_pair'))
-  endif
-
   if get(options, 'restrict_cursor')
     call add(callbacks.after_sub, function('s:restrict_cursor'))
+  endif
+
+  if get(options, 'xmltag')
+    call add(callbacks.after_sub, function('s:sub_tag_pair'))
   endif
 
   return callbacks
@@ -462,11 +462,17 @@ function! s:sub_tag_pair(params) "{{{
 
       if in_closing_tag && ctext.line == after.line
         let new_col = before.col + len_diff
-        if pos.col > new_col + strlen(after.text)
+        if a:params.class_name == 'v'
+          normal "_y
           call cursor(pos.line, new_col)
-          execute 'normal t>'
+          normal vt>
         else
-          call cursor(pos.line, pos.col + len_diff)
+          if pos.col > new_col + strlen(after.text)
+            call cursor(pos.line, new_col)
+            execute 'normal t>'
+          else
+            call cursor(pos.line, pos.col + len_diff)
+          endif
         endif
       endif
 
