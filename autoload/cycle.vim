@@ -25,6 +25,7 @@ function! cycle#new(class_name, direction, count) "{{{
           \   matches[0].pairs.before,
           \   matches[0].pairs.after,
           \   a:class_name,
+          \   matches[0].group.items,
           \   extend(matches[0].group.options, {'restrict_cursor': 1}),
           \ )
   else
@@ -96,8 +97,15 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
   return matches
 endfunction "}}}
 
-function! s:substitute(before, after, class_name, options) "{{{
+function! s:substitute(before, after, class_name, items, options) "{{{
   let callbacks = s:parse_callback_options(a:options)
+  let callback_params = {
+        \   'before': a:before,
+        \   'after':  a:after,
+        \   'class_name': a:class_name,
+        \   'items': a:items,
+        \   'options': a:options,
+        \ }
 
   call setline(
         \   a:before.line,
@@ -110,13 +118,7 @@ function! s:substitute(before, after, class_name, options) "{{{
         \ )
 
   for Fn in callbacks.after_sub
-    call call(Fn, [{
-          \     'before': a:before,
-          \     'after':  a:after,
-          \     'class_name': a:class_name,
-          \     'options': a:options,
-          \   }]
-          \ )
+    call call(Fn, [callback_params])
   endfor
 endfunction  "}}}
 
@@ -249,6 +251,7 @@ function! s:text_transform(before, after, options) "{{{
 endfunction "}}}
 
 function! s:add_group(scope, group_attrs) "{{{
+  let items = copy(a:group_attrs[0])
   let options = {}
 
   for param in a:group_attrs[1:]
@@ -271,8 +274,23 @@ function! s:add_group(scope, group_attrs) "{{{
     unlet param
   endfor
 
+  if has_key(options, 'sub_pairs')
+    let separator = type(options.sub_pairs) == type(0) ? ':' : options.sub_pairs
+    let [begin_items, end_items] = [[], []]
+    for item in items
+      let [begin_item, end_item] = split(item, separator)
+      call add(begin_items, begin_item)
+      call add(end_items, end_item)
+    endfor
+    unlet options.sub_pairs
+    let options.sub_pair = 1
+    call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {'end_with': end_items})])
+    call s:add_group(a:scope, [end_items, extend(deepcopy(options), {'begin_with': begin_items})])
+    return
+  endif
+
   let group = {
-        \ 'items': a:group_attrs[0],
+        \ 'items': items,
         \ 'options': options,
         \ }
 
@@ -325,6 +343,10 @@ function! s:parse_callback_options(options) "{{{
 
   if get(options, 'xmltag')
     call add(callbacks.after_sub, function('s:sub_tag_pair'))
+  endif
+
+  if get(options, 'sub_pair')
+    call add(callbacks.after_sub, function('s:sub_pair'))
   endif
 
   return callbacks
@@ -457,6 +479,7 @@ function! s:sub_tag_pair(params) "{{{
             \   ctext,
             \   after,
             \   '-',
+            \   [],
             \   s:cascade_options_for_callback(options),
             \ )
 
@@ -477,6 +500,57 @@ function! s:sub_tag_pair(params) "{{{
       endif
 
     endif
+  endif
+endfunction "}}}
+
+function! s:sub_pair(params) "{{{
+  let before = a:params.before
+  let after = a:params.after
+  let options = a:params.options
+  let timeout = 600
+  let ic_flag = get(options, 'match_case') ? '\C' : '\c'
+
+  if type(get(options, 'end_with')) == type([])
+    let at_begin = 1
+  elseif type(get(options, 'begin_with')) == type([])
+    let at_begin = 0
+  else
+    return
+  endif
+  let pair_at = at_begin ? 'end' : 'begin'
+
+  let pair_before = deepcopy(before)
+  let pair_before.text = get(
+        \   options[pair_at . '_with'],
+        \   index(a:params.items, before.text, 0, ic_flag == '\c'),
+        \ )
+  let pair_after = {}
+  let pair_after.text = get(
+        \   options[pair_at . '_with'],
+        \   index(a:params.items, after.text, 0, ic_flag == '\c'),
+        \ )
+
+  let opposite = searchpairpos(
+        \   s:escape_pattern(at_begin ? before.text : pair_before.text),
+        \   '',
+        \   s:escape_pattern(at_begin ? pair_before.text : pair_after.text)
+        \        . (at_begin ? '' : '\zs') . ic_flag,
+        \   'nW' . (at_begin ? '' : 'b'),
+        \   '',
+        \   '',
+        \   timeout,
+        \ )
+  if opposite != [0, 0]
+    let pair_before.line = opposite[0]
+    let pair_before.col = opposite[1]
+    call extend(pair_after, pair_before, 'keep')
+    call s:substitute(
+          \   pair_before,
+          \   pair_after,
+          \   '-',
+          \   a:params.items,
+          \   s:cascade_options_for_callback(options),
+          \ )
   endif
 endfunction "}}}
 

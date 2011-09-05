@@ -9,7 +9,8 @@ Cycle text within predefined candidates.
   - `"` =&gt; `'` &nbsp; can handle non-keywords
   - 可`是` =&gt; 可`否` &nbsp; multibyte is fine
   - `Rails Metal` =&gt; `Thrash` =&gt; `Technical Death` &nbsp; handle multi-words by visual selection, or smart auto search
-  - `<em>foo</em>` =&gt; `<strong>foo</strong>` &nbsp; tag pairs cycle together
+  - `<em>`important`</em>` =&gt; `<strong>`important`</strong>` &nbsp; tag pairs cycle together
+  - `「`quoted`」` =&gt; `『`quoted`』` &nbsp; special pairs cycle together
 
 
 Similar Projects

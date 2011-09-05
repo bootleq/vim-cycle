@@ -5,6 +5,12 @@ decoding  encoding
 decode  encode
 40.1px  40.2%  40.9em
 
+「 『 BBB
+  「 {{ <<<
+{foo} [bar] （中文）
+  」 }} >>>
+」 』 BBG
+
 Sunday,  Monday,  Tuesday,  Wednesday,  Thursday,  Friday,  Saturday
 
 <h1>foo bar</h1><small class="em">em</small>
