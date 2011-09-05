@@ -251,6 +251,7 @@ function! s:text_transform(before, after, options) "{{{
 endfunction "}}}
 
 function! s:add_group(scope, group_attrs) "{{{
+  let items = copy(a:group_attrs[0])
   let options = {}
 
   for param in a:group_attrs[1:]
@@ -273,8 +274,23 @@ function! s:add_group(scope, group_attrs) "{{{
     unlet param
   endfor
 
+  if has_key(options, 'sub_pairs')
+    let separator = type(options.sub_pairs) == type(0) ? ':' : options.sub_pairs
+    let [begin_items, end_items] = [[], []]
+    for item in items
+      let [begin_item, end_item] = split(item, separator)
+      call add(begin_items, begin_item)
+      call add(end_items, end_item)
+    endfor
+    unlet options.sub_pairs
+    let options.sub_pair = 1
+    call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {'end_with': end_items})])
+    call s:add_group(a:scope, [end_items, extend(deepcopy(options), {'begin_with': begin_items})])
+    return
+  endif
+
   let group = {
-        \ 'items': a:group_attrs[0],
+        \ 'items': items,
         \ 'options': options,
         \ }
 
