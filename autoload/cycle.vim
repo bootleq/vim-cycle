@@ -401,7 +401,7 @@ function! s:new_cvisual()
   let save_mode = mode()
 
   call s:save_reg('a')
-  normal gv"ay
+  normal! gv"ay
   let cvisual = {
         \   "text": @a,
         \   "line": getpos('v')[1],
@@ -409,7 +409,7 @@ function! s:new_cvisual()
         \ }
 
   if save_mode == 'v'
-    normal gv
+    normal! gv
   endif
   call s:restore_reg('a')
 
@@ -418,7 +418,7 @@ endfunction
 
 function! s:new_cchar()
   call s:save_reg('a')
-  normal "ayl
+  normal! "ayl
   let cchar = {
         \   "text": @a,
         \   "line": getpos('.')[1],
@@ -486,13 +486,13 @@ function! s:sub_tag_pair(params) "{{{
       if in_closing_tag && ctext.line == after.line
         let new_col = before.col + len_diff
         if a:params.class_name == 'v'
-          normal "_y
+          normal! "_y
           call cursor(pos.line, new_col)
-          normal vt>
+          normal! vt>
         else
           if pos.col > new_col + strlen(after.text)
             call cursor(pos.line, new_col)
-            execute 'normal t>'
+            execute 'normal! t>'
           else
             call cursor(pos.line, pos.col + len_diff)
           endif
@@ -561,7 +561,7 @@ function! s:restrict_cursor(params) "{{{
   let end_col = before.col + strlen(after.text) - 1
   if a:params.class_name == 'v' || (after.text =~ '\W' && g:cycle_auto_visual)
     call cursor(before.line, before.col)
-    normal v
+    normal! v
     call cursor(after.line, end_col)
   elseif after.line > before.line || end_col < pos.col
     call cursor(after.line, end_col)
