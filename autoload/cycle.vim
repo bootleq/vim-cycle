@@ -1,13 +1,10 @@
 " Main Functions: {{{
 
 function! cycle#new(class_name, direction, count) "{{{
-  let s:direction = a:direction
-  let s:count = a:count
-
   let matches = cycle#search(a:class_name, {'direction': a:direction, 'count': a:count})
   
   if empty(matches)
-    return s:fallback()
+    return s:fallback(a:direction, a:count)
   endif
 
   if len(matches) > 1 && g:cycle_max_conflict > 1
@@ -29,7 +26,7 @@ function! cycle#new(class_name, direction, count) "{{{
           \   extend(matches[0].group.options, {'restrict_cursor': 1}),
           \ )
   else
-    call s:fallback()
+    call s:fallback(a:direction, a:count)
   endif
 endfunction "}}}
 
@@ -145,9 +142,9 @@ function! s:conflict(matches) "{{{
   return confirm("Cycle with:\n" . join(candidates, "\n"), join(captions, "\n"), 0)
 endfunction "}}}
 
-function! s:fallback() "{{{
+function! s:fallback(direction, count) "{{{
   " TODO: test for visual mode
-  execute "normal " . s:count . "\<Plug>CycleFallback" . (s:direction > 0 ? 'Next' : 'Prev')
+  execute "normal " . a:count . "\<Plug>CycleFallback" . (a:direction > 0 ? 'Next' : 'Prev')
 endfunction "}}}
 
 " }}} Main Functions
