@@ -22,6 +22,7 @@ else
   endfunction
 endif "}}}
 
+
 if exists('*AddSwapList') "{{{
   call s:warn('Function "AddSwapList" has already defined. Cycle.vim has stopped overwriting it.')
 else
@@ -37,6 +38,7 @@ else
   endfunction
 endif "}}}
 
+
 if exists('*AddSwapXmlMatchit') "{{{
   call s:warn('Function "AddSwapXmlMatchit" has already defined. Cycle.vim has stopped overwriting it.')
 else
@@ -45,6 +47,7 @@ else
     call s:warn('Function "AddSwapXmlMatchit" is not compatible with Cycle.vim.')
   endfunction
 endif "}}}
+
 
 if exists('*LoadFileTypeSwapList') "{{{
   call s:warn('Function "LoadFileTypeSwapList" has already defined. Cycle.vim has stopped overwriting it.')
@@ -56,6 +59,7 @@ else
   endfunction
 endif "}}}
 
+
 if exists('*OpenSwapFileType') "{{{
   call s:warn('Function "OpenSwapFileType" has already defined. Cycle.vim has stopped overwriting it.')
 else
@@ -66,7 +70,7 @@ else
   endfunction
 endif "}}}
 
-" List Maintenance Functions {{{
+" }}} List Maintenance Functions
 
 
 " Utils: {{{

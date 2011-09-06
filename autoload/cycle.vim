@@ -30,6 +30,7 @@ function! cycle#new(class_name, direction, count) "{{{
   endif
 endfunction "}}}
 
+
 function! cycle#search(class_name, ...) "{{{
   let options = a:0 ? a:1 : {}
   let groups = s:groups()
@@ -64,6 +65,7 @@ function! cycle#search(class_name, ...) "{{{
   return matches
 endfunction "}}}
 
+
 function! s:phased_search(class_name, groups, direction, count) "{{{
   let matches = []
   let new_text = s:new_ctext('')
@@ -94,6 +96,7 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
   return matches
 endfunction "}}}
 
+
 function! s:substitute(before, after, class_name, items, options) "{{{
   let callbacks = s:parse_callback_options(a:options)
   let callback_params = {
@@ -119,6 +122,7 @@ function! s:substitute(before, after, class_name, items, options) "{{{
   endfor
 endfunction  "}}}
 
+
 function! s:conflict(matches) "{{{
   if len(a:matches) > g:cycle_max_conflict
     redraw
@@ -141,6 +145,7 @@ function! s:conflict(matches) "{{{
   endfor
   return confirm("Cycle with:\n" . join(candidates, "\n"), join(captions, "\n"), 0)
 endfunction "}}}
+
 
 function! s:fallback(direction, count) "{{{
   " TODO: test for visual mode
@@ -170,6 +175,7 @@ function! s:groups(...) "{{{
   endfor
   return groups
 endfunction "}}}
+
 
 function! s:group_search(group, class_name) "{{{
   let options = a:group.options
@@ -230,6 +236,7 @@ function! s:group_search(group, class_name) "{{{
   return [index, ctext]
 endfunction "}}}
 
+
 function! s:text_transform(before, after, options) "{{{
   let text = a:after
 
@@ -246,6 +253,7 @@ function! s:text_transform(before, after, options) "{{{
 
   return text
 endfunction "}}}
+
 
 function! s:add_group(scope, group_attrs) "{{{
   let items = copy(a:group_attrs[0])
@@ -299,13 +307,16 @@ function! s:add_group(scope, group_attrs) "{{{
   endif
 endfunction "}}}
 
+
 function! cycle#add_group(group_or_attr, ...) "{{{
   call s:add_group_to('g', a:group_or_attr, a:000)
 endfunction "}}}
 
+
 function! cycle#add_b_group(group_or_attr, ...) "{{{
   call s:add_group_to('b', a:group_or_attr, a:000)
 endfunction "}}}
+
 
 function! cycle#add_groups(groups) "{{{
   for group in a:groups
@@ -313,11 +324,13 @@ function! cycle#add_groups(groups) "{{{
   endfor
 endfunction "}}}
 
+
 function! cycle#add_b_groups(groups) "{{{
   for group in a:groups
     call cycle#add_b_group(group)
   endfor
 endfunction "}}}
+
 
 function! s:add_group_to(scope, group_or_attr, ...) "{{{
   if type(a:group_or_attr) == type([])
@@ -326,6 +339,7 @@ function! s:add_group_to(scope, group_or_attr, ...) "{{{
     call s:add_group(a:scope, [a:group_or_attr] + a:1)
   endif
 endfunction "}}}
+
 
 function! s:parse_callback_options(options) "{{{
   let options = a:options
@@ -374,6 +388,7 @@ function! s:new_ctext(text_class)
   return ctext
 endfunction
 
+
 function! s:new_cword()
   let ckeyword = expand('<cword>')
   let cchar = s:new_cchar()
@@ -394,6 +409,7 @@ function! s:new_cword()
   return cword
 endfunction
 
+
 function! s:new_cvisual()
   let save_mode = mode()
 
@@ -413,6 +429,7 @@ function! s:new_cvisual()
   return cvisual
 endfunction
 
+
 function! s:new_cchar()
   call s:save_reg('a')
   normal! "ayl
@@ -424,6 +441,7 @@ function! s:new_cchar()
   call s:restore_reg('a')
   return cchar
 endfunction
+
 
 function! s:getpos()
   let pos = getpos('.')
@@ -500,6 +518,7 @@ function! s:sub_tag_pair(params) "{{{
   endif
 endfunction "}}}
 
+
 function! s:sub_pair(params) "{{{
   let before = a:params.before
   let after = a:params.after
@@ -551,6 +570,7 @@ function! s:sub_pair(params) "{{{
   endif
 endfunction "}}}
 
+
 function! s:restrict_cursor(params) "{{{
   let before = a:params.before
   let after = a:params.after
@@ -564,6 +584,7 @@ function! s:restrict_cursor(params) "{{{
     call cursor(after.line, end_col)
   endif
 endfunction "}}}
+
 
 function! s:cascade_options_for_callback(options, ...) "{{{
   let extras = a:0 ? a:1 : {}
@@ -583,9 +604,11 @@ function! s:escape_pattern(pattern) "{{{
   return escape(a:pattern, '.*~\[^$')
 endfunction "}}}
 
+
 function! s:escape_sub_expr(pattern) "{{{
   return escape(a:pattern, '~\&')
 endfunction "}}}
+
 
 function! s:imitate_case(text, reference) "{{{
   if a:reference =~# '^\u*$'
@@ -607,9 +630,11 @@ function! s:imitate_case(text, reference) "{{{
   endif
 endfunction "}}}
 
+
 function! s:save_reg(name) "{{{
   let s:save_reg = [getreg(a:name), getregtype(a:name)]
 endfunction "}}}
+
 
 function! s:restore_reg(name) "{{{
   if exists('s:save_reg')
