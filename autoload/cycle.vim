@@ -322,29 +322,6 @@ function! s:add_group_to(scope, group_or_attr, ...) "{{{
   endif
 endfunction "}}}
 
-
-function! s:parse_callback_options(options) "{{{
-  let options = a:options
-  let callbacks = {
-        \   'before_sub': [],
-        \   'after_sub': [],
-        \ }
-
-  if get(options, 'restrict_cursor')
-    call add(callbacks.after_sub, function('s:restrict_cursor'))
-  endif
-
-  if get(options, 'xmltag')
-    call add(callbacks.after_sub, function('s:sub_tag_pair'))
-  endif
-
-  if get(options, 'sub_pair')
-    call add(callbacks.after_sub, function('s:sub_pair'))
-  endif
-
-  return callbacks
-endfunction "}}}
-
 " }}} Group Operations
 
 
@@ -565,6 +542,29 @@ function! s:restrict_cursor(params) "{{{
   elseif after.line > before.line || end_col < pos.col
     call cursor(after.line, end_col)
   endif
+endfunction "}}}
+
+
+function! s:parse_callback_options(options) "{{{
+  let options = a:options
+  let callbacks = {
+        \   'before_sub': [],
+        \   'after_sub': [],
+        \ }
+
+  if get(options, 'restrict_cursor')
+    call add(callbacks.after_sub, function('s:restrict_cursor'))
+  endif
+
+  if get(options, 'xmltag')
+    call add(callbacks.after_sub, function('s:sub_tag_pair'))
+  endif
+
+  if get(options, 'sub_pair')
+    call add(callbacks.after_sub, function('s:sub_pair'))
+  endif
+
+  return callbacks
 endfunction "}}}
 
 
