@@ -4,7 +4,7 @@ let s:OPTIONS = {
       \ 'match_case': 'match_case',
       \ 'hard_case': 'hard_case',
       \ 'restrict_cursor': 'restrict_cursor',
-      \ 'sub_tag': 'xmltag',
+      \ 'sub_tag': 'sub_tag',
       \ 'sub_pair': 'sub_pair',
       \ 'sub_pairs': 'sub_pairs',
       \ 'end_with': 'end_with',
