@@ -1,3 +1,20 @@
+" Constants: {{{
+
+let s:OPTIONS = {
+      \ 'match_case': 'match_case',
+      \ 'hard_case': 'hard_case',
+      \ 'restrict_cursor': 'restrict_cursor',
+      \ 'sub_tag': 'xmltag',
+      \ 'sub_pair': 'sub_pair',
+      \ 'sub_pairs': 'sub_pairs',
+      \ 'end_with': 'end_with',
+      \ 'begin_with': 'begin_with',
+      \ 'regex': 'regex',
+      \ }
+
+" }}} Constants
+
+
 " Main Functions: {{{
 
 function! cycle#new(class_name, direction, count) "{{{
@@ -23,7 +40,7 @@ function! cycle#new(class_name, direction, count) "{{{
           \   matches[0].pairs.after,
           \   a:class_name,
           \   matches[0].group.items,
-          \   extend(matches[0].group.options, {'restrict_cursor': 1}),
+          \   extend(matches[0].group.options, {(s:OPTIONS.restrict_cursor): 1}),
           \ )
   else
     call s:fallback(a:direction, a:count)
@@ -184,7 +201,7 @@ function! s:group_search(group, class_name) "{{{
   let ctext = s:new_ctext(a:class_name)
 
   for item in a:group.items
-    if type(get(options, 'regex')) == type('')
+    if type(get(options, s:OPTIONS.regex)) == type('')
       let pattern = item
       let text_index = match(getline('.'), pattern)
       if text_index >= 0
@@ -201,13 +218,13 @@ function! s:group_search(group, class_name) "{{{
         let pattern = join([
               \   '\%' . ctext.col . 'c',
               \   s:escape_pattern(item),
-              \   get(options, 'match_case') ? '\C' : '\c',
+              \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
               \ ], '')
       else
         let pattern = join([
               \   '\%>' . max([0, pos.col - strlen(item)]) . 'c',
               \   '\%<' . (pos.col + 1) . 'c' . s:escape_pattern(item),
-              \   get(options, 'match_case') ? '\C' : '\c',
+              \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
               \ ], '')
       endif
       let text_index = match(getline('.'), pattern)
@@ -261,7 +278,7 @@ function! s:add_group(scope, group_attrs) "{{{
     unlet param
   endfor
 
-  if has_key(options, 'sub_pairs')
+  if has_key(options, s:OPTIONS.sub_pairs)
     let separator = type(options.sub_pairs) == type(0) ? ':' : options.sub_pairs
     let [begin_items, end_items] = [[], []]
     for item in items
@@ -271,8 +288,8 @@ function! s:add_group(scope, group_attrs) "{{{
     endfor
     unlet options.sub_pairs
     let options.sub_pair = 1
-    call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {'end_with': end_items})])
-    call s:add_group(a:scope, [end_items, extend(deepcopy(options), {'begin_with': begin_items})])
+    call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {(s:OPTIONS.end_with): end_items})])
+    call s:add_group(a:scope, [end_items, extend(deepcopy(options), {(s:OPTIONS.begin_with): begin_items})])
     return
   endif
 
@@ -421,7 +438,7 @@ function! s:sub_tag_pair(params) "{{{
   let options = a:params.options
   let timeout = 600
   let pattern_till_tag_end = '\_[^>]*>'
-  let ic_flag = get(options, 'match_case') ? '\C' : '\c'
+  let ic_flag = get(options, s:OPTIONS.match_case) ? '\C' : '\c'
   let pos = s:getpos()
 
   if search(
@@ -483,11 +500,11 @@ function! s:sub_pair(params) "{{{
   let after = a:params.after
   let options = a:params.options
   let timeout = 600
-  let ic_flag = get(options, 'match_case') ? '\C' : '\c'
+  let ic_flag = get(options, s:OPTIONS.match_case) ? '\C' : '\c'
 
-  if type(get(options, 'end_with')) == type([])
+  if type(get(options, s:OPTIONS.end_with)) == type([])
     let at_begin = 1
-  elseif type(get(options, 'begin_with')) == type([])
+  elseif type(get(options, s:OPTIONS.begin_with)) == type([])
     let at_begin = 0
   else
     return
@@ -552,15 +569,15 @@ function! s:parse_callback_options(options) "{{{
         \   'after_sub': [],
         \ }
 
-  if get(options, 'restrict_cursor')
+  if get(options, s:OPTIONS.restrict_cursor)
     call add(callbacks.after_sub, function('s:restrict_cursor'))
   endif
 
-  if get(options, 'xmltag')
+  if get(options, s:OPTIONS.sub_tag)
     call add(callbacks.after_sub, function('s:sub_tag_pair'))
   endif
 
-  if get(options, 'sub_pair')
+  if get(options, s:OPTIONS.sub_pair)
     call add(callbacks.after_sub, function('s:sub_pair'))
   endif
 
@@ -572,7 +589,7 @@ function! s:cascade_options_for_callback(options, ...) "{{{
   let extras = a:0 ? a:1 : {}
   let filtered =  filter(
         \   deepcopy(a:options),
-        \   "index(['match_case', 'hard_case'], v:key) >= 0"
+        \   "index([s:OPTIONS.match_case, s:OPTIONS.hard_case], v:key) >= 0"
         \ )
   return extend(filtered, extras)
 endfunction "}}}
@@ -595,14 +612,14 @@ endfunction "}}}
 function! s:text_transform(before, after, options) "{{{
   let text = a:after
 
-  if type(get(a:options, 'regex')) == type('')
+  if type(get(a:options, s:OPTIONS.regex)) == type('')
     let text = matchstr(
           \   a:after,
-          \   get(a:options, 'regex'),
+          \   get(a:options, s:OPTIONS.regex),
           \ )
   endif
 
-  if !get(a:options, 'hard_case')
+  if !get(a:options, s:OPTIONS.hard_case)
     let text = s:imitate_case(text, a:before)
   endif
 
