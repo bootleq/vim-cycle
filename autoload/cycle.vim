@@ -237,24 +237,6 @@ function! s:group_search(group, class_name) "{{{
 endfunction "}}}
 
 
-function! s:text_transform(before, after, options) "{{{
-  let text = a:after
-
-  if type(get(a:options, 'regex')) == type('')
-    let text = matchstr(
-          \   a:after,
-          \   get(a:options, 'regex'),
-          \ )
-  endif
-
-  if !get(a:options, 'hard_case')
-    let text = s:imitate_case(text, a:before)
-  endif
-
-  return text
-endfunction "}}}
-
-
 function! s:add_group(scope, group_attrs) "{{{
   let items = copy(a:group_attrs[0])
   let options = {}
@@ -607,6 +589,24 @@ endfunction "}}}
 
 function! s:escape_sub_expr(pattern) "{{{
   return escape(a:pattern, '~\&')
+endfunction "}}}
+
+
+function! s:text_transform(before, after, options) "{{{
+  let text = a:after
+
+  if type(get(a:options, 'regex')) == type('')
+    let text = matchstr(
+          \   a:after,
+          \   get(a:options, 'regex'),
+          \ )
+  endif
+
+  if !get(a:options, 'hard_case')
+    let text = s:imitate_case(text, a:before)
+  endif
+
+  return text
 endfunction "}}}
 
 
