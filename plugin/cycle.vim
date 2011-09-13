@@ -45,18 +45,9 @@ nnoremap <silent> <Plug>CyclePrev :<C-U>call Cycle('w', -1, v:count1)<CR>
 vnoremap <silent> <Plug>CycleNext :<C-U>call Cycle('v',  1, v:count1)<CR>
 vnoremap <silent> <Plug>CyclePrev :<C-U>call Cycle('v', -1, v:count1)<CR>
 
-if maparg('<Plug>CycleFallbackNext', 'n') == ''
-  nnoremap <silent> <Plug>CycleFallbackNext <C-A>
-endif
-if maparg('<Plug>CycleFallbackPrev', 'n') == ''
-  nnoremap <silent> <Plug>CycleFallbackPrev <C-X>
-endif
-
 if !g:cycle_no_mappings
-  silent! nmap <silent> <unique> <C-A> <Plug>CycleNext
-  silent! nmap <silent> <unique> <C-X> <Plug>CyclePrev
-  silent! vmap <silent> <unique> <C-A> <Plug>CycleNext
-  silent! vmap <silent> <unique> <C-X> <Plug>CyclePrev
+  silent! nmap <silent> <unique> <LocalLeader>a <Plug>CycleNext
+  silent! vmap <silent> <unique> <LocalLeader>a <Plug>CycleNext
 endif
 
 function! Cycle(class_name, direction, count)
