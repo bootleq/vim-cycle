@@ -1,6 +1,7 @@
 " Constants: {{{
 
 let s:OPTIONS = {
+      \ 'name': 'name',
       \ 'match_case': 'match_case',
       \ 'hard_case': 'hard_case',
       \ 'restrict_cursor': 'restrict_cursor',
@@ -154,7 +155,7 @@ function! s:conflict(matches) "{{{
     let caption = nr2char(char2nr('A') + index)
     call add(candidates, join([
           \   ' ' . caption . ') ',
-          \   get(match.group.options, 'name', '') . " => ",
+          \   get(match.group.options, s:OPTIONS.name, '') . " => ",
           \   match.pairs.after.text
           \ ], ''))
     call add(captions, '&' . caption)

@@ -18,11 +18,8 @@ call s:set_default('g:cycle_no_mappings', 0)
 call s:set_default('g:cycle_max_conflict', 1)
 call s:set_default('g:cycle_auto_visual', 0)
 call s:set_default('g:cycle_phased_search', 0)
-call s:set_default('g:cycle_no_default_groups', 0)
-call s:set_default('g:cycle_groups', [])
-call s:set_default('g:cycle_swapit_compatibility', 0)
 
-if !g:cycle_no_default_groups && !exists('g:cycle_default_groups')
+if !exists('g:cycle_default_groups')
   call cycle#add_groups([
         \   [['true', 'false']],
         \   [['yes', 'no']],
@@ -65,10 +62,6 @@ endif
 function! Cycle(class_name, direction, count)
   call cycle#new(a:class_name, a:direction, a:count)
 endfunction
-
-if g:cycle_swapit_compatibility
-  call cycle#swapit#try_compatible()
-endif
 
 " }}} Interface
 
