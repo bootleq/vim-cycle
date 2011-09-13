@@ -19,7 +19,7 @@ let s:OPTIONS = {
 
 function! cycle#new(class_name, direction, count) "{{{
   let matches = cycle#search(a:class_name, {'direction': a:direction, 'count': a:count})
-  
+
   if empty(matches)
     return s:fallback(a:direction, a:count)
   endif
@@ -56,7 +56,7 @@ function! cycle#search(class_name, ...) "{{{
   let matches = []
   let cword = s:new_cword()
   let cchar = s:new_cchar()
-  
+
   if a:class_name == 'w'
     if len(cchar.text) > 1
       let phases = ['.', 'w']
@@ -71,14 +71,14 @@ function! cycle#search(class_name, ...) "{{{
   else
     let phases = []
   endif
-  
+
   for phase in phases
     let matches = s:phased_search(phase, groups, direction, l:count)
     if len(matches)
       break
     endif
   endfor
-  
+
   return matches
 endfunction "}}}
 
@@ -228,7 +228,7 @@ function! s:group_search(group, class_name) "{{{
               \ ], '')
       endif
       let text_index = match(getline('.'), pattern)
-      
+
       if a:class_name == 'v' && item != s:new_cvisual().text
         continue
       endif
@@ -236,7 +236,7 @@ function! s:group_search(group, class_name) "{{{
       if a:class_name == 'w' && item != s:new_cword().text
         continue
       endif
-      
+
       if text_index >= 0
         let index = index(a:group.items, item)
         let ctext = {

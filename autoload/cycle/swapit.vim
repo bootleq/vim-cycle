@@ -74,7 +74,7 @@ endif "}}}
 
 
 " Utils: {{{
-  
+
 function! s:warn(msg)
   redraw
   echohl WarningMsg | echomsg a:msg | echohl None
