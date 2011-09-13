@@ -29,14 +29,12 @@ USAGE                                                            *cycle-usage*
 
                                                              *<Plug>CycleNext*
                                                              *<Plug>CyclePrev*
-Define key mapping for |<Plug>CycleNext| in |normal-mode|, >
+Define key mappings for |<Plug>CycleNext| in |Normal| and |Visual| modes: >
   nmap <silent> <LocalLeader>a <Plug>CycleNext
-< use it to replace text under cursor.
-(there is a default mapping <LocalLeader>a for this)
-
-Also map it in |visual-mode|, >
   vmap <silent> <LocalLeader>a <Plug>CycleNext
-< this replaces visual selected text, e.g.: "Hello World".
+< then you can use them to replace text-under-cursor or visual-selected-text
+with their alternates.
+(this plugin will define default mapping <LocalLeader>a for them)
 
 You can add [count] to pick candidate at further index, instead of just Next.
 You can map |<Plug>CyclePrev| (Prev, not Next) to cycle in reverse direction.
@@ -79,7 +77,12 @@ g:cycle_default_groups    (default: none) ~
 g:cycle_no_mappings       (default: 0) ~
 
   Set to 1 to disable default key mappings.
-  There is only one default: <LocalLeader>a for |<Plug>CycleNext|.
+  List of default key mappings:
+
+    mode   {lhs}              {rhs} ~
+    ----   --------------     --------------- ~
+    n      <LocalLeader>a     <Plug>CycleNext
+    v      <LocalLeader>a     <Plug>CycleNext
 
                                                         *g:cycle_max_conflict*
 g:cycle_max_conflict      (default: 1) ~

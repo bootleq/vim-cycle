@@ -166,7 +166,7 @@ endfunction "}}}
 
 
 function! s:fallback(direction, count) "{{{
-  " TODO: test for visual mode
+  " TODO: doc
   execute "normal " . a:count . "\<Plug>CycleFallback" . (a:direction > 0 ? 'Next' : 'Prev')
 endfunction "}}}
 
@@ -183,7 +183,6 @@ endfunction "}}}
 " ],                                |
 
 function! s:groups(...) "{{{
-  " TODO: optional parse items from omni-complete function
   let groups = []
   for scope in ['b', 'g']
     let name = scope . ':cycle_groups'
