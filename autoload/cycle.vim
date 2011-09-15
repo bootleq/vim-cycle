@@ -307,13 +307,13 @@ function! s:add_group(scope, group_attrs) "{{{
 endfunction "}}}
 
 
-function! cycle#add_group(group_or_attr, ...) "{{{
-  call s:add_group_to('g', a:group_or_attr, a:000)
+function! cycle#add_group(group_or_items, ...) "{{{
+  call s:add_group_to('g', a:group_or_items, a:000)
 endfunction "}}}
 
 
-function! cycle#add_b_group(group_or_attr, ...) "{{{
-  call s:add_group_to('b', a:group_or_attr, a:000)
+function! cycle#add_b_group(group_or_items, ...) "{{{
+  call s:add_group_to('b', a:group_or_items, a:000)
 endfunction "}}}
 
 
@@ -331,11 +331,11 @@ function! cycle#add_b_groups(groups) "{{{
 endfunction "}}}
 
 
-function! s:add_group_to(scope, group_or_attr, ...) "{{{
-  if type(a:group_or_attr) == type([])
-    call s:add_group(a:scope, a:group_or_attr)
+function! s:add_group_to(scope, group_or_items, ...) "{{{
+  if type(a:group_or_items[0]) == type([])
+    call s:add_group(a:scope, a:group_or_items)
   elseif a:0 > 0
-    call s:add_group(a:scope, [a:group_or_attr] + a:1)
+    call s:add_group(a:scope, [a:group_or_items] + a:1)
   endif
 endfunction "}}}
 
