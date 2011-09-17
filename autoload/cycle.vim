@@ -175,7 +175,7 @@ endfunction "}}}
 
 " Group Operations: {{{1
 " Structure of groups:
-" g:cycle_groups = [                | => a group, scoped by global or buffer
+" g:cycle_groups = [                | => groups, scoped by global or buffer
 "   {                               |   =>
 "     'items':   ['foo', 'bar'],    |   =>
 "     'options': {'hard_case': 1},  |   => a group
@@ -337,6 +337,23 @@ function! s:add_group_to(scope, group_or_items, ...) "{{{
   elseif a:0 > 0
     call s:add_group(a:scope, [a:group_or_items] + a:1)
   endif
+endfunction "}}}
+
+
+function! cycle#reset_b_groups(...) "{{{
+  if exists('b:cycle_groups')
+    unlet b:cycle_groups
+  endif
+
+  if a:0 && !empty(a:1)
+    call cycle#add_b_groups(a:1)
+  endif
+endfunction "}}}
+
+
+function! cycle#reset_b_groups_by_filetype() "{{{
+  let var_name = 'g:cycle_default_groups_for_' . &filetype
+  call cycle#reset_b_groups(exists(var_name) ? {var_name} : [])
 endfunction "}}}
 
 " }}} Group Operations

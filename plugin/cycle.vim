@@ -54,6 +54,11 @@ function! Cycle(class_name, direction, count)
   call cycle#new(a:class_name, a:direction, a:count)
 endfunction
 
+augroup cycle
+  autocmd!
+  autocmd FileType * call cycle#reset_b_groups_by_filetype()
+augroup END
+
 " }}} Interface
 
 
