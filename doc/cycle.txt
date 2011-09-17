@@ -30,10 +30,10 @@ USAGE                                                            *cycle-usage*
                                                              *<Plug>CycleNext*
                                                              *<Plug>CyclePrev*
 Define key mappings for |<Plug>CycleNext| in |Normal| and |Visual| modes: >
-  nmap <silent> <LocalLeader>a <Plug>CycleNext
-  vmap <silent> <LocalLeader>a <Plug>CycleNext
+  nmap <silent> <Leader>a <Plug>CycleNext
+  vmap <silent> <Leader>a <Plug>CycleNext
 < to replace text-under-cursor or visual-selected-text with their alternates.
-(this plugin defines <LocalLeader>a as default)
+(this plugin defines <Leader>a as default)
 
 You can add [count] to pick candidate at further index, instead of next ONE.
 You can map |<Plug>CyclePrev| (Prev, not Next) to cycle in reverse direction.
@@ -88,10 +88,10 @@ g:cycle_no_mappings       (default: 0) ~
   Set to 1 to disable default key mappings.
   List of defaults:
 
-    mode   {lhs}              {rhs} ~
-    ----   --------------     --------------- ~
-    n      <LocalLeader>a     <Plug>CycleNext
-    v      <LocalLeader>a     <Plug>CycleNext
+    mode   {lhs}         {rhs} ~
+    ----   ---------     --------------- ~
+    n      <Leader>a     <Plug>CycleNext
+    v      <Leader>a     <Plug>CycleNext
 
                                                         *g:cycle_max_conflict*
 g:cycle_max_conflict      (default: 1) ~
