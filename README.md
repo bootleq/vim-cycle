@@ -26,7 +26,8 @@ Similar Projects
 
 Status
 ======
-Under Development.
+Version 0.1.x.  
+Useful but spec might change.
 
 
 TODO
