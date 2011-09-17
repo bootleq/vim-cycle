@@ -15,7 +15,7 @@ CONTENTS                                                      *cycle-contents*
       Define groups  ....................... |cycle-define-groups|
       Group options ........................ |cycle-group-options|
       Examples  ............................ |cycle-examples|
-    Known issues  .......................... |cycle-known-issues|
+    Limitations  ........................... |cycle-limitations|
     Credits  ............................... |cycle-credits|
 
 ==============================================================================
@@ -32,14 +32,13 @@ USAGE                                                            *cycle-usage*
 Define key mappings for |<Plug>CycleNext| in |Normal| and |Visual| modes: >
   nmap <silent> <LocalLeader>a <Plug>CycleNext
   vmap <silent> <LocalLeader>a <Plug>CycleNext
-< then you can use them to replace text-under-cursor or visual-selected-text
-with their alternates.
-(this plugin will define default mapping <LocalLeader>a for them)
+< to replace text-under-cursor or visual-selected-text with their alternates.
+(this plugin defines <LocalLeader>a as default)
 
-You can add [count] to pick candidate at further index, instead of just Next.
+You can add [count] to pick candidate at further index, instead of next ONE.
 You can map |<Plug>CyclePrev| (Prev, not Next) to cycle in reverse direction.
 
-For example, with group ["One", "Two", "Three"]
+For example, with items ["One", "Two", "Three"]
 and your custom mapping is <C-A> for CycleNext, <C-X> for CyclePrev,
 where the cursor is under "One", then
 
@@ -53,7 +52,7 @@ where the cursor is under "One", then
 This plugin has a very small set of preset groups (says, yes/no is a group).
 It's recommended to define groups by yourself, see |cycle-define-groups|.
 
-There are some special features beside ordinary text replacing. They are
+There are some special features beside ordinary text replacing, which are
 controlled by group options, see |cycle-group-options|.
 
 ==============================================================================
@@ -70,23 +69,24 @@ g:loaded_cycle            (default: none) ~
                                                       *g:cycle_default_groups*
 g:cycle_default_groups    (default: none) ~
 
-  This is a List for setting custom default groups. If this option exists, no
-  groups will be set by plugin itself. See |cycle-define-groups-practice|.
+  This is a List for setting custom default groups. If exists, no groups will
+  be set by plugin itself. See |cycle-define-groups-practice|.
 
                                        *g:cycle_default_groups_for_{filetype}*
-g:cycle_default_groups_for_{filetype}    (default: none) ~
+g:cycle_default_groups_for_{filetype} ~
+                          (default: none) ~
 
-  Like |g:cycle_default_groups| but is for buffer-wised |b:cycle_groups|, and
-  is loaded when filetype changes.
-  The {filetype} part should be replaced with real filetype, e.g.: >
+  Like |g:cycle_default_groups| but is for buffer-scoped |b:cycle_groups|, and
+  is loaded when 'filetype' changes.
+  The {filetype} part should be replaced with real type string, e.g.: >
     let g:cycle_default_groups_for_ruby = []
-< for filetype "ruby".
+< is for filetype "ruby".
 
                                                          *g:cycle_no_mappings*
 g:cycle_no_mappings       (default: 0) ~
 
   Set to 1 to disable default key mappings.
-  List of default key mappings:
+  List of defaults:
 
     mode   {lhs}              {rhs} ~
     ----   --------------     --------------- ~
@@ -97,21 +97,21 @@ g:cycle_no_mappings       (default: 0) ~
 g:cycle_max_conflict      (default: 1) ~
 
   When there are more than 1 alternates (in different groups) for current
-  text, you are prompted to select which one you want.
+  text, you are prompted to select which is the wanted one.
 
-  When the number of conflicts is more than this value, no prompt will be
-  shown, just abort with a message instead.
+  When the number of conflicts is more than this setting, no prompt will be
+  shown, cycle aborts with a message instead.
 
   The default value is 1, means no conflicts will be handled. This improve
   some performance since no extra search is needed after first found.
-  And it's recommended to use buffer-scoped groups for decrease conflicts, see
+  And it's recommended to use buffer-scoped groups to prevent conflicts, see
   |cycle-define-groups-practice|.
 
                                                          *g:cycle_auto_visual*
 g:cycle_auto_visual       (default: 0) ~
 
   When starting a cycle in normal mode, and the result text is not a keyword
-  (for example, it contains whitespace, see |iskeyword|), you might want to
+  (for example, it contains whitespace, see 'iskeyword'), you might want to
   select the new text with visual mode. Set this option to 1 to enable it.
 
                                                        *g:cycle_phased_search*
@@ -119,13 +119,13 @@ g:cycle_phased_search     (default: 1) ~
 
   When starting a cycle, it might not obviously know which text should be
   cycled. In most cases it's exactly the |<cword>| under cursor, however, for
-  example, to cycle "Hello World", we must visual select it because it's not a
+  example, to cycle "Hello World", we must visual-select it because it's not a
   <cword>.
 
-  When this option is on, some smart guess will perform. The search can retry
-  with multiple phases. For example, while searching of <cword> in
-  "foo_with_bar" fails, some secondary search can find the "with" and return
-  the intended "foo_without_bar" as a result.
+  When this option is on, the search can smartly perform with multiple phases.
+  For example, while searching of <cword> in "foo_with_bar" fails, some
+  secondary search can find the "with" and return intended "foo_without_bar"
+  as a result.
 
 ------------------------------------------------------------------------------
 Define groups                                            *cycle-define-groups*
@@ -134,10 +134,10 @@ To start quickly, just read |cycle-define-groups-practice|.
 
                                                               *g:cycle_groups*
                                                               *b:cycle_groups*
-All candidates are defined as a set of groups, a List of group settings.
-Structure of groups looks like:
+All candidates are defined as groups.
+The structure looks like:
 >
-  g:cycle_groups = [                | => groups, scoped by global or buffer
+  g:cycle_groups = [                | => groups, scoped by global/buffer
     {                               |   =>
       'items':   ['foo', 'bar'],    |   =>
       'options': {'hard_case': 1},  |   => a group
@@ -164,7 +164,7 @@ Without any configuration, the default preset groups is: >
 <
                                                            *cycle#add_group()*
 A group consists with "items" and optional "options".
-To add a group, using |cycle#add_group()| with any of below forms >
+To add a group, use |cycle#add_group()| with any of below forms >
   cycle#add_group(items)
   cycle#add_group(items, options)
   cycle#add_group(items, option, ..., option_can_be_dictionary_or_string)
@@ -176,11 +176,11 @@ To add a group, using |cycle#add_group()| with any of below forms >
   call cycle#add_group([['Yes', 'No'], 'match_case'])
 <
                                                          *cycle#add_b_group()*
-Use cycle#add_b_group() to add a group into b: scoped.
+Use cycle#add_b_group() to add a group into b: scoped. |b:cycle_groups|
 
                                                           *cycle#add_groups()*
                                                         *cycle#add_b_groups()*
-To add multiple groups at the same time, There are shortcut version of adding
+To add multiple groups at the same time, there are shortcut version of adding
 functions. You have to wrap items and options as a List, for example: >
   call cycle#add_groups([
         \   [['true', 'false']],
@@ -193,27 +193,27 @@ Also accepts a parameter same as |cycle#add_b_groups| to set new groups.
 
                                           *cycle#reset_b_groups_by_filetype()*
 Reset |b:cycle_groups| with settings subject to current 'filetype', requires
-variable |g:cycle_default_groups_for_{filetype}| set.
+variable |g:cycle_default_groups_for_{filetype}| preset.
 
                                                 *cycle-define-groups-practice*
 The recommended way to define groups is setting |g:cycle_default_groups| and
 |g:cycle_default_groups_for_{filetype}| in your vimrc, this plugin will find
-and applied them behind the scenes.
+and applied them behind the scene.
 See |cycle-config-examples|.
 
 ------------------------------------------------------------------------------
 Group options                                            *cycle-group-options*
 
 A group option is a Dictionary with key-value pair. While for convenience,
-within |cycle#add_group()| and similar functions, you can set it as a string
-(by its key), the option's default value will be used.
+in |cycle#add_group()| and similar functions, you can set it as a string (by
+its key), the option's default value will be used.
 
 By default no options are set.
 
 "name"              String (default: none) ~
 
   Name of the group.
-  Will be displayed in the conflict prompt, see |g:cycle_max_conflict|.
+  Will be displayed in conflict prompt, see |g:cycle_max_conflict|.
 
 "match_case"        Number (default: 1) ~
 
@@ -251,8 +251,7 @@ By default no options are set.
 "end_with"          List (default: none) ~
 "begin_with"        List (default: none) ~
 
-  These two are used with "sub_pair" option, to define the opposite pairs for
-  original text.
+  Used with "sub_pair" option, to define opposite pairs for original text.
 
 "sub_pairs"         String (default: ':') ~
 
@@ -301,6 +300,7 @@ Default global groups:
           \   [["min", "max"]],
           \   [["get", "post"]],
           \   [["to", "from"]],
+          \   [["read", "write"]],
           \   [["only", "except"]],
           \   [['with', 'without']],
           \   [["exclude", "include"]],
@@ -352,7 +352,7 @@ Filetype specified groups:
 <
 
 ==============================================================================
-KNOWN ISSUES                                              *cycle-known-issues*
+LIMITATIONS                                                *cycle-limitations*
 
 - Can't handle multi line text.
 
