@@ -361,7 +361,7 @@ endfunction "}}}
 
 " Text Classes: {{{
 
-function! s:new_ctext(text_class)
+function! s:new_ctext(text_class) "{{{
   if a:text_class == 'w'
     let ctext = s:new_cword()
     if ctext.col == 0
@@ -379,10 +379,10 @@ function! s:new_ctext(text_class)
           \ }
   endif
   return ctext
-endfunction
+endfunction "}}}
 
 
-function! s:new_cword()
+function! s:new_cword() "{{{
   let ckeyword = expand('<cword>')
   let cchar = s:new_cchar()
   let cword = {
@@ -400,10 +400,10 @@ function! s:new_cword()
     let cword.text = ckeyword
   endif
   return cword
-endfunction
+endfunction "}}}
 
 
-function! s:new_cvisual()
+function! s:new_cvisual() "{{{
   let save_mode = mode()
 
   call s:save_reg('a')
@@ -420,10 +420,10 @@ function! s:new_cvisual()
   call s:restore_reg('a')
 
   return cvisual
-endfunction
+endfunction "}}}
 
 
-function! s:new_cchar()
+function! s:new_cchar() "{{{
   call s:save_reg('a')
   normal! "ayl
   let cchar = {
@@ -433,16 +433,16 @@ function! s:new_cchar()
         \ }
   call s:restore_reg('a')
   return cchar
-endfunction
+endfunction "}}}
 
 
-function! s:getpos()
+function! s:getpos() "{{{
   let pos = getpos('.')
   return {
         \   "line": pos[1],
         \   "col": pos[2],
         \ }
-endfunction
+endfunction "}}}
 
 " }}} Text Classes
 
