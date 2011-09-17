@@ -156,8 +156,7 @@ Without any configuration, the default preset groups is: >
         \   [['true', 'false']],
         \   [['yes', 'no']],
         \   [['on', 'off']],
-        \   [['and', 'or']],
-        \   [["in", "out"]],
+        \   [['0', '1']],
         \   [['+', '-']],
         \   [['>', '<']],
         \ ])

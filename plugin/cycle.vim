@@ -24,8 +24,7 @@ if !exists('g:cycle_default_groups')
         \   [['true', 'false']],
         \   [['yes', 'no']],
         \   [['on', 'off']],
-        \   [['and', 'or']],
-        \   [["in", "out"]],
+        \   [['0', '1']],
         \   [['+', '-']],
         \   [['>', '<']],
         \ ])
