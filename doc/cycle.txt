@@ -73,6 +73,15 @@ g:cycle_default_groups    (default: none) ~
   This is a List for setting custom default groups. If this option exists, no
   groups will be set by plugin itself. See |cycle-define-groups-practice|.
 
+                                       *g:cycle_default_groups_for_{filetype}*
+g:cycle_default_groups_for_{filetype}    (default: none) ~
+
+  Like |g:cycle_default_groups| but is for buffer-wised |b:cycle_groups|, and
+  is loaded when filetype changes.
+  The {filetype} part should be replaced with real filetype, e.g.: >
+    let g:cycle_default_groups_for_ruby = []
+< for filetype "ruby".
+
                                                          *g:cycle_no_mappings*
 g:cycle_no_mappings       (default: 0) ~
 
@@ -178,9 +187,18 @@ functions. You have to wrap items and options as a List, for example: >
         \   [['Yes', 'No'], 'match_case'],
         \ ])
 <
+                                                      *cycle#reset_b_groups()*
+This clears |b:cycle_groups|.
+Also accepts a parameter same as |cycle#add_b_groups| to set new groups.
+
+                                          *cycle#reset_b_groups_by_filetype()*
+Reset |b:cycle_groups| with settings subject to current 'filetype', requires
+variable |g:cycle_default_groups_for_{filetype}| set.
+
                                                 *cycle-define-groups-practice*
-The recommended way to define groups is set |g:cycle_default_groups| in your
-vimrc, and add buffer-specified groups with autocommands.
+The recommended way to define groups is setting |g:cycle_default_groups| and
+|g:cycle_default_groups_for_{filetype}| in your vimrc, this plugin will find
+and applied them behind the scenes.
 See |cycle-config-examples|.
 
 ------------------------------------------------------------------------------
@@ -324,9 +342,13 @@ Default global groups:
           \ ]
 <
 
-Buffer specified groups:
+Filetype specified groups:
 >
-    TODO
+    " ruby only
+    let g:cycle_default_groups_for_ruby = [
+          \   [['accessible', 'protected']],
+          \   [['stylesheet_link_tag ', 'javascript_include_tag ']],
+          \ ]
 <
 
 ==============================================================================
