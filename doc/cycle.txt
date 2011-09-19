@@ -55,6 +55,11 @@ It's recommended to define groups by yourself, see |cycle-define-groups|.
 There are some special features beside ordinary text replacing, which are
 controlled by group options, see |cycle-group-options|.
 
+You can use |.| to repeat last cycle if you have one of the following "repeat"
+plugins installed:
+- https://github.com/kana/vim-repeat
+- https://github.com/tpope/vim-repeat
+
 ==============================================================================
 CONFIGURATION                                            *cycle-configuration*
 
@@ -362,7 +367,6 @@ CREDITS                                                        *cycle-credits*
   Author of SwapIt.vim: https://github.com/mjbrownie/swapit
   SwapIt originally provides lots of awesome features include visual
   multi-words, xml tag pairs, omni-completion cycling.
-
 
 ==============================================================================
 vim:tw=78:fo=tcroq2mM:et:sts=2:sw=2:ft=help:norl:

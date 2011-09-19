@@ -43,6 +43,10 @@ function! cycle#new(class_name, direction, count) "{{{
           \   matches[0].group.items,
           \   extend(matches[0].group.options, {(s:OPTIONS.restrict_cursor): 1}),
           \ )
+    silent! call repeat#set(
+          \   "\<Plug>Cycle" . (a:direction > 0 ? "Next" : "Prev"),
+          \   a:count
+          \ )
   else
     call s:fallback(a:direction, a:count)
   endif
