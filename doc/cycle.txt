@@ -14,6 +14,7 @@ CONTENTS                                                      *cycle-contents*
       General options  ..................... |cycle-general-options|
       Define groups  ....................... |cycle-define-groups|
       Group options ........................ |cycle-group-options|
+      Fallback mapping  .................... |cycle-fallback-mapping|
       Examples  ............................ |cycle-examples|
     Limitations  ........................... |cycle-limitations|
     Credits  ............................... |cycle-credits|
@@ -274,6 +275,24 @@ By default no options are set.
 "restrict_cursor"   (Number) ~
 
   Internal usage only, don't set them.
+
+------------------------------------------------------------------------------
+Fallback mapping                                      *cycle-fallback-mapping*
+
+When |<Plug>CycleNext| or |<Plug>CyclePrev| fails to find any matched
+alternates, some key sequences can be set as fallbacks.
+                                                     *<Plug>CycleFallbackNext*
+                                                     *<Plug>CycleFallbackPrev*
+For example, define below mappings: >
+  noremap <silent> <Plug>CycleFallbackNext <C-A>
+  noremap <silent> <Plug>CycleFallbackPrev <C-X>
+< then Vim defult |Ctrl-A| (adding) or |Ctrl-X| (subtracting) will be
+performed, if there were nothing to cycle.
+
+Note that you will have to use |map| instead of |noremap| if the fallback key
+needs further remapping. e.g.: >
+  map <silent> <Plug>CycleFallbackNext <Plug>SpeedDatingUp
+<
 
 ------------------------------------------------------------------------------
 Configuration examples:                                 *cycle-config-examples*
