@@ -24,12 +24,6 @@ Similar Projects
   Yes, there is already a plugin named 'Cycle'. Maybe I have to rename mine.
 
 
-Status
-======
-Version 0.1.x.  
-Useful but spec might change.
-
-
 TODO
 ----
 [wiki/TODO](https://github.com/bootleq/vim-cycle/wiki/Todo)
