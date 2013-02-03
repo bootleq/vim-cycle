@@ -154,7 +154,7 @@ when there exists |b:cycle_groups|, it takes higher priority than the global
 one. |g:var| |b:var|
 
 You should not define cycle_groups directly. Use |cycle#add_group()| is the
-prefered way.
+preferred way.
 
                                                         *cycle-default-groups*
 Without any configuration, the default preset groups is: >
@@ -238,7 +238,7 @@ By default no options are set.
   When editing a xml tag, opening and closing parts can be substituted
   together: >
     <EM>example</EM>  =>  <STRONG>example</STRONG>
-< Set this option other then 0 to enable it.
+< Set this option other than 0 to enable it.
 
 "sub_pair"          Number (default: 1) ~
 
