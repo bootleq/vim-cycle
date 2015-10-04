@@ -276,6 +276,13 @@ By default no options are set.
 
   Internal usage only, don't set them.
 
+"match_word"        Number (default: none) ~
+
+  Restrict group items to be matched within word-boundary, see 'iskeyword'.
+  For example, on/off only matches "on" but not "Mon".
+  Set this option other than 0 to enforce word-bounded search.
+
+
 ------------------------------------------------------------------------------
 Fallback mapping                                      *cycle-fallback-mapping*
 

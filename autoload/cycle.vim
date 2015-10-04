@@ -3,6 +3,7 @@
 let s:OPTIONS = {
       \ 'name': 'name',
       \ 'match_case': 'match_case',
+      \ 'match_word': 'match_word',
       \ 'hard_case': 'hard_case',
       \ 'restrict_cursor': 'restrict_cursor',
       \ 'sub_tag': 'sub_tag',
@@ -217,6 +218,10 @@ function! s:group_search(group, class_name) "{{{
         break
       endif
     else
+      if get(options, s:OPTIONS.match_word) && a:class_name != 'w'
+        continue
+      endif
+
       if a:class_name != ''
         let pattern = join([
               \   '\%' . ctext.col . 'c',

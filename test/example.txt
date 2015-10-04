@@ -13,6 +13,13 @@ decode  encode
 
 Sunday,  Monday,  Tuesday,  Wednesday,  Thursday,  Friday,  Saturday
 
+on
+Mon
+
+成功失敗
+foo成功bar失敗
+
+
 <h1>foo bar</h1><small class="em">em</small>
 <h1>foo bar</h1><small class="em">em</small> foobar
 <strong class="em">
