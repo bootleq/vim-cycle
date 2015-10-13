@@ -23,8 +23,8 @@ Similar Projects
 - [Cycle.vim][original-cycle] by [Zef][MadeByWiki]  
   Yes, there is already a plugin named 'Cycle'. Maybe I have to rename mine.
 
-- [switch.vim][] by @AndrewRadev
-  Support more complicated patterns like ruby `:a => 'b'` to `a: 'b'`, which
+- [switch.vim][] by [AndrewRadev][Andrew's Blog]  
+  Supports more complicated patterns like ruby `:a => 'b'` to `a: 'b'`, which
   is generally unable to achieve by alternative projects.
 
 
@@ -35,6 +35,7 @@ TODO
 
 [SwapIt.vim]: https://github.com/mjbrownie/swapit
 [mjbrownie]: https://github.com/mjbrownie
+[Andrew's Blog]: http://andrewradev.com/
 [original-cycle]: https://github.com/zef/vim-cycle
 [vim-increx]: https://github.com/itchyny/vim-increx
 [switch.vim]: https://github.com/AndrewRadev/switch.vim
