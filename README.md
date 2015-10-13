@@ -17,11 +17,15 @@ Similar Projects
 ================
 
 - [SwapIt][SwapIt.vim] by [Michael Brown][mjbrownie]  
-  Original ideas of special features includes visual multi-words, xml tag
+  Original ideas of special features including visual multi-words, xml tag
   pairs, omni-complete cycling.
 
 - [Cycle.vim][original-cycle] by [Zef][MadeByWiki]  
   Yes, there is already a plugin named 'Cycle'. Maybe I have to rename mine.
+
+- [switch.vim][] by @AndrewRadev
+  Support more complicated patterns like ruby `:a => 'b'` to `a: 'b'`, which
+  is generally unable to achieve by alternative projects.
 
 
 TODO
@@ -32,4 +36,6 @@ TODO
 [SwapIt.vim]: https://github.com/mjbrownie/swapit
 [mjbrownie]: https://github.com/mjbrownie
 [original-cycle]: https://github.com/zef/vim-cycle
+[vim-increx]: https://github.com/itchyny/vim-increx
+[switch.vim]: https://github.com/AndrewRadev/switch.vim
 [MadeByWiki]: http://madebykiwi.com/
