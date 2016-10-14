@@ -8,7 +8,9 @@ endfunction
 
 
 let g:cycle_groups = []
+call cycle#add_group( ['foo', 'bar'])
 call cycle#add_group( ['foo', 'bar'], 'match_case' )
+call cycle#add_group( ['foO', 'baR'], 'hard_case' )
 call cycle#add_group( ['foo', 'bar'], {'name': 'test'}, 'match_case' )
 call cycle#add_group( ['foo', 'bar'], 'match_case' )
 call cycle#add_group( [['foo', 'bar'], 'match_case'] )

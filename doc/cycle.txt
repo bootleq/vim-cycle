@@ -220,13 +220,13 @@ By default no options are set.
   Name of the group.
   Will be displayed in conflict prompt, see |g:cycle_max_conflict|.
 
-"match_case"        Number (default: 1) ~
+"match_case"        Number (default: 0) ~
 
   By default, searching of group items is case-insensitive. Thus "yes" and
   "Yes" have identical effect.
   Set this option other than 0 to enforce case-sensitive search.
 
-"hard_case"         Number (default: 1) ~
+"hard_case"         Number (default: 0) ~
 
   By default, case in original text will be copied to resulting text. Thus
   "friDAY" will become "satURDay".
