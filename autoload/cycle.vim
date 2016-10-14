@@ -539,12 +539,12 @@ function! s:sub_pair(params) "{{{
   let pair_before = deepcopy(before)
   let pair_before.text = get(
         \   options[pair_at . '_with'],
-        \   index(a:params.items, before.text, 0, ic_flag == '\c'),
+        \   index(a:params.items, before.text, 0, ic_flag ==# '\c'),
         \ )
   let pair_after = {}
   let pair_after.text = get(
         \   options[pair_at . '_with'],
-        \   index(a:params.items, after.text, 0, ic_flag == '\c'),
+        \   index(a:params.items, after.text, 0, ic_flag ==# '\c'),
         \ )
 
   let opposite = searchpairpos(

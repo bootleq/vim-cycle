@@ -20,6 +20,11 @@ off.on
 off_on
 Mon
 
+
+\big\langle A+B \big\rangle
+\big( a+b \big)
+
+
 成功失敗
 foo成功bar失敗
 
