@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+## 0.3.0 (2017-04-02)
+
+* No longer reset `b:cycle_groups` when filetype change.
+
+* Deprecate `cycle#reset_b_groups_by_filetype` function since we no longer use `b:cycle_groups` to hold filetype-specified groups.
+
 ## 0.2.1 (2016-10-15)
 
 * Fix misleading doc about default value of `hard_case` and `match_case` (#4).
