@@ -188,8 +188,9 @@ endfunction "}}}
 
 function! s:groups(...) "{{{
   let groups = []
-  for scope in ['b', 'g']
-    let name = scope . ':cycle_groups'
+  for scope in ['b', 'ft', 'g']
+    let name = scope == 'ft' ? 'b:cycle_ft_groups' : scope . ':cycle_groups'
+
     if exists(name)
       let groups += {name}
     endif
@@ -306,7 +307,7 @@ function! s:add_group(scope, group_attrs) "{{{
         \ 'options': options,
         \ }
 
-  let name = a:scope . ':cycle_groups'
+  let name = a:scope == 'ft' ? 'b:cycle_ft_groups' : a:scope . ':cycle_groups'
   if !exists(name)
     let {name} = [group]
   else
@@ -360,8 +361,23 @@ endfunction "}}}
 
 
 function! cycle#reset_b_groups_by_filetype() "{{{
+  " TODO: Remove this deprecated function
+  echohl WarningMsg | echomsg "Cycle: `reset_b_groups_by_filetype` is deprecated, please see `reset_ft_groups`." | echohl None
+
   let var_name = 'g:cycle_default_groups_for_' . &filetype
   call cycle#reset_b_groups(exists(var_name) ? {var_name} : [])
+endfunction "}}}
+
+
+function! cycle#reset_ft_groups() "{{{
+  unlet! b:cycle_ft_groups
+
+  let groups = get(g:, 'cycle_default_groups_for_' . &filetype)
+  if !empty(groups)
+    for group in groups
+      call s:add_group_to('ft', group)
+    endfor
+  endif
 endfunction "}}}
 
 " }}} Group Operations

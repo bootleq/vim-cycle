@@ -82,8 +82,9 @@ g:cycle_default_groups    (default: none) ~
 g:cycle_default_groups_for_{filetype} ~
                           (default: none) ~
 
-  Like |g:cycle_default_groups| but is for buffer-scoped |b:cycle_groups|, and
-  is loaded when 'filetype' changes.
+  Like |g:cycle_default_groups| but this List will be loaded when 'filetype'
+  changes, thus only available for targeted filetype.
+
   The {filetype} part should be replaced with real type string, e.g.: >
     let g:cycle_default_groups_for_ruby = []
 < is for filetype "ruby".
@@ -196,7 +197,17 @@ functions. You have to wrap items and options as a List, for example: >
 This clears |b:cycle_groups|.
 Also accepts a parameter same as |cycle#add_b_groups| to set new groups.
 
+                                                     *cycle#reset_ft_groups()*
+Clear buffer-scoped groups for filetypes, reset to the setting for current
+'filetype' (predefined by |g:cycle_default_groups_for_{filetype}|).
+
+This function will be called automatically when 'filetype' change.
+
                                           *cycle#reset_b_groups_by_filetype()*
+Deprecated, will be removed in future version.
+Reason: now we hold ft-specified groups in another internal variable, no
+longer use |b:cycle_groups|.
+
 Reset |b:cycle_groups| with settings subject to current 'filetype', requires
 variable |g:cycle_default_groups_for_{filetype}| preset.
 

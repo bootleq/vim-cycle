@@ -55,7 +55,7 @@ endfunction
 
 augroup cycle
   autocmd!
-  autocmd FileType * call cycle#reset_b_groups_by_filetype()
+  autocmd FileType * call cycle#reset_ft_groups()
 augroup END
 
 " }}} Interface
