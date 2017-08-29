@@ -226,7 +226,9 @@ function! s:group_search(group, class_name) "{{{
       if a:class_name != ''
         let pattern = join([
               \   '\%' . ctext.col . 'c',
+              \   get(options, s:OPTIONS.match_word) ? '\<' : '',
               \   s:escape_pattern(item),
+              \   get(options, s:OPTIONS.match_word) ? '\>' : '',
               \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
               \ ], '')
       else
@@ -237,14 +239,6 @@ function! s:group_search(group, class_name) "{{{
               \ ], '')
       endif
       let text_index = match(getline('.'), pattern)
-
-      if a:class_name == 'v' && item != s:new_cvisual().text
-        continue
-      endif
-
-      if a:class_name == 'w' && item != s:new_cword().text
-        continue
-      endif
 
       if text_index >= 0
         let index = index(a:group.items, item)
