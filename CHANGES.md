@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+## 0.3.1 (2017-12-25)
+
+* Defer group initialization to improve Vim startup time (thanks to @fourjay, #10).
+
 ## 0.3.0 (2017-04-02)
 
 * No longer reset `b:cycle_groups` when filetype change.
