@@ -3,6 +3,7 @@ if exists('g:loaded_cycle')
 endif
 let g:loaded_cycle = 1
 let s:save_cpo = &cpoptions
+let s:groups_initialzed = 0
 set cpoptions&vim
 
 
@@ -19,10 +20,7 @@ call s:set_default('g:cycle_max_conflict', 1)
 call s:set_default('g:cycle_auto_visual', 0)
 call s:set_default('g:cycle_phased_search', 0)
 
-let s:groups_initialzed = 0
 function! s:initialize_groups()
-  if s:groups_initialzed != 0 | return | endif
-  let s:groups_initialzed=1
   if !exists('g:cycle_default_groups')
     call cycle#add_groups([
           \   [['true', 'false']],
@@ -37,6 +35,8 @@ function! s:initialize_groups()
   if exists('g:cycle_default_groups')
     call cycle#add_groups(g:cycle_default_groups)
   endif
+
+  let s:groups_initialzed = 1
 endfunction
 
 " }}} Default Options
@@ -55,7 +55,10 @@ if !g:cycle_no_mappings
 endif
 
 function! Cycle(class_name, direction, count)
-  call s:initialize_groups()
+  if !s:groups_initialzed
+    call s:initialize_groups()
+  endif
+
   call cycle#new(a:class_name, a:direction, a:count)
 endfunction
 
