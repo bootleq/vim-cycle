@@ -10,7 +10,7 @@ set cpoptions&vim
 
 function! s:set_default(name, value)
   if !exists(a:name)
-    execute "let " . a:name . " = " . string(a:value)
+    execute 'let ' . a:name . ' = ' . string(a:value)
   endif
 endfunction
 
@@ -19,20 +19,25 @@ call s:set_default('g:cycle_max_conflict', 1)
 call s:set_default('g:cycle_auto_visual', 0)
 call s:set_default('g:cycle_phased_search', 0)
 
-if !exists('g:cycle_default_groups')
-  call cycle#add_groups([
-        \   [['true', 'false']],
-        \   [['yes', 'no']],
-        \   [['on', 'off']],
-        \   [['0', '1']],
-        \   [['+', '-']],
-        \   [['>', '<']],
-        \ ])
-endif
+let s:groups_initialzed = 0
+function! s:initialize_groups()
+  if s:groups_initialzed != 0 | return | endif
+  let s:groups_initialzed=1
+  if !exists('g:cycle_default_groups')
+    call cycle#add_groups([
+          \   [['true', 'false']],
+          \   [['yes', 'no']],
+          \   [['on', 'off']],
+          \   [['0', '1']],
+          \   [['+', '-']],
+          \   [['>', '<']],
+          \ ])
+  endif
 
-if exists('g:cycle_default_groups')
-  call cycle#add_groups(g:cycle_default_groups)
-endif
+  if exists('g:cycle_default_groups')
+    call cycle#add_groups(g:cycle_default_groups)
+  endif
+endfunction
 
 " }}} Default Options
 
@@ -50,6 +55,7 @@ if !g:cycle_no_mappings
 endif
 
 function! Cycle(class_name, direction, count)
+  call s:initialize_groups()
   call cycle#new(a:class_name, a:direction, a:count)
 endfunction
 
