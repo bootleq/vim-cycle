@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+## 0.3.2 (2018-10-19)
+
+* Enhance fallback mapping behavior on multi-line selection (thanks to @kiryph, #11).
+
+* Fix generating unnecessary messages during internal yanking.
+
 ## 0.3.1 (2017-12-25)
 
 * Defer group initialization to improve Vim startup time (thanks to @fourjay, #10).
