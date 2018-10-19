@@ -183,7 +183,9 @@ function! s:fallback(range, direction, count) "{{{
   let seq = "\<Plug>CycleFallback" . (a:direction > 0 ? "Next" : "Prev")
 
   execute a:range . "normal " . a:count . seq
-  call cursor(line("'<"), pos.col)
+  if !empty(a:range)
+    call cursor(line("'<"), pos.col)
+  endif
 endfunction "}}}
 
 " }}} Main Functions
