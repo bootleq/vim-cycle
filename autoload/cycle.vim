@@ -23,7 +23,11 @@ function! cycle#new(class_name, direction, count) "{{{
   let matches = cycle#search(a:class_name, {'direction': a:direction, 'count': a:count})
 
   if empty(matches)
-    return s:fallback(a:direction, a:count)
+    return s:fallback(
+          \   a:class_name == 'v' ? "'<,'>" : '',
+          \   a:direction,
+          \   a:count
+          \ )
   endif
 
   if len(matches) > 1 && g:cycle_max_conflict > 1
@@ -49,7 +53,11 @@ function! cycle#new(class_name, direction, count) "{{{
           \   a:count
           \ )
   else
-    call s:fallback(a:direction, a:count)
+    call s:fallback(
+          \   a:class_name == 'v' ? "'<,'>" : '',
+          \   a:direction,
+          \   a:count
+          \ )
   endif
 endfunction "}}}
 
@@ -170,8 +178,8 @@ function! s:conflict(matches) "{{{
 endfunction "}}}
 
 
-function! s:fallback(direction, count) "{{{
-  execute "normal " . a:count . "\<Plug>CycleFallback" . (a:direction > 0 ? 'Next' : 'Prev')
+function! s:fallback(range, direction, count) "{{{
+  execute a:range . "normal " . a:count . "\<Plug>CycleFallback" . (a:direction > 0 ? 'Next' : 'Prev')
 endfunction "}}}
 
 " }}} Main Functions
