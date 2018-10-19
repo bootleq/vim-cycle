@@ -179,7 +179,11 @@ endfunction "}}}
 
 
 function! s:fallback(range, direction, count) "{{{
-  execute a:range . "normal " . a:count . "\<Plug>CycleFallback" . (a:direction > 0 ? 'Next' : 'Prev')
+  let pos = s:getpos()
+  let seq = "\<Plug>CycleFallback" . (a:direction > 0 ? "Next" : "Prev")
+
+  execute a:range . "normal " . a:count . seq
+  call cursor(line("'<"), pos.col)
 endfunction "}}}
 
 " }}} Main Functions
