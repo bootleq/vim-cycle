@@ -439,7 +439,7 @@ function! s:new_cvisual() "{{{
   let save_mode = mode()
 
   call s:save_reg('a')
-  normal! gv"ay
+  silent normal! gv"ay
   let cvisual = {
         \   "text": @a,
         \   "line": getpos('v')[1],
