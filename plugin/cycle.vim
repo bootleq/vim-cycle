@@ -26,9 +26,6 @@ function! s:initialize_groups()
           \   [['true', 'false']],
           \   [['yes', 'no']],
           \   [['on', 'off']],
-          \   [['0', '1']],
-          \   [['+', '-']],
-          \   [['>', '<']],
           \ ])
   endif
 

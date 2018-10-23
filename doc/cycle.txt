@@ -163,9 +163,6 @@ Without any configuration, the default preset groups is: >
         \   [['true', 'false']],
         \   [['yes', 'no']],
         \   [['on', 'off']],
-        \   [['0', '1']],
-        \   [['+', '-']],
-        \   [['>', '<']],
         \ ])
 <
                                                            *cycle#add_group()*

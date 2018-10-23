@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+## Unreleased
+
+* Change: remove `0`/`1`, `+`/`-` and `>`/`<` from plugin defaults.
+
 ## 0.3.2 (2018-10-19)
 
 * Enhance fallback mapping behavior on multi-line selection (thanks to @kiryph, #11).
