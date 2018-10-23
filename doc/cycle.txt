@@ -158,13 +158,14 @@ You should not define cycle_groups directly. Use |cycle#add_group()| is the
 preferred way.
 
                                                         *cycle-default-groups*
-Without any configuration, the default preset groups is: >
+Without any configuration, the default preset groups are: >
   call cycle#add_groups([
         \   [['true', 'false']],
         \   [['yes', 'no']],
         \   [['on', 'off']],
         \ ])
-<
+< note this will be ignored if any |g:cycle_default_groups| configured.
+
                                                            *cycle#add_group()*
 A group consists with "items" and optional "options".
 To add a group, use |cycle#add_group()| with any of below forms >
@@ -329,7 +330,7 @@ Key mappings:
     noremap <silent> <Plug>CycleFallbackPrev <C-X>
 <
 
-Default global groups:
+Global groups:
 >
     let g:cycle_default_groups = [
           \   [['true', 'false']],
