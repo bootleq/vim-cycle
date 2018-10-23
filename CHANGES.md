@@ -1,9 +1,13 @@
 CHANGES
 =======
 
-## Unreleased
+## 0.4.0 (2018-10-24)
 
-* Change: remove `0`/`1`, `+`/`-` and `>`/`<` from plugin defaults.
+* Change: remove `0`/`1`, `+`/`-` and `>`/`<` from plugin defaults (thanks to @kiryph, #12).
+
+* Fix incorrect jump in fallback mapping (after any visual change).
+
+* Support repeat of fallback mapping.
 
 ## 0.3.2 (2018-10-19)
 
