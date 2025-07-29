@@ -32,7 +32,7 @@ function! cycle#new(class_name, direction, count) "{{{
 
   if len(matches) > 1 && g:cycle_max_conflict > 1
     let choice = s:conflict(matches)
-    if choice
+    if choice && choice > 0
       let matches = [matches[choice - 1]]
     else
       redraw
@@ -169,7 +169,8 @@ function! s:conflict(matches) "{{{
           \   "text":       match.pairs.after.text
           \ })
   endfor
-  return s:select(options)
+
+  return call(s:select_func, [options])
 endfunction "}}}
 
 
@@ -661,36 +662,13 @@ function! s:escape_sub_expr(pattern) "{{{
 endfunction "}}}
 
 
-function! s:select(options) "{{{
-  let index = 0
-  let captions = []
-  let candidates = []
-  let max_length = max(map(copy(a:options), 'strlen(v:val.text)'))
-  for option in a:options
-    let caption = nr2char(char2nr('A') + index)
-    let group = get(option, 'group_name', '')
-    let line = printf(
-          \   ' %2S) => %-*S %S',
-          \   caption,
-          \   max_length,
-          \   option.text,
-          \   len(group) ? printf(' (%s)', group) : ''
-          \ )
-    call add(candidates, line)
-    call add(captions, '&' . caption)
-    let index += 1
-  endfor
-  " Example output:
-  "
-  "Cycle to:
-  "
-  "  A) => bar    (foobar)
-  "  B) => poooo  (pupu)
-  "  C) => gOO
-  "
-  "(A), (B), (C):
-  return confirm("Cycle to:\n\n" . join(candidates, "\n") . "\n", join(captions, "\n"), 0)
-endfunction "}}}
+" Selection UI {{{
+if exists('*inputlist') && (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'inputlist')
+  let s:select_func = function('cycle#select#inputlist')
+else
+  let s:select_func = function('cycle#select#confirm')
+endif
+" }}}
 
 
 function! s:text_transform(before, after, options) "{{{

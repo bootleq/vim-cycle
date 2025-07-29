@@ -114,6 +114,14 @@ g:cycle_max_conflict      (default: 1) ~
   And it's recommended to use buffer-scoped groups to prevent conflicts, see
   |cycle-define-groups-practice|.
 
+                                                         *g:cycle_conflict_ui*
+g:cycle_conflict_ui      (default: "confirm") ~
+
+  Which prompt UI should be used for conflict selection.
+
+  Can be set to "inputlist", "confirm" or leave empty.
+  When empty, will try "inputlist" first.
+
                                                          *g:cycle_auto_visual*
 g:cycle_auto_visual       (default: 0) ~
 

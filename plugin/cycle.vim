@@ -17,6 +17,7 @@ endfunction
 
 call s:set_default('g:cycle_no_mappings', 0)
 call s:set_default('g:cycle_max_conflict', 1)
+call s:set_default('g:cycle_conflict_ui', 'confirm')
 call s:set_default('g:cycle_auto_visual', 0)
 call s:set_default('g:cycle_phased_search', 0)
 
