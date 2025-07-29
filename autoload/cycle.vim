@@ -664,21 +664,31 @@ function! s:select(options) "{{{
   let index = 0
   let captions = []
   let candidates = []
+  let max_length = max(map(copy(a:options), 'strlen(v:val.text)'))
   for option in a:options
     let caption = nr2char(char2nr('A') + index)
-    let line = printf(' %s) %s => %s', caption, option.group_name, option.text)
+    let group = get(option, 'group_name', '')
+    let line = printf(
+          \   ' %2S) => %-*S %S',
+          \   caption,
+          \   max_length,
+          \   option.text,
+          \   len(group) ? printf(' (%s)', group) : ''
+          \ )
     call add(candidates, line)
     call add(captions, '&' . caption)
     let index += 1
   endfor
   " Example output:
   "
-  "Cycle with:
-  " A) foobar => bar
-  " B) pupu => poo
-  " C)  => gOO
+  "Cycle to:
+  "
+  "  A) => bar    (foobar)
+  "  B) => poooo  (pupu)
+  "  C) => gOO
+  "
   "(A), (B), (C):
-  return confirm("Cycle with:\n" . join(candidates, "\n"), join(captions, "\n"), 0)
+  return confirm("Cycle to:\n\n" . join(candidates, "\n") . "\n", join(captions, "\n"), 0)
 endfunction "}}}
 
 
