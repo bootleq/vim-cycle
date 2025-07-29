@@ -161,20 +161,14 @@ function! s:conflict(matches) "{{{
     return
   endif
 
-  let index = 0
-  let candidates = []
-  let captions = []
+  let options = []
   for match in a:matches
-    let caption = nr2char(char2nr('A') + index)
-    call add(candidates, join([
-          \   ' ' . caption . ') ',
-          \   get(match.group.options, s:OPTIONS.name, '') . " => ",
-          \   match.pairs.after.text
-          \ ], ''))
-    call add(captions, '&' . caption)
-    let index += 1
+    call add(options, {
+          \   "group_name": get(match.group.options, s:OPTIONS.name, ''),
+          \   "text":       match.pairs.after.text
+          \ })
   endfor
-  return confirm("Cycle with:\n" . join(candidates, "\n"), join(captions, "\n"), 0)
+  return s:select(options)
 endfunction "}}}
 
 
@@ -663,6 +657,28 @@ endfunction "}}}
 
 function! s:escape_sub_expr(pattern) "{{{
   return escape(a:pattern, '~\&')
+endfunction "}}}
+
+
+function! s:select(options) "{{{
+  let index = 0
+  let captions = []
+  let candidates = []
+  for option in a:options
+    let caption = nr2char(char2nr('A') + index)
+    let line = printf(' %s) %s => %s', caption, option.group_name, option.text)
+    call add(candidates, line)
+    call add(captions, '&' . caption)
+    let index += 1
+  endfor
+  " Example output:
+  "
+  "Cycle with:
+  " A) foobar => bar
+  " B) pupu => poo
+  " C)  => gOO
+  "(A), (B), (C):
+  return confirm("Cycle with:\n" . join(candidates, "\n"), join(captions, "\n"), 0)
 endfunction "}}}
 
 
