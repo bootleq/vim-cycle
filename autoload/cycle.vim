@@ -35,6 +35,7 @@ function! cycle#new(class_name, direction, count) "{{{
     if choice
       let matches = [matches[choice - 1]]
     else
+      redraw
       echohl WarningMsg | echo "Aborted." | echohl None
       return
     endif
