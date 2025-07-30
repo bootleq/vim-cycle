@@ -1,6 +1,6 @@
 local M = {}
 
-M.select = function(options, ctx)
+M.conflict_select = function(options, ctx)
   local max_length = math.max(
     unpack(
       vim.tbl_map(function(opt)

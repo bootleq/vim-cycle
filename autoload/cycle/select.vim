@@ -1,4 +1,4 @@
-function! cycle#select#inputlist(options, ctx) "{{{
+function! cycle#select#conflict_inputlist(options, ctx) "{{{
   let index = 0
   let candidates = []
   let max_length = max(map(copy(a:options), 'strlen(v:val.text)'))
@@ -31,7 +31,7 @@ function! cycle#select#inputlist(options, ctx) "{{{
 endfunction "}}}
 
 
-function! cycle#select#confirm(options, ctx) "{{{
+function! cycle#select#conflict_confirm(options, ctx) "{{{
   let index = 0
   let captions = []
   let candidates = []
