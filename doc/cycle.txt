@@ -63,7 +63,7 @@ plugins installed:
 
 
                                                            *<Plug>CycleSelect*
-Another mapping, |<Plug>CycleNext|, lists all candidates for choosing from.
+Another mapping, |<Plug>CycleSelect|, lists all candidates for choosing from.
 You can define key mappings in |Normal| and |Visual| modes: >
   nmap <silent> <Leader>ga <Plug>CycleSelect
   vmap <silent> <Leader>ga <Plug>CycleSelect
