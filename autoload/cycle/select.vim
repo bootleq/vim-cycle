@@ -1,4 +1,4 @@
-function! cycle#select#conflict_inputlist(options, ctx) "{{{
+function! s:open_inputlist(options) "{{{
   let index = 0
   let candidates = []
   let max_length = max(map(copy(a:options), 'strlen(v:val.text)'))
@@ -27,11 +27,11 @@ function! cycle#select#conflict_inputlist(options, ctx) "{{{
     let choice = -1
   endif
 
-  call call(a:ctx.sid .. 'on_resolve_conflict', [choice, a:ctx])
+  return choice
 endfunction "}}}
 
 
-function! cycle#select#conflict_confirm(options, ctx) "{{{
+function! s:open_confirm(options) "{{{
   let index = 0
   let captions = []
   let candidates = []
@@ -61,6 +61,29 @@ function! cycle#select#conflict_confirm(options, ctx) "{{{
   "(A), (B), (C):
   redraw
   let choice = confirm("Cycle to:\n\n" . join(candidates, "\n") . "\n", join(captions, "\n"), 0)
+  return choice
+endfunction "}}}
 
+
+function! cycle#select#inputlist(options, ctx) "{{{
+  let choice = s:open_inputlist(a:options)
+  call call(a:ctx.sid .. 'on_select', [choice, a:ctx])
+endfunction "}}}
+
+
+function! cycle#select#conflict_inputlist(options, ctx) "{{{
+  let choice = s:open_inputlist(a:options)
+  call call(a:ctx.sid .. 'on_resolve_conflict', [choice, a:ctx])
+endfunction "}}}
+
+
+function! cycle#select#confirm(options, ctx) "{{{
+  let choice = s:open_confirm(a:options)
+  call call(a:ctx.sid .. 'on_select', [choice, a:ctx])
+endfunction "}}}
+
+
+function! cycle#select#conflict_confirm(options, ctx) "{{{
+  let choice = s:open_confirm(a:options)
   call call(a:ctx.sid .. 'on_resolve_conflict', [choice, a:ctx])
 endfunction "}}}

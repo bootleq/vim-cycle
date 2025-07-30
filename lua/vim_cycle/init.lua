@@ -1,6 +1,6 @@
 local M = {}
 
-M.conflict_select = function(options, ctx)
+local make_select_options = function(options)
   local max_length = math.max(
     unpack(
       vim.tbl_map(function(opt)
@@ -23,6 +23,24 @@ M.conflict_select = function(options, ctx)
       return string.format(format_str, opt.text) .. group
     end,
   }
+
+  return select_options
+end
+
+M.select = function(options, ctx)
+  local select_options = make_select_options(options)
+
+  vim.ui.select(
+    options,
+    select_options,
+    function(_, idx)
+      vim.call(ctx.sid .. 'on_select', idx, ctx)
+    end
+  )
+end
+
+M.conflict_select = function(options, ctx)
+  local select_options = make_select_options(options)
 
   vim.ui.select(
     options,
