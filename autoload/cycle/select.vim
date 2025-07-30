@@ -1,4 +1,4 @@
-function! cycle#select#inputlist(options) "{{{
+function! cycle#select#inputlist(options, ctx) "{{{
   let index = 0
   let candidates = []
   let max_length = max(map(copy(a:options), 'strlen(v:val.text)'))
@@ -26,11 +26,12 @@ function! cycle#select#inputlist(options) "{{{
   if choice > index
     let choice = -1
   endif
-  return choice
+
+  call call(a:ctx.sid .. 'on_resolve_conflict', [choice, a:ctx])
 endfunction "}}}
 
 
-function! cycle#select#confirm(options) "{{{
+function! cycle#select#confirm(options, ctx) "{{{
   let index = 0
   let captions = []
   let candidates = []
@@ -59,5 +60,7 @@ function! cycle#select#confirm(options) "{{{
   "
   "(A), (B), (C):
   redraw
-  return confirm("Cycle to:\n\n" . join(candidates, "\n") . "\n", join(captions, "\n"), 0)
+  let choice = confirm("Cycle to:\n\n" . join(candidates, "\n") . "\n", join(captions, "\n"), 0)
+
+  call call(a:ctx.sid .. 'on_resolve_conflict', [choice, a:ctx])
 endfunction "}}}

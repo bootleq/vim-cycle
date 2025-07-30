@@ -30,36 +30,22 @@ function! cycle#new(class_name, direction, count) "{{{
           \ )
   endif
 
+  let ctx = {
+        \   "class_name": a:class_name,
+        \   "direction":  a:direction,
+        \   "count":      a:count,
+        \ }
+
   if len(matches) > 1 && g:cycle_max_conflict > 1
-    let choice = s:conflict(matches)
-    if choice && choice > 0
-      let matches = [matches[choice - 1]]
-    else
-      redraw
-      echohl WarningMsg | echo "Aborted." | echohl None
-      return
-    endif
+    call extend(ctx, {
+          \   "matches": matches,
+          \   "sid":     s:sid_prefix(),
+          \ })
+    return s:conflict(ctx)
   endif
 
-  if len(matches)
-    call s:substitute(
-          \   matches[0].pairs.before,
-          \   matches[0].pairs.after,
-          \   a:class_name,
-          \   matches[0].group.items,
-          \   extend(matches[0].group.options, {(s:OPTIONS.restrict_cursor): 1}),
-          \ )
-    silent! call repeat#set(
-          \   "\<Plug>Cycle" . (a:direction > 0 ? "Next" : "Prev"),
-          \   a:count
-          \ )
-  else
-    call s:fallback(
-          \   a:class_name == 'v' ? "'<,'>" : '',
-          \   a:direction,
-          \   a:count
-          \ )
-  endif
+  let m = matches[0]
+  call s:accept_match(m, ctx)
 endfunction "}}}
 
 
@@ -155,22 +141,53 @@ function! s:substitute(before, after, class_name, items, options) "{{{
 endfunction  "}}}
 
 
-function! s:conflict(matches) "{{{
-  if len(a:matches) > g:cycle_max_conflict
+function! s:conflict(ctx) "{{{
+  let matches = a:ctx.matches
+  if len(matches) > g:cycle_max_conflict
     redraw
-    echohl WarningMsg | echomsg "Cycle: Too many matches (" . len(a:matches) . " found)." | echohl None
+    echohl WarningMsg | echomsg "Cycle: Too many matches (" . len(matches) . " found)." | echohl None
     return
   endif
 
   let options = []
-  for match in a:matches
+  for match in matches
     call add(options, {
           \   "group_name": get(match.group.options, s:OPTIONS.name, ''),
           \   "text":       match.pairs.after.text
           \ })
   endfor
 
-  return call(s:select_func, [options])
+  return call(s:select_func, [options, a:ctx])
+endfunction "}}}
+
+
+function! s:on_resolve_conflict(choice, ctx) "{{{
+  let m = {}
+  if a:choice && a:choice > 0
+    let m = a:ctx.matches[a:choice - 1]
+    if !empty(m)
+      call s:accept_match(m, a:ctx)
+    endif
+  else
+    redraw
+    echohl WarningMsg | echo "Aborted." | echohl None
+  endif
+endfunction "}}}
+
+
+function! s:accept_match(match, ctx) "{{{
+  let m = a:match
+  call s:substitute(
+        \   m.pairs.before,
+        \   m.pairs.after,
+        \   a:ctx.class_name,
+        \   m.group.items,
+        \   extend(m.group.options, {(s:OPTIONS.restrict_cursor): 1}),
+        \ )
+  silent! call repeat#set(
+        \   "\<Plug>Cycle" . (a:ctx.direction > 0 ? "Next" : "Prev"),
+        \   a:ctx.count
+        \ )
 endfunction "}}}
 
 
@@ -663,7 +680,8 @@ endfunction "}}}
 
 
 " Selection UI {{{
-if exists('*inputlist') && (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'inputlist')
+" s:select_func
+if (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'inputlist') && exists('*inputlist')
   let s:select_func = function('cycle#select#inputlist')
 else
   let s:select_func = function('cycle#select#confirm')
@@ -719,6 +737,11 @@ function! s:restore_reg(name) "{{{
   if exists('s:save_reg')
     call setreg(a:name, s:save_reg[0], s:save_reg[1])
   endif
+endfunction "}}}
+
+
+function! s:sid_prefix() "{{{
+  return matchstr(expand('<sfile>'), '<SNR>\d\+_')
 endfunction "}}}
 
 " }}} Utils
