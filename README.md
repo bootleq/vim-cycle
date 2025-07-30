@@ -14,7 +14,7 @@ Cycle text within predefined candidates.
 
 
 Similar Projects
-================
+----------------
 
 - [SwapIt][SwapIt.vim] by [Michael Brown][mjbrownie]  
   Original ideas of special features including visual multi-words, xml tag
@@ -26,6 +26,10 @@ Similar Projects
 - [switch.vim][] by [AndrewRadev][Andrew's Blog]  
   Supports more complicated patterns like ruby `:a => 'b'` to `a: 'b'`, which
   is generally unable to achieve by alternative projects.
+
+- [vim-clurin][] by [syngan][]  
+  Another early implementation, seems to have custom pattern and replace
+  function features, but lacks documentation.
 
 
 TODO
@@ -40,3 +44,5 @@ TODO
 [vim-increx]: https://github.com/itchyny/vim-increx
 [switch.vim]: https://github.com/AndrewRadev/switch.vim
 [MadeByWiki]: http://madebykiwi.com/
+[vim-clurin]: https://github.com/syngan/vim-clurin
+[syngan]: https://github.com/syngan
