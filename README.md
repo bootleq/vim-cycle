@@ -31,12 +31,17 @@ Similar Projects
   Another early implementation, seems to have custom pattern and replace
   function features, but lacks documentation.
 
+- [toggle.vim][] by [Timo Teifel][tteifel]  
+  Maybe the very first plugin that introduced this idea.
+
 
 TODO
 ----
 [wiki/TODO](https://github.com/bootleq/vim-cycle/wiki/Todo)
 
 
+[toggle.vim]: https://www.vim.org/scripts/script.php?script_id=895
+[tteifel]: http://www.teifel.net/
 [SwapIt.vim]: https://github.com/mjbrownie/swapit
 [mjbrownie]: https://github.com/mjbrownie
 [Andrew's Blog]: http://andrewradev.com/
