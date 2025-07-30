@@ -117,10 +117,19 @@ g:cycle_max_conflict      (default: 1) ~
                                                          *g:cycle_conflict_ui*
 g:cycle_conflict_ui      (default: "confirm") ~
 
-  Which prompt UI should be used for conflict selection.
+  Which prompt UI should be used for conflicting items selection.
 
-  Can be set to "inputlist", "confirm" or leave empty.
-  When empty, will try "inputlist" first.
+  Can be set to one of the following:
+
+      ui.select     Use nvim's |vim.ui.select()|.
+
+      inputlist     Use Vim's |inputlist()|, input number and Enter to select.
+
+      confirm       Use Vim's |confirm()|, type 1 character to select.
+
+  or leave it empty, will try available methods in above order.
+
+  If given method is not supported, will fallback to next one.
 
                                                          *g:cycle_auto_visual*
 g:cycle_auto_visual       (default: 0) ~

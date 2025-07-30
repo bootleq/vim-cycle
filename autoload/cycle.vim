@@ -681,7 +681,12 @@ endfunction "}}}
 
 " Selection UI {{{
 " s:select_func
-if (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'inputlist') && exists('*inputlist')
+if (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'ui.select') && has('nvim') && luaeval('vim.ui.select')->type() == v:t_func
+  function! s:LuaSelect(...) abort
+    return luaeval('require("vim_cycle").select(unpack(_A))', a:000)
+  endfunction
+  let s:select_func = function('s:LuaSelect')
+elseif (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'inputlist') && exists('*inputlist')
   let s:select_func = function('cycle#select#inputlist')
 else
   let s:select_func = function('cycle#select#confirm')
