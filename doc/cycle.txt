@@ -61,6 +61,13 @@ plugins installed:
 - https://github.com/kana/vim-repeat
 - https://github.com/tpope/vim-repeat
 
+
+                                                           *<Plug>CycleSelect*
+Another mapping, |<Plug>CycleNext|, lists all candidates for choosing from.
+You can define key mappings in |Normal| and |Visual| modes: >
+  nmap <silent> <Leader>ga <Plug>CycleSelect
+  vmap <silent> <Leader>ga <Plug>CycleSelect
+
 ==============================================================================
 CONFIGURATION                                            *cycle-configuration*
 
@@ -113,6 +120,28 @@ g:cycle_max_conflict      (default: 1) ~
   some performance since no extra search is needed after first found.
   And it's recommended to use buffer-scoped groups to prevent conflicts, see
   |cycle-define-groups-practice|.
+
+                                                           *g:cycle_select_ui*
+g:cycle_select_ui      (default: "") ~
+
+  Which prompt UI should be used for |<Plug>CycleSelect|.
+
+  Can be set to one of the following:
+
+      ui.select     Use nvim's |vim.ui.select()|.
+
+      inputlist     Use Vim's |inputlist()|, input number and Enter to select.
+
+      confirm       Use Vim's |confirm()|, type 1 character to select.
+
+  or leave it empty, will try available methods in above order.
+
+  If given method is not supported, will fallback to next one.
+
+                                                         *g:cycle_conflict_ui*
+g:cycle_conflict_ui      (default: "confirm") ~
+
+  Like |g:cycle_select_ui|, but is used for "conflict" items selection.
 
                                                          *g:cycle_auto_visual*
 g:cycle_auto_visual       (default: 0) ~

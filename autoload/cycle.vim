@@ -30,35 +30,48 @@ function! cycle#new(class_name, direction, count) "{{{
           \ )
   endif
 
+  let ctx = {
+        \   "class_name": a:class_name,
+        \   "direction":  a:direction,
+        \   "count":      a:count,
+        \ }
+
   if len(matches) > 1 && g:cycle_max_conflict > 1
-    let choice = s:conflict(matches)
-    if choice
-      let matches = [matches[choice - 1]]
-    else
-      echohl WarningMsg | echo "Aborted." | echohl None
-      return
-    endif
+    call extend(ctx, {
+          \   "matches": matches,
+          \   "sid":     s:sid_prefix(),
+          \ })
+    return s:conflict(ctx)
   endif
 
-  if len(matches)
-    call s:substitute(
-          \   matches[0].pairs.before,
-          \   matches[0].pairs.after,
-          \   a:class_name,
-          \   matches[0].group.items,
-          \   extend(matches[0].group.options, {(s:OPTIONS.restrict_cursor): 1}),
-          \ )
-    silent! call repeat#set(
-          \   "\<Plug>Cycle" . (a:direction > 0 ? "Next" : "Prev"),
-          \   a:count
-          \ )
-  else
-    call s:fallback(
-          \   a:class_name == 'v' ? "'<,'>" : '',
-          \   a:direction,
-          \   a:count
-          \ )
+  let m = matches[0]
+  call s:accept_match(m, ctx)
+  call s:set_repeat('Cycle', ctx)
+endfunction "}}}
+
+
+function! cycle#select(class_name) "{{{
+  let matches = cycle#search(a:class_name, {'count': '*'})
+
+  if empty(matches)
+    echohl WarningMsg | echo "No match, aborted." | echohl None
+    return
   endif
+
+  let options = []
+  for match in matches
+    call add(options, {
+          \   "group_name": get(match.group.options, s:OPTIONS.name, ''),
+          \   "text":       match.pairs.after.text
+          \ })
+  endfor
+
+  let ctx = {
+        \   "class_name": a:class_name,
+        \   "matches":    matches,
+        \   "sid":        s:sid_prefix(),
+        \ }
+  return call(s:select_func, [options, ctx])
 endfunction "}}}
 
 
@@ -99,28 +112,25 @@ endfunction "}}}
 
 function! s:phased_search(class_name, groups, direction, count) "{{{
   let matches = []
-  let new_text = s:new_ctext('')
-  let new_index = -1
 
   for group in a:groups
-    if len(matches) && g:cycle_max_conflict <= 1
+    if len(matches) && g:cycle_max_conflict <= 1 && a:count != '*'
       break
     endif
 
     let [index, ctext] = s:group_search(group, a:class_name)
     if index >= 0
-      let new_index = (index + a:direction * a:count) % len(group.items)
-      let new_text.text = s:text_transform(
-            \   ctext.text,
-            \   group.items[new_index],
-            \   group.options,
-            \ )
-      let new_text.line = ctext.line
-      let new_text.col = ctext.col
-      call add(matches, {
-            \   'group': group,
-            \   'pairs': {'before': deepcopy(ctext), 'after': deepcopy(new_text)},
-            \ })
+      if a:count == '*'
+        " Grab all group items for CycleSelect
+        for item_idx in range(len(group.items))
+          if item_idx != index
+            call add(matches, s:build_match(ctext, group, item_idx))
+          endif
+        endfor
+      else
+        let new_index = (index + a:direction * a:count) % len(group.items)
+        call add(matches, s:build_match(ctext, group, new_index))
+      endif
     endif
   endfor
 
@@ -154,27 +164,79 @@ function! s:substitute(before, after, class_name, items, options) "{{{
 endfunction  "}}}
 
 
-function! s:conflict(matches) "{{{
-  if len(a:matches) > g:cycle_max_conflict
+function! s:conflict(ctx) "{{{
+  let matches = a:ctx.matches
+  if len(matches) > g:cycle_max_conflict
     redraw
-    echohl WarningMsg | echomsg "Cycle: Too many matches (" . len(a:matches) . " found)." | echohl None
+    echohl WarningMsg | echomsg "Cycle: Too many matches (" . len(matches) . " found)." | echohl None
     return
   endif
 
-  let index = 0
-  let candidates = []
-  let captions = []
-  for match in a:matches
-    let caption = nr2char(char2nr('A') + index)
-    call add(candidates, join([
-          \   ' ' . caption . ') ',
-          \   get(match.group.options, s:OPTIONS.name, '') . " => ",
-          \   match.pairs.after.text
-          \ ], ''))
-    call add(captions, '&' . caption)
-    let index += 1
+  let options = []
+  for match in matches
+    call add(options, {
+          \   "group_name": get(match.group.options, s:OPTIONS.name, ''),
+          \   "text":       match.pairs.after.text
+          \ })
   endfor
-  return confirm("Cycle with:\n" . join(candidates, "\n"), join(captions, "\n"), 0)
+
+  return call(s:conflict_select_func, [options, a:ctx])
+endfunction "}}}
+
+
+function! s:on_select(choice, ctx) "{{{
+  let m = {}
+  if a:choice && a:choice > 0
+    let m = a:ctx.matches[a:choice - 1]
+    if !empty(m)
+      call s:accept_match(m, a:ctx)
+      call s:set_repeat('CycleSelect')
+    endif
+  else
+    redraw
+    echohl WarningMsg | echo "Aborted." | echohl None
+  endif
+endfunction "}}}
+
+
+function! s:on_resolve_conflict(choice, ctx) "{{{
+  let m = {}
+  if a:choice && a:choice > 0
+    let m = a:ctx.matches[a:choice - 1]
+    if !empty(m)
+      call s:accept_match(m, a:ctx)
+      call s:set_repeat('Cycle', a:ctx)
+    endif
+  else
+    redraw
+    echohl WarningMsg | echo "Aborted." | echohl None
+  endif
+endfunction "}}}
+
+
+function! s:accept_match(match, ctx) "{{{
+  let m = a:match
+  call s:substitute(
+        \   m.pairs.before,
+        \   m.pairs.after,
+        \   a:ctx.class_name,
+        \   m.group.items,
+        \   extend(m.group.options, {(s:OPTIONS.restrict_cursor): 1}),
+        \ )
+endfunction "}}}
+
+
+function! s:set_repeat(mapping, ...) "{{{
+  let ctx = a:0 ? a:1 : {}
+
+  if a:mapping == 'Cycle'
+    silent! call repeat#set(
+          \   "\<Plug>Cycle" . (ctx.direction > 0 ? "Next" : "Prev"),
+          \   ctx.count
+          \ )
+  elseif a:mapping == 'CycleSelect'
+    silent! call repeat#set("\<Plug>CycleSelect")
+  endif
 endfunction "}}}
 
 
@@ -666,6 +728,59 @@ function! s:escape_sub_expr(pattern) "{{{
 endfunction "}}}
 
 
+" Selection UI {{{
+" s:select_func
+if (empty(g:cycle_select_ui) || g:cycle_select_ui == 'ui.select') && has('nvim') && luaeval('vim.ui.select')->type() == v:t_func
+  function! s:LuaSelect(...) abort
+    return luaeval('require("vim_cycle").select(unpack(_A))', a:000)
+  endfunction
+  let s:select_func = function('s:LuaSelect')
+elseif (empty(g:cycle_select_ui) || g:cycle_select_ui == 'inputlist') && exists('*inputlist')
+  let s:select_func = function('cycle#select#inputlist')
+else
+  let s:select_func = function('cycle#select#confirm')
+endif
+" }}}
+
+
+" Conflict Selection UI {{{
+" s:conflict_select_func
+if (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'ui.select') && has('nvim') && luaeval('vim.ui.select')->type() == v:t_func
+  function! s:LuaConflictSelect(...) abort
+    return luaeval('require("vim_cycle").conflict_select(unpack(_A))', a:000)
+  endfunction
+  let s:conflict_select_func = function('s:LuaConflictSelect')
+elseif (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'inputlist') && exists('*inputlist')
+  let s:conflict_select_func = function('cycle#select#conflict_inputlist')
+else
+  let s:conflict_select_func = function('cycle#select#conflict_confirm')
+endif
+" }}}
+
+
+function! s:build_match(ctext, group, item_idx) "{{{
+  let item = a:group.items[a:item_idx]
+  let ctext = deepcopy(a:ctext)
+  let new_text = s:new_ctext('')
+
+  let new_text.text = s:text_transform(
+        \   ctext.text,
+        \   item,
+        \   a:group.options,
+        \ )
+  let new_text.line = ctext.line
+  let new_text.col = ctext.col
+
+  return {
+        \   'group': a:group,
+        \   'pairs': {
+        \     'before': deepcopy(ctext),
+        \     'after': deepcopy(new_text)
+        \   },
+        \ }
+endfunction "}}}
+
+
 function! s:text_transform(before, after, options) "{{{
   let text = a:after
 
@@ -714,6 +829,11 @@ function! s:restore_reg(name) "{{{
   if exists('s:save_reg')
     call setreg(a:name, s:save_reg[0], s:save_reg[1])
   endif
+endfunction "}}}
+
+
+function! s:sid_prefix() "{{{
+  return matchstr(expand('<sfile>'), '<SNR>\d\+_')
 endfunction "}}}
 
 " }}} Utils
