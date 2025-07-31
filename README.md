@@ -96,6 +96,16 @@ Similar Projects
   Maybe the very first plugin that introduced this idea.
 
 
+Blog Posts
+----------
+
+- In 繁體中文:
+
+  - [開發背景](https://bootleq.blogspot.com/2011/09/vim-plugin-cycle.html "Vim plugin - cycle 開發背景 - 沒穿方服") (2011)
+  - [簡易使用說明](https://bootleq.blogspot.com/2011/09/cyclevim.html "cycle.vim 簡易使用說明 - 沒穿方服") (2011)
+  - [Group 設定簡介](https://bootleq.blogspot.com/2011/10/cyclevim-group.html "cycle.vim - group 設定簡介 - 沒穿方服") (2011)
+
+
 TODO
 ----
 [wiki/TODO](https://github.com/bootleq/vim-cycle/wiki/Todo)
