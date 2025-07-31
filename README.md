@@ -68,7 +68,8 @@ let g:cycle_default_groups += [
 let g:cycle_default_groups += [
       \   [['日', '一', '二', '三', '四', '五', '六']],
       \   [['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']],
-      \   [['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']],
+      \   [['January', 'February', 'March', 'April', 'May', 'June', 'July',
+      \     'August', 'September', 'October', 'November', 'December']],
       \   [['portrait', 'landscape']],
       \ ]
 ```
