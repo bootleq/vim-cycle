@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+## 0.5.0 (2025-07-31)
+
+* New `CycleSelect` function, list all candidates to choose from. (#3)
+
+* Provide alternative selection prompt UI types: `vim.ui.select` (nvim) / `inputlist` / `confirm`.
+
+* Change the content of conflict selection UI, especially, show "expected result" first, "group name" later.
+
 ## 0.4.0 (2018-10-24)
 
 * Change: remove `0`/`1`, `+`/`-` and `>`/`<` from plugin defaults (thanks to @kiryph, #12).
