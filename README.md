@@ -13,6 +13,67 @@ Cycle text within predefined candidates.
   - `「`quoted`」` =&gt; `『`quoted`』` &nbsp; special pairs cycle together
 
 
+Configuration Example
+---------------------
+
+```vim
+let g:cycle_no_mappings = 1
+let g:cycle_max_conflict = 14
+let g:cycle_select_ui = 'ui.select'
+let g:cycle_conflict_ui = 'confirm'
+let g:cycle_phased_search = 1
+
+nmap <silent> <LocalLeader>a <Plug>CycleNext
+vmap <silent> <LocalLeader>a <Plug>CycleNext
+nmap <silent> <Leader>a <Plug>CyclePrev
+vmap <silent> <Leader>a <Plug>CyclePrev
+nmap <silent> <LocalLeader>ga <Plug>CycleSelect
+vmap <silent> <LocalLeader>ga <Plug>CycleSelect
+
+let g:cycle_default_groups = [
+      \   [['true', 'false']],
+      \   [['yes', 'no']],
+      \   [['on', 'off']],
+      \   [['+', '-']],
+      \   [['>', '<']],
+      \   [['"', "'"]],
+      \   [['==', '!=']],
+      \   [['0', '1']],
+      \   [['and', 'or']],
+      \   [['next', 'previous', 'prev']],
+      \   [['asc', 'desc']],
+      \   [['是', '否']],
+      \   [['，', '。', '、']],
+      \   [['✓', '✗', '◯', '✕', '✔', '✘', '⭕', '✖']],
+      \   [['lat', 'lon']],
+      \   [['latitude', 'longitude']],
+      \   [['ancestor', 'descendant']],
+      \   [['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+      \     'Friday', 'Saturday'], ['hard_case', {'name': 'Days'}]],
+      \   [['(:)', '（:）', '「:」', '『:』'], 'sub_pairs'],
+      \ ]
+
+" For fileType "ruby" only
+let g:cycle_default_groups_for_ruby = [
+      \   [['stylesheet_link_tag', 'javascript_include_tag']],
+      \ ]
+
+" For HTML, but here just blindly add to global groups
+let g:cycle_default_groups += [
+      \   [['h1', 'h2', 'h3', 'h4'], 'sub_tag'],
+      \   [['ul', 'ol'], 'sub_tag'],
+      \   [['em', 'strong', 'small'], 'sub_tag'],
+      \ ]
+
+let g:cycle_default_groups += [
+      \   [['日', '一', '二', '三', '四', '五', '六']],
+      \   [['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']],
+      \   [['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']],
+      \   [['portrait', 'landscape']],
+      \ ]
+```
+
+
 Similar Projects
 ----------------
 
