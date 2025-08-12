@@ -323,25 +323,34 @@ By default no options are set.
 "cond"              Funcref (default: none) ~
 
   Condition, a group will not match if this function doesn't returns true.
-  The function receives arguments:
-    - group: the group dictionary
+  The function receives 2 arguments:
+    - group: the group dictionary.
+    - tick: an internal number (starts from 0) which increases every time
+            doing search. Can be used to memorise function result (cache).
   Example: >vim
     " Do not cycle [ ==, != ] when not in lua language (lua uses ~=)
 
-    function! s:not_lua_context(...) abort " {{{
+    let s:cycle_tick = -1
+    let s:cycle_not_lua_cache = v:false
+
+    function! s:not_lua_context(group, tick) abort " {{{
+      if s:cycle_tick == a:tick
+        return s:cycle_not_lua_cache
+      endif
+
+      let result = &filetype != 'lua'
+
       if exists('*v:lua.vim.inspect_pos') " nvim treesitter
         let hl = v:lua.vim.inspect_pos()
         let ts_lang = v:lua.vim.tbl_get(hl, 'treesitter', 1, 'lang')
         if ts_lang
-          return ts_lang != 'lua'
+          let result = ts_lang != 'lua'
         endif
       endif
 
-      if &filetype != 'lua'
-        return v:true
-      endif
-
-      return v:false
+      let s:cycle_tick = a:tick
+      let s:cycle_not_lua_cache = result
+      return result
     endfunction " }}}
 
     let g:cycle_default_groups += [
