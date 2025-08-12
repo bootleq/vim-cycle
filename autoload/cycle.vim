@@ -237,7 +237,7 @@ function! s:accept_match(match, ctx) "{{{
         \   m.pairs.after,
         \   a:ctx.class_name,
         \   m.group.items,
-        \   extend(m.group.options, {(s:OPTIONS.restrict_cursor): 1}),
+        \   extend(deepcopy(m.group.options), {(s:OPTIONS.restrict_cursor): 1}),
         \ )
 endfunction "}}}
 

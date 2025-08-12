@@ -5,6 +5,8 @@ CHANGES
 
 * Add `cond` group option, a way to dynamically toggle a group.
 
+* Fix mistakenly modify `g:cycle_group` with `restrict_cursor` extended.
+
 ## 0.5.0 (2025-07-31)
 
 * New `CycleSelect` function, list all candidates to choose from. (#3)
