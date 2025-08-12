@@ -320,6 +320,34 @@ By default no options are set.
   For example, on/off only matches "on" but not "Mon".
   Set this option other than 0 to enforce word-bounded search.
 
+"cond"              Funcref (default: none) ~
+
+  Condition, a group will not match if this function doesn't returns true.
+  The function receives arguments:
+    - group: the group dictionary
+  Example: >vim
+    " Do not cycle [ ==, != ] when not in lua language (lua uses ~=)
+
+    function! s:not_lua_context(...) abort " {{{
+      if exists('*v:lua.vim.inspect_pos') " nvim treesitter
+        let hl = v:lua.vim.inspect_pos()
+        let ts_lang = v:lua.vim.tbl_get(hl, 'treesitter', 1, 'lang')
+        if ts_lang
+          return ts_lang != 'lua'
+        endif
+      endif
+
+      if &filetype != 'lua'
+        return v:true
+      endif
+
+      return v:false
+    endfunction " }}}
+
+    let g:cycle_default_groups += [
+      \   [['==', '!='], { 'cond': function('s:not_lua_context') }],
+      \ ]
+<
 
 ------------------------------------------------------------------------------
 Fallback mapping                                      *cycle-fallback-mapping*

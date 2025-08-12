@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+## 0.6.0 (2025-08-??)
+
+* Add `cond` group option, a way to dynamically toggle a group.
+
 ## 0.5.0 (2025-07-31)
 
 * New `CycleSelect` function, list all candidates to choose from. (#3)
