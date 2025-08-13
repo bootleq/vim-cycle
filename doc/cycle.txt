@@ -328,7 +328,7 @@ By default no options are set.
     - tick: an internal number (starts from 0) which increases every time
             doing search. Can be used to memorise function result (cache).
   This function runs "before" each group item's matching.
-  Example: >vim
+  Example: >
     " Do not cycle [ ==, != ] when not in lua language (lua uses ~=)
 
     let s:cycle_tick = -1
