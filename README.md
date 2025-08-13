@@ -37,7 +37,7 @@ let g:cycle_default_groups = [
       \   [['+', '-']],
       \   [['>', '<']],
       \   [['"', "'"]],
-      \   [['==', '!=']],
+      \   [['==', '!='], { 'cond': function('s:not_lua_context') }],
       \   [['0', '1']],
       \   [['and', 'or']],
       \   [['next', 'previous', 'prev']],
@@ -51,6 +51,11 @@ let g:cycle_default_groups = [
       \   [['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
       \     'Friday', 'Saturday'], ['hard_case', {'name': 'Days'}]],
       \   [['(:)', '（:）', '「:」', '『:』'], 'sub_pairs'],
+      \ ]
+
+" For fileType "lua" only
+let g:cycle_default_groups_for_lua = [
+      \   [['==', '~=']],
       \ ]
 
 " For fileType "ruby" only

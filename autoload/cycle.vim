@@ -12,7 +12,10 @@ let s:OPTIONS = {
       \ 'end_with': 'end_with',
       \ 'begin_with': 'begin_with',
       \ 'regex': 'regex',
+      \ 'cond': 'cond',
       \ }
+
+let s:tick = 0
 
 " }}} Constants
 
@@ -76,6 +79,8 @@ endfunction "}}}
 
 
 function! cycle#search(class_name, ...) "{{{
+  let s:tick += 1
+
   let options = a:0 ? a:1 : {}
   let groups = s:groups()
   let direction = get(options, 'direction', 1)
@@ -114,6 +119,17 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
   let matches = []
 
   for group in a:groups
+    if has_key(group.options, s:OPTIONS.cond)
+      if type(group.options[s:OPTIONS.cond]) == v:t_func
+        if !group.options[s:OPTIONS.cond](group, s:tick)
+          continue
+        endif
+      else
+        echoerr "Cycle: Invalid condition (cond) in group:\n  " . string(group)
+        return
+      endif
+    endif
+
     if len(matches) && g:cycle_max_conflict <= 1 && a:count != '*'
       break
     endif
