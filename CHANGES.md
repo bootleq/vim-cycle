@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-## 0.6.0 (2025-08-??)
+## 0.6.0 (2025-08-14)
 
 * Add `cond` group option, a way to dynamically toggle a group.
 
