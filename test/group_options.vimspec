@@ -1,0 +1,188 @@
+Describe Group options
+  " Function to simulate 'cond' implementation
+  function! s:cond_func(...) abort
+    let g:cond_func_called = a:000
+    let ret = get(g:, 'cond_func_ret', 0)
+    return ret
+  endfunction
+
+  Before all
+    let g:cycle_default_groups = [
+          \   [['Yes', 'No'], 'match_case'],
+          \   [['GitHub', 'PlayStation'], 'hard_case'],
+          \   [['em', 'STRONG'], 'sub_tag'],
+          \   [["do:end", "{:}"], 'sub_pairs'],
+          \   [[ '[', '<' ], 'sub_pair', {'end_with': [ ']', '>' ]}],
+          \   [[ ']', '>' ], 'sub_pair', {'begin_with': [ '[', '<' ]}],
+          \   [['on', 'off'], 'match_word'],
+          \   [['Mon', 'Tue']],
+          \   [['==', '~='], { 'cond': function('s:cond_func') }],
+          \   [['==', '!=']],
+          \ ]
+  End
+
+  Before each
+    call cycle#test#clear_all_groups()
+    call cycle#test#reinitialize_groups()
+    new
+  End
+
+  After each
+    bwipeout!
+  End
+
+  It respects "match_case"
+    let line = 'yes yEs yeS Yes YES YEs'
+    "           123456789 123456789 123
+    "                       ^ 13
+    call setline(1, line)
+
+    call cursor(1, 1) " yes
+    execute 'normal \a'
+    Assert Equals(getline(1), line, 'Expect unchaged')
+
+    call cursor(1, 13) " Yes
+    execute 'normal \a'
+    Assert Equals(getline(1), 'yes yEs yeS No YES YEs')
+  End
+
+  It respects "hard_case"
+    let line = 'playstation'
+    call setline(1, line)
+
+    execute 'normal \a'
+    Assert Equals(getline(1), 'GitHub')
+
+    execute 'normal \a'
+    Assert Equals(getline(1), 'PlayStation')
+  End
+
+  It respects "sub_tag"
+    let lines =<< trim END
+      <strong id='a'><img src="" />It's
+      my<EM> DUTY
+        </eM></strong > <eM>
+    END
+    call setline(1, lines)
+
+    call cursor(1, 4) " In first <strong>, on 'r'
+    execute 'normal \a'
+    let expected =<< trim END
+      <em id='a'><img src="" />It's
+      my<EM> DUTY
+        </eM></em > <eM>
+    END
+    Assert Equals(getline(1, '$'), expected, 'Expect <strong> -> <em>')
+
+    " FIXME: open tag not changed
+    call cursor(3, 6) " In line 3, first </eM>, on 'M'
+    execute 'normal \a'
+    let expected =<< trim END
+      <em id='a'><img src="" />It's
+      my<sTrong> DUTY
+        </sTrong></em > <eM>
+    END
+    Assert Equals(getline(1, '$'), expected, 'Expect </eM> -> </sTrong>')
+  End
+
+  It respects "sub_pair" and "end_with"
+    let line = '<= [1, 2, 3] < [a, b, c] -----> >'
+               "             B
+    call setline(1, line)
+
+    call search('< [a', 'W') " begin of second <
+    execute 'normal \a'
+    Assert Equals(getline(1), '<= [1, 2, 3] [ [a, b, c] -----] >')
+                              "             B                E
+    execute 'normal \a'
+    Assert Equals(getline(1), line)
+  End
+
+  It respects "sub_pair" and "begin_with"
+    let line = '<= [1, 2, 3] < [a, b, c] -----> >'
+               "                       E
+    call setline(1, line)
+
+    call search('] --', 'W') " end of second [ ... ]
+    execute 'normal \a'
+    Assert Equals(getline(1), '<= [1, 2, 3] < <a, b, c> -----> >')
+                              "               B       E
+    execute 'normal \a'
+    Assert Equals(getline(1), line)
+  End
+
+  Describe respects "match_word"
+    " FIXME: doesn't match on
+    It OFF by default
+      let g:cycle_default_groups = [
+            \   [['on', 'off']],
+            \   [['Mon', 'Tue']],
+            \ ]
+      call cycle#test#clear_all_groups()
+      call cycle#test#reinitialize_groups()
+
+      let line = 'Mon'
+                 " ^
+      call setline(1, line)
+
+      call cursor(1, 2) " on 'o'
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Moff')
+
+      execute 'normal \a'
+      Assert Equals(getline(1), line)
+    End
+
+    It ON
+      let g:cycle_default_groups = [
+            \   [['on', 'off'], 'match_word'],
+            \   [['Mon', 'Tue']],
+            \ ]
+      call cycle#test#clear_all_groups()
+      call cycle#test#reinitialize_groups()
+
+      let line = 'Mon'
+                 " ^
+      call setline(1, line)
+
+      call cursor(1, 2) " on 'o'
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Tue')
+
+      execute 'normal \a'
+      Assert Equals(getline(1), line)
+    End
+  End
+
+  It respects "cond"
+    let line = '=='
+    call setline(1, line)
+
+    let g:cond_func_ret = 0 " simulate cond returns false
+    execute 'normal \a'
+    Assert Equals(getline(1), '!=')
+
+    let called = g:cond_func_called
+    Assert LengthOf(called, 2)
+    Assert IsDict(called[0])
+    Assert Equals(called[0].items, ['==', '~='])
+    Assert IsDict(called[0].options)
+    Assert IsFunction(called[0].options.cond)
+    Assert IsNumber(called[1])
+
+    execute 'normal \a'
+    Assert Equals(getline(1), '==')
+
+    let g:cond_func_ret = 1 " simulate cond returns true
+    execute 'normal \a'
+    Assert Equals(getline(1), '~=')
+
+    let called = g:cond_func_called
+    Assert LengthOf(called, 2)
+    Assert IsDict(called[0])
+    Assert Equals(called[0].items, ['==', '~='])
+    Assert IsDict(called[0].options)
+    Assert IsFunction(called[0].options.cond)
+    Assert IsNumber(called[1])
+  End
+End
