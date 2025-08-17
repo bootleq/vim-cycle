@@ -117,6 +117,26 @@ TODO
 [wiki/TODO](https://github.com/bootleq/vim-cycle/wiki/Todo)
 
 
+Development
+-----------
+
+### Test
+
+Run the test scripts, will clone [vim-themis][] and execute it.
+
+```sh
+make test
+```
+
+Or directly run:
+
+```sh
+./test/run.sh
+./test/run.sh --reporter dot --target match_case
+./test/run.sh --help
+```
+
+
 [toggle.vim]: https://www.vim.org/scripts/script.php?script_id=895
 [tteifel]: http://www.teifel.net/
 [SwapIt.vim]: https://github.com/mjbrownie/swapit
@@ -128,3 +148,4 @@ TODO
 [MadeByWiki]: http://madebykiwi.com/
 [vim-clurin]: https://github.com/syngan/vim-clurin
 [syngan]: https://github.com/syngan
+[vim-themis]: https://github.com/thinca/vim-themis
