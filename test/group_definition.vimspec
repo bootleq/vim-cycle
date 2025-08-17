@@ -1,0 +1,55 @@
+Describe Group definition
+  Before each
+    new
+  End
+
+  After each
+    bwipeout!
+  End
+
+  Describe Default groups
+    Before each
+      call cycle#test#clear_all_groups()
+    End
+
+    It has default group yes/no
+      call setline(1, 'No')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Yes')
+    End
+
+    It can overwrite default groups
+      let g:cycle_default_groups = [[['0', '2']], [['no', 'foo']]]
+      call cycle#test#reinitialize_groups()
+
+      call setline(1, 'Yes No')
+
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Yes No', 'Expect default "yes" deleted')
+
+      call search('No', 'w')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Yes Foo')
+    End
+
+    It adds default groups for filetype
+      let g:cycle_default_groups_for_lua = [[['~=', '==']]]
+      call cycle#test#reinitialize_groups()
+
+      let line = 'local h == 1 and 2 or 7'
+      let col = stridx(line, '==') + 1
+      call setline(1, line)
+
+      call cursor(1, col)
+      execute 'normal \a'
+      Assert Equals(getline(1), 'local h == 1 and 2 or 7', 'Expect unchaged, filetype mismatch')
+
+      setlocal filetype=lua
+      Assert Equals(&filetype, 'lua')
+
+      call cursor(1, col)
+      execute 'normal \a'
+      Assert Equals(getline(1), 'local h ~= 1 and 2 or 7')
+    End
+  End
+End
