@@ -132,7 +132,8 @@ Or directly run:
 
 ```sh
 ./test/run.sh
-./test/run.sh --reporter dot --target match_case
+THEMIS_VIM=nvim ./test/run.sh
+./test/run.sh --reporter dot --target 'respects .match_case"'
 ./test/run.sh --help
 ```
 
