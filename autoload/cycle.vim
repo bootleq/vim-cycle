@@ -89,8 +89,12 @@ function! cycle#search(class_name, ...) "{{{
   let cword = s:new_cword()
   let cchar = s:new_cchar()
 
+  " Phased search
+  " - for word            : word => char => line  ['w', '']
+  " - for multibyte word  : char => word => line  ['.', 'w', '']
+  " - for visual selected : visual                ['v']
   if a:class_name == 'w'
-    if len(cchar.text) > 1
+    if len(cchar.text) > 1 " multibyte
       let phases = ['.', 'w']
       if cword != cchar
         call add(phases, '')
@@ -324,6 +328,7 @@ function! s:group_search(group, class_name) "{{{
               \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
               \ ], '')
       else
+        " No match in other defined classes, try search backward/forward over current col
         let pattern = join([
               \   '\%>' . max([0, pos.col - strlen(item)]) . 'c',
               \   '\%<' . (pos.col + 1) . 'c' . s:escape_pattern(item),
@@ -478,6 +483,13 @@ endfunction "}}}
 
 
 " Text Classes: {{{
+
+" Classes:
+" . : current cursor char / cchar, might be multibyte (but still 1 character)
+" w : current cursor word / cword
+" v : visual selection
+"   : empty, no above classes matched, can try search in expanded range
+" - : dummy, noop
 
 function! s:new_ctext(text_class) "{{{
   if a:text_class == 'w'
