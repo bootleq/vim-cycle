@@ -200,7 +200,7 @@ function! s:conflict(ctx) "{{{
           \ })
   endfor
 
-  return call(s:conflict_select_func, [options, a:ctx])
+  return cycle#conflict#ui(options, a:ctx)
 endfunction "}}}
 
 
@@ -766,21 +766,6 @@ elseif (empty(g:cycle_select_ui) || g:cycle_select_ui == 'inputlist') && exists(
   let s:select_func = function('cycle#select#inputlist')
 else
   let s:select_func = function('cycle#select#confirm')
-endif
-" }}}
-
-
-" Conflict Selection UI {{{
-" s:conflict_select_func
-if (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'ui.select') && has('nvim') && luaeval('vim.ui.select')->type() == v:t_func
-  function! s:LuaConflictSelect(...) abort
-    return luaeval('require("vim_cycle").conflict_select(unpack(_A))', a:000)
-  endfunction
-  let s:conflict_select_func = function('s:LuaConflictSelect')
-elseif (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'inputlist') && exists('*inputlist')
-  let s:conflict_select_func = function('cycle#select#conflict_inputlist')
-else
-  let s:conflict_select_func = function('cycle#select#conflict_confirm')
 endif
 " }}}
 
