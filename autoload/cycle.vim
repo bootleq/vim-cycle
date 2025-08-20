@@ -168,7 +168,7 @@ function! s:substitute(before, after, class_name, items, options) "{{{
         \   a:before.line,
         \   substitute(
         \     getline(a:before.line),
-        \     '\%' . a:before.col . 'c' . s:escape_pattern(a:before.text),
+        \     '\%' . a:before.col . 'c' . s:escape_pattern(a:before.text) . '\c',
         \     s:escape_sub_expr(a:after.text),
         \     ''
         \   )
@@ -576,12 +576,11 @@ function! s:sub_tag_pair(params) "{{{
   let ic_flag = get(options, s:OPTIONS.match_case) ? '\C' : '\c'
   let pos = s:getpos()
 
-  if search(
-        \ '\v\</?\m\%' . before.line . 'l\%' . before.col . 'c'
-        \              . pattern_till_tag_end . '\C',
-        \ 'n',
-        \ )
-    let in_closing_tag = search('/\m\%' . before.line . 'l\%' . before.col . 'c\C', 'n')
+  " To check if position is inside < and >, might across lines
+  let pattern_is_within_tag = '\v\</?\m\%' . before.line . 'l\%' . before.col . 'c' . pattern_till_tag_end . '\C'
+
+  if search(pattern_is_within_tag, 'n')
+    let in_closing_tag = search('/\m\%' . before.line . 'l\%' . before.col . 'c\C', 'n')  " search if a '/' exists before position
     let opposite = searchpairpos(
           \   '<' . s:escape_pattern(before.text) . pattern_till_tag_end,
           \   '',
