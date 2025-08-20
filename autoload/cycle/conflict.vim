@@ -28,6 +28,11 @@ function! s:loaders.confirm() abort " {{{
 endfunction " }}}
 
 
+function! s:loaders._test() abort " {{{
+  let s:funcs['_test'] = function('cycle#test#conflict_ui')
+endfunction " }}}
+
+
 function! cycle#conflict#ui(options, ctx) abort " {{{
   let pref = get(g:, 'cycle_conflict_ui', '')
 
@@ -35,7 +40,7 @@ function! cycle#conflict#ui(options, ctx) abort " {{{
     return s:funcs[pref](a:options, a:ctx)
   endif
 
-  let prefs = sort(['ui.select', 'inputlist', 'confirm'], {a, b -> b == pref})
+  let prefs = sort(['ui.select', 'inputlist', 'confirm', '_test'], {a, b -> b == pref})
 
   for key in prefs
     if !has_key(s:funcs, key)

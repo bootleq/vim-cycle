@@ -12,3 +12,18 @@ function! cycle#test#reinitialize_groups() "{{{
   let s:cycle_plugin = s:scope.funcs('plugin/cycle.vim')
   call s:cycle_plugin.initialize_groups()
 endfunction "}}}
+
+
+function! cycle#test#conflict_ui(options, ctx) "{{{
+  let candidates = []
+  for option in a:options
+    let text = option.text
+    call add(candidates, text)
+  endfor
+
+  " Set global var for test assertion
+  let g:cycle_test_conflict = {
+        \   'items': candidates,
+        \ }
+  return
+endfunction "}}}
