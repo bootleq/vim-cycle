@@ -1,6 +1,10 @@
 Describe Text classes
   Before all
     let g:cycle_max_conflict = 1
+  End
+
+  Before each
+    call cycle#test#clear_all_groups()
     let g:cycle_default_groups = [
           \   [['on', 'off']],
           \   [['Mon', 'Tue']],
@@ -9,10 +13,6 @@ Describe Text classes
           \   [['◯◯◯', 'ゴゴゴゴ']],
           \   [['Rails Metal', 'Thrash', 'Technical Death']],
           \ ]
-  End
-
-  Before each
-    call cycle#test#clear_all_groups()
     call cycle#test#reinitialize_groups()
     new
   End

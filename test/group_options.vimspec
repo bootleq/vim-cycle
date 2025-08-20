@@ -6,7 +6,8 @@ Describe Group options
     return ret
   endfunction
 
-  Before all
+  Before each
+    call cycle#test#clear_all_groups()
     let g:cycle_default_groups = [
           \   [['Yes', 'No'], 'match_case'],
           \   [['GitHub', 'PlayStation'], 'hard_case'],
@@ -19,10 +20,6 @@ Describe Group options
           \   [['==', '~='], { 'cond': function('s:cond_func') }],
           \   [['==', '!=']],
           \ ]
-  End
-
-  Before each
-    call cycle#test#clear_all_groups()
     call cycle#test#reinitialize_groups()
     new
   End
@@ -113,11 +110,11 @@ Describe Group options
   Describe respects "match_word"
     " FIXME: doesn't match on
     It OFF by default
+      call cycle#test#clear_all_groups()
       let g:cycle_default_groups = [
             \   [['on', 'off']],
             \   [['Mon', 'Tue']],
             \ ]
-      call cycle#test#clear_all_groups()
       call cycle#test#reinitialize_groups()
 
       let line = 'Mon'
@@ -133,11 +130,11 @@ Describe Group options
     End
 
     It ON
+      call cycle#test#clear_all_groups()
       let g:cycle_default_groups = [
             \   [['on', 'off'], 'match_word'],
             \   [['Mon', 'Tue']],
             \ ]
-      call cycle#test#clear_all_groups()
       call cycle#test#reinitialize_groups()
 
       let line = 'Mon'

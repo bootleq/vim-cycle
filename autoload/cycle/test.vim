@@ -2,7 +2,10 @@ function! cycle#test#clear_all_groups() "{{{
   unlet! g:cycle_groups
   unlet! b:cycle_groups
   unlet! b:cycle_ft_groups
+
+  unlet! g:cycle_default_groups
 endfunction "}}}
+
 
 function! cycle#test#reinitialize_groups() "{{{
   let s:scope = themis#helper('scope')
