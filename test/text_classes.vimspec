@@ -1,7 +1,6 @@
 Describe Text classes
   Before each
-    call cycle#test#clear_all_groups()
-    let g:cycle_default_groups = [
+    call cycle#test#reset_default_groups([
           \   [['on', 'off']],
           \   [['Mon', 'Tue']],
           \   [['on', 'om']],
@@ -11,8 +10,7 @@ Describe Text classes
           \   [['◯◯◯', 'ゴゴゴゴ']],
           \   [['◯◯ ◯', 'plz stop']],
           \   [['Rails Metal', 'Thrash', 'Technical Death']],
-          \ ]
-    call cycle#test#reinitialize_groups()
+          \ ])
     new
   End
 

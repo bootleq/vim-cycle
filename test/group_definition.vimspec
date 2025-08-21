@@ -9,8 +9,7 @@ Describe Group definition
 
   Describe Default groups
     Before each
-      call cycle#test#clear_all_groups()
-      call cycle#test#reinitialize_groups()
+      call cycle#test#reset_default_groups()
     End
 
     It has default group yes/no
@@ -20,9 +19,9 @@ Describe Group definition
     End
 
     It can overwrite default groups
-      call cycle#test#clear_all_groups()
-      let g:cycle_default_groups = [[['0', '2']], [['no', 'foo']]]
-      call cycle#test#reinitialize_groups()
+      call cycle#test#reset_default_groups([
+            \   [['0', '2']], [['no', 'foo']]
+            \ ])
 
       call setline(1, 'Yes No')
 

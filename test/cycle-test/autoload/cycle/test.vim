@@ -1,3 +1,14 @@
+function! cycle#test#reset_default_groups(...) "{{{
+  let settings = a:0 ? a:1 : []
+
+  call cycle#test#clear_all_groups()
+  if !empty(settings)
+    let g:cycle_default_groups = settings
+  endif
+  call cycle#test#reinitialize_groups()
+endfunction "}}}
+
+
 function! cycle#test#clear_all_groups() "{{{
   unlet! g:cycle_groups
   unlet! b:cycle_groups

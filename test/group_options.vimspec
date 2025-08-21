@@ -7,8 +7,7 @@ Describe Group options
   endfunction
 
   Before each
-    call cycle#test#clear_all_groups()
-    let g:cycle_default_groups = [
+    call cycle#test#reset_default_groups([
           \   [['Yes', 'No'], 'match_case'],
           \   [['GitHub', 'PlayStation'], 'hard_case'],
           \   [['em', 'STRONG'], 'sub_tag'],
@@ -19,8 +18,7 @@ Describe Group options
           \   [['Mon', 'Tue']],
           \   [['==', '~='], { 'cond': function('s:cond_func') }],
           \   [['==', '!=']],
-          \ ]
-    call cycle#test#reinitialize_groups()
+          \ ])
     new
   End
 
@@ -117,12 +115,10 @@ Describe Group options
     End
 
     It OFF by default, both matched
-      call cycle#test#clear_all_groups()
-      let g:cycle_default_groups = [
+      call cycle#test#reset_default_groups([
             \   [['on', 'off']],
             \   [['Mon', 'Tue']],
-            \ ]
-      call cycle#test#reinitialize_groups()
+            \ ])
 
       let line = 'Mon'
                  " ^
@@ -136,12 +132,10 @@ Describe Group options
     End
 
     It ON
-      call cycle#test#clear_all_groups()
-      let g:cycle_default_groups = [
+      call cycle#test#reset_default_groups([
             \   [['on', 'off'], 'match_word'],
             \   [['Mon', 'Tue']],
-            \ ]
-      call cycle#test#reinitialize_groups()
+            \ ])
 
       let line = 'Mon'
                  " ^
