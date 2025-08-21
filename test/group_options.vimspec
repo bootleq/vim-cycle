@@ -105,6 +105,46 @@ Describe Group options
     Assert Equals(getline(1), line)
   End
 
+  Context sub_pairs with non-keyword text like LaTex
+    Before each
+      call cycle#test#reset_default_groups([[
+            \   [
+            \     '(:)',
+            \     '\left(:\right)',
+            \     '\mleft(:\mright)',
+            \     '\Bigl(:\Bigr)',
+            \   ],
+            \   'sub_pairs', 'hard_case', 'match_case'
+            \ ]])
+    End
+
+    It sub_pairs, from begin, sub end
+      let line = '(a+b)'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), '\left(a+b\right)')
+      execute 'normal \a'
+      Assert Equals(getline(1), '\mleft(a+b\mright)')
+
+      call cursor(1, 4) " on 'e' of \mleft
+      execute 'normal \a'
+      Assert Equals(getline(1), '\Bigl(a+b\Bigr)')
+      Assert Equals(col('.'), 4)
+    End
+
+    It sub_pairs, from end, sub begin
+      let line = '(a+b)'
+      call setline(1, line)
+
+      normal! $
+      execute 'normal \a'
+      Assert Equals(getline(1), '\left(a+b\right)')
+      Skip Assert Equals(col('.'), searchpos('\\right')[1], 'Expect cursor at the beginning of \right')
+      " FIXME: complete this test
+    End
+  End
+
   Describe respects "match_word"
     Before all
       let g:cycle_max_conflict = 100

@@ -179,7 +179,12 @@ function! s:substitute(before, after, class_name, items, options) "{{{
         \   'class_name': a:class_name,
         \   'items': a:items,
         \   'options': a:options,
+        \   'context': {},
         \ }
+
+  for Fn in callbacks.before_sub
+    call call(Fn, [callback_params])
+  endfor
 
   call setline(
         \   a:before.line,
@@ -654,55 +659,96 @@ function! s:sub_tag_pair(params) "{{{
 endfunction "}}}
 
 
-function! s:sub_pair(params) "{{{
-  let before = a:params.before
-  let after = a:params.after
+" Find target pair for "sub_pair".
+" For example when sub {{ foo }}  ->  (( foo ))
+"           cursor at: ^
+" We have:
+" - trigger: {{   ->   ((
+" - pair:    }}   ->   ))
+" - pair_at: end
+function! s:find_pair(params) abort " {{{
+  let trigger_before = a:params.before
+  let trigger_after = a:params.after
   let options = a:params.options
   let timeout = 600
   let ic_flag = get(options, s:OPTIONS.match_case) ? '\C' : '\c'
 
   if type(get(options, s:OPTIONS.end_with)) == type([])
-    let at_begin = 1
+    let trigger_at_begin = 1
   elseif type(get(options, s:OPTIONS.begin_with)) == type([])
-    let at_begin = 0
+    let trigger_at_begin = 0
   else
+    echohl WarningMsg | echo printf('Incomplete sub_pair for %s, missing "begin" or "end" with.', trigger_before.text) | echohl None
     return
   endif
-  let pair_at = at_begin ? 'end' : 'begin'
 
-  let pair_before = deepcopy(before)
+  let pair_at = trigger_at_begin ? 'end' : 'begin'
+
+  let pair_before = deepcopy(trigger_before)
   let pair_before.text = get(
         \   options[pair_at . '_with'],
-        \   index(a:params.items, before.text, 0, ic_flag ==# '\c'),
+        \   index(a:params.items, trigger_before.text, 0, ic_flag ==# '\c'),
         \ )
+
   let pair_after = {}
   let pair_after.text = get(
         \   options[pair_at . '_with'],
-        \   index(a:params.items, after.text, 0, ic_flag ==# '\c'),
+        \   index(a:params.items, trigger_after.text, 0, ic_flag ==# '\c'),
         \ )
 
-  let opposite = searchpairpos(
-        \   s:escape_pattern(at_begin ? before.text : pair_before.text),
+  let pair_pos = searchpairpos(
+        \   s:escape_pattern(trigger_at_begin ? trigger_before.text : pair_before.text),
         \   '',
-        \   s:escape_pattern(at_begin ? pair_before.text : pair_after.text)
-        \        . (at_begin ? '' : '\zs') . ic_flag,
-        \   'nW' . (at_begin ? '' : 'b'),
+        \   s:escape_pattern(trigger_at_begin ? pair_before.text : trigger_before.text)
+        \        . (trigger_at_begin ? '' : '\zs') . ic_flag,
+        \   'nW' . (trigger_at_begin ? '' : 'b'),
         \   '',
         \   '',
         \   timeout,
         \ )
-  if opposite != [0, 0]
-    let pair_before.line = opposite[0]
-    let pair_before.col = opposite[1]
+
+  if pair_pos == [0, 0]
+    echohl WarningMsg | echo printf("Can't find opposite %s for sub_pair.", pair_before.text) | echohl None
+  else
+    let pair_before.line = pair_pos[0]
+    let pair_before.col = pair_pos[1]
     call extend(pair_after, pair_before, 'keep')
-    call s:substitute(
-          \   pair_before,
-          \   pair_after,
-          \   '-',
-          \   a:params.items,
-          \   s:cascade_options_for_callback(options),
-          \ )
+
+    let ctx = {
+          \   'pair_before': pair_before,
+          \   'pair_after': pair_after,
+          \   'pair_at': pair_at,
+          \ }
+    call extend(a:params.context, ctx)
   endif
+endfunction " }}}
+
+
+function! s:sub_pair(params) "{{{
+  let ctx = get(a:params, 'context', {})
+  let pair_before = get(ctx, 'pair_before', {})
+  let pair_after = get(ctx, 'pair_after', {})
+  let pair_at = get(ctx, 'pair_at', '')
+
+  if empty(pair_before) || empty(pair_after) || empty(pair_at)
+    return
+  endif
+
+  let before = a:params.before
+  let after = a:params.after
+  if pair_at == 'end' && before.line == after.line
+    let offset_after_sub = after.col + len(after.text) - (before.col + len(before.text))
+    let pair_before.col += offset_after_sub
+    let pair_after.col += offset_after_sub
+  endif
+
+  call s:substitute(
+        \   pair_before,
+        \   pair_after,
+        \   '-',
+        \   a:params.items,
+        \   s:cascade_options_for_callback(a:params.options),
+        \ )
 endfunction "}}}
 
 
@@ -737,6 +783,7 @@ function! s:parse_callback_options(options) "{{{
   endif
 
   if get(options, s:OPTIONS.sub_pair)
+    call add(callbacks.before_sub, function('s:find_pair'))
     call add(callbacks.after_sub, function('s:sub_pair'))
   endif
 
