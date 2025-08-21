@@ -9,7 +9,7 @@ Describe Text classes
           \   [['◯', '✕']],
           \   [['◯◯', '👀']],
           \   [['◯◯◯', 'ゴゴゴゴ']],
-          \   [['◯ ◯◯', 'plz stop']],
+          \   [['◯◯ ◯', 'plz stop']],
           \   [['Rails Metal', 'Thrash', 'Technical Death']],
           \ ]
     call cycle#test#reinitialize_groups()
@@ -57,43 +57,48 @@ Describe Text classes
         let g:cycle_max_conflict = 1
       End
 
-      It takes "word" and "char" if matched, no need to try line search
+      It takes "word" and "char", then line search
         let line = 'on the other hands up'
         call setline(1, line)
 
         call cursor(1, 2) " on 1st 'n'
         execute 'normal \a'
         Assert Exists('g:cycle_test_conflict.items')
-        Assert Equals(g:cycle_test_conflict.items, ['off', 'om'], "Skips 'on the other hand' group")
+        Assert Equals(g:cycle_test_conflict.items, ['off', 'om', 'leg'])
 
         call search('other', 'W')
         execute 'normal \a'
         Assert Equals(getline(1), 'legs up', 'Ensure line search works')
       End
 
-      It takes "char" and "word" (multibyte), or try line search
-        let line = '◯◯ ◯◯◯ ◯ ◯◯'
-                   "12_456_8_01
+      It takes "char" and "word" (multibyte) and line search
+        let line = '◯◯ ◯◯◯ ◯◯ ◯◯'
+                   "12_456_89_12
         call setline(1, line)
 
-                                    "◯◯ ◯◯◯ ◯ ◯◯
+                                    "◯◯ ◯◯◯ ◯◯ ◯◯
         call setcursorcharpos(1, 4) "   ^
         execute 'normal \a'
         Assert Exists('g:cycle_test_conflict.items')
-        Assert Equals(g:cycle_test_conflict.items, ['✕', '👀', 'ゴゴゴゴ'])
+        Assert Equals(g:cycle_test_conflict.items, ['✕', '👀', 'ゴゴゴゴ', 'plz stop'])
 
-                                    "◯◯ ◯◯◯ ◯ ◯◯
+                                    "◯◯ ◯◯◯ ◯◯ ◯◯
         call setcursorcharpos(1, 5) "    ^
         execute 'normal \a'
         Assert Exists('g:cycle_test_conflict.items')
-        Assert Equals(g:cycle_test_conflict.items, ['✕', '👀'])
-        " TODO: is this expected behavior?
+        Assert Equals(g:cycle_test_conflict.items, ['✕', '👀', 'plz stop', 'ゴゴゴゴ'])
 
-                                    "◯◯ ◯◯◯ ◯ ◯◯
+                                    "◯◯ ◯◯◯ ◯◯ ◯◯
         call setcursorcharpos(1, 8) "       ^
         execute 'normal \a'
         Assert Exists('g:cycle_test_conflict.items')
-        Assert Equals(g:cycle_test_conflict.items, ['✕', 'plz stop'])
+        Assert Equals(g:cycle_test_conflict.items, ['✕', '👀', 'plz stop'])
+
+                                    "◯◯ ◯◯◯ ◯◯ ◯◯
+        call setcursorcharpos(1, 9) "        ^
+        execute 'normal \a'
+        Assert Exists('g:cycle_test_conflict.items')
+        Assert Equals(g:cycle_test_conflict.items, ['✕', '👀', 'plz stop'])
       End
     End
   End

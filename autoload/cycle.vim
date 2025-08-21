@@ -82,7 +82,7 @@ function! cycle#search(class_name, ...) "{{{
   let s:tick += 1
 
   let options = a:0 ? a:1 : {}
-  let groups = s:groups()
+  let groups = deepcopy(s:groups())
   let direction = get(options, 'direction', 1)
   let l:count = get(options, 'count', 1)
   let matches = []
@@ -109,9 +109,16 @@ function! cycle#search(class_name, ...) "{{{
   endif
 
   for phase in phases
-    let matches = s:phased_search(phase, groups, direction, l:count)
     if len(matches)
-      break
+      if g:cycle_max_conflict <= 1 || len(matches) > g:cycle_max_conflict
+        break
+      endif
+    endif
+
+    let phase_matches = s:phased_search(phase, groups, direction, l:count)
+
+    if !empty(phase_matches)
+      call extend(matches, phase_matches)
     endif
   endfor
 
@@ -123,6 +130,10 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
   let matches = []
 
   for group in a:groups
+    if get(group, '_phase_matched', 0)
+      continue
+    endif
+
     if has_key(group.options, s:OPTIONS.cond)
       if type(group.options[s:OPTIONS.cond]) == v:t_func
         if !group.options[s:OPTIONS.cond](group, s:tick)
@@ -151,6 +162,8 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
         let new_index = (index + a:direction * a:count) % len(group.items)
         call add(matches, s:build_match(ctext, group, new_index))
       endif
+
+      let group._phase_matched = 1
     endif
   endfor
 

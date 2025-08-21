@@ -108,8 +108,15 @@ Describe Group options
   End
 
   Describe respects "match_word"
-    " FIXME: doesn't match on
-    It OFF by default
+    Before all
+      let g:cycle_max_conflict = 100
+    End
+
+    After all
+      let g:cycle_max_conflict = 1
+    End
+
+    It OFF by default, both matched
       call cycle#test#clear_all_groups()
       let g:cycle_default_groups = [
             \   [['on', 'off']],
@@ -123,10 +130,9 @@ Describe Group options
 
       call cursor(1, 2) " on 'o'
       execute 'normal \a'
-      Skip Assert Equals(getline(1), 'Moff')
-
-      execute 'normal \a'
-      Skip Assert Equals(getline(1), line)
+      Assert Equals(getline(1), 'Mon', 'Expect unchaged')
+      Assert Exists('g:cycle_test_conflict.items')
+      Assert Equals(g:cycle_test_conflict.items, ['Tue', 'off'])
     End
 
     It ON

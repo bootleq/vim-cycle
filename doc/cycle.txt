@@ -113,13 +113,15 @@ g:cycle_max_conflict      (default: 1) ~
   When there are more than 1 alternates (in different groups) for current
   text, you are prompted to select which is the wanted one.
 
-  When the number of conflicts is more than this setting, no prompt will be
-  shown, cycle aborts with a message instead.
+  This feature is only enabled when this value is greater than 1.
 
   The default value is 1, means no conflicts will be handled. This improve
   some performance since no extra search is needed after first found.
   And it's recommended to use buffer-scoped groups to prevent conflicts, see
   |cycle-define-groups-practice|.
+
+  When the number of conflicts is more than this setting, no prompt will be
+  shown, cycle aborts with a message instead.
 
                                                            *g:cycle_select_ui*
 g:cycle_select_ui      (default: "") ~
