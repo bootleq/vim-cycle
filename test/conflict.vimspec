@@ -1,0 +1,59 @@
+Describe Conflict groups handling
+  Before each
+    call cycle#test#reset_default_groups([
+          \   [['on', 'off']],
+          \   [['on', 'line']],
+          \   [['on', 'on', 'on']],
+          \   [['on the other hand', 'leg']],
+          \ ])
+    new
+  End
+
+  After all
+    let g:cycle_max_conflict = 1
+  End
+
+  After each
+    unlet! g:cycle_test_conflict
+    bwipeout!
+  End
+
+  It omits conflict if max_conflict is 1
+    let g:cycle_max_conflict = 1
+    let line = 'on'
+    call setline(1, line)
+
+    execute 'normal \a'
+    Assert Equals(getline(1), 'off')
+  End
+
+  It collects all conflict items
+    let g:cycle_max_conflict = 100
+    let line = 'on'
+    call setline(1, line)
+
+    execute 'normal \a'
+    Assert Exists('g:cycle_test_conflict.items')
+    Assert Equals(g:cycle_test_conflict.items, ['off', 'line', 'on'])
+  End
+
+  It collects conflict items until reaching given max_conflict
+    let g:cycle_max_conflict = 3
+    let line = 'on'
+    call setline(1, line)
+
+    execute 'normal \a'
+    Assert Exists('g:cycle_test_conflict.items')
+    Assert Equals(g:cycle_test_conflict.items, ['off', 'line', 'on'])
+  End
+
+  It gives up search if conflict items reach given max_conflict
+    let g:cycle_max_conflict = 2
+    let line = 'on'
+    call setline(1, line)
+
+    execute 'normal \a'
+    Assert Equals(getline(1), line, 'Expect unchaged')
+    Assert NotExists('g:cycle_test_conflict.items')
+  End
+End
