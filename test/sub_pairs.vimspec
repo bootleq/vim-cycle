@@ -2,6 +2,7 @@ Describe Sub pairs
   Before each
     call cycle#test#reset_default_groups([
           \   [["do:end", "{:}"], 'sub_pairs'],
+          \   [["「:」", "【『:』】"], 'sub_pairs'],
           \   [[ '[', '<' ], 'sub_pair', {'end_with': [ ']', '>' ]}],
           \   [[ ']', '>' ], 'sub_pair', {'begin_with': [ '[', '<' ]}],
           \ ])
@@ -42,10 +43,10 @@ Describe Sub pairs
     Before each
       call cycle#test#reset_default_groups([[
             \   [
-            \     '(:)',
             \     '\left(:\right)',
             \     '\mleft(:\mright)',
             \     '\Bigl(:\Bigr)',
+            \     '(:)',
             \   ],
             \   'sub_pairs', 'hard_case', 'match_case'
             \ ]])
@@ -64,6 +65,11 @@ Describe Sub pairs
       execute 'normal \a'
       Assert Equals(getline(1), '\Bigl(a+b\Bigr)')
       Assert Equals(col('.'), 4)
+
+      call cursor(1, 6) " on '(' of \mBigl(
+      execute 'normal \a'
+      Assert Equals(getline(1), '(a+b)')
+      Assert Equals(col('.'), 1)
     End
 
     It sub_pairs, from end, sub begin
@@ -73,8 +79,11 @@ Describe Sub pairs
       normal! $
       execute 'normal \a'
       Assert Equals(getline(1), '\left(a+b\right)')
-      Skip Assert Equals(col('.'), searchpos('\\right')[1], 'Expect cursor at the beginning of \right')
-      " FIXME: complete this test
+      Assert Equals(col('.'), searchpos('\\right')[1], 'Expect cursor at the beginning of \right')
+
+      execute 'normal \a'
+      Assert Equals(getline(1), '\mleft(a+b\mright)')
+      Assert Equals(col('.'), searchpos('\\mright')[1])
     End
   End
 
@@ -88,7 +97,6 @@ Describe Sub pairs
       call setline(1, lines)
     End
 
-    " FIXME: make it pass
     It in the same line
       call cursor([3, 1])
       call search('」')
@@ -101,7 +109,6 @@ Describe Sub pairs
       Assert Equals(col('.'), searchpos('」', 'cnW')[1])
     End
 
-    " FIXME: make it pass
     It across lines
       call cursor([1, 1])
       call search('don')
@@ -116,5 +123,4 @@ Describe Sub pairs
       Assert Equals(col('.'), searchpos('don', 'cnW')[1])
     End
   End
-
 End

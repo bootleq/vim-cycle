@@ -628,7 +628,6 @@ function! s:sub_tag_pair(params) "{{{
             \   "line": opposite[0],
             \   "col": opposite[1] + 1 + !in_closing_tag,
             \ }
-      let len_diff = strlen(after.text) - strlen(ctext.text)
 
       call s:substitute(
             \   ctext,
@@ -639,21 +638,10 @@ function! s:sub_tag_pair(params) "{{{
             \ )
 
       if in_closing_tag && ctext.line == after.line
-        let new_col = before.col + len_diff
-        if a:params.class_name == 'v'
-          normal! "_y
-          call cursor(pos.line, new_col)
-          normal! vt>
-        else
-          if pos.col > new_col + strlen(after.text)
-            call cursor(pos.line, new_col)
-            execute 'normal! t>'
-          else
-            call cursor(pos.line, pos.col + len_diff)
-          endif
-        endif
+        let offset = strlen(after.text) - strlen(before.text)
+        let before.col += offset
+        let after.col += offset
       endif
-
     endif
   endif
 endfunction "}}}
@@ -670,6 +658,7 @@ function! s:find_pair(params) abort " {{{
   let trigger_before = a:params.before
   let trigger_after = a:params.after
   let options = a:params.options
+  let sub_offset = 0
   let timeout = 600
   let ic_flag = get(options, s:OPTIONS.match_case) ? '\C' : '\c'
 
@@ -714,10 +703,23 @@ function! s:find_pair(params) abort " {{{
     let pair_before.col = pair_pos[1]
     call extend(pair_after, pair_before, 'keep')
 
+    if trigger_before.line == pair_before.line && trigger_before.line == pair_after.line
+      if trigger_at_begin
+        let sub_offset =
+              \ trigger_after.col + len(trigger_after.text) -
+              \ (trigger_before.col + len(trigger_before.text))
+      else
+        let sub_offset =
+              \ pair_after.col + len(pair_after.text) -
+              \ (pair_before.col + len(pair_before.text))
+      endif
+    endif
+
     let ctx = {
           \   'pair_before': pair_before,
           \   'pair_after': pair_after,
           \   'pair_at': pair_at,
+          \   'sub_offset': sub_offset,
           \ }
     call extend(a:params.context, ctx)
   endif
@@ -729,6 +731,7 @@ function! s:sub_pair(params) "{{{
   let pair_before = get(ctx, 'pair_before', {})
   let pair_after = get(ctx, 'pair_after', {})
   let pair_at = get(ctx, 'pair_at', '')
+  let sub_offset = get(ctx, 'sub_offset', 0)
 
   if empty(pair_before) || empty(pair_after) || empty(pair_at)
     return
@@ -736,10 +739,15 @@ function! s:sub_pair(params) "{{{
 
   let before = a:params.before
   let after = a:params.after
-  if pair_at == 'end' && before.line == after.line
-    let offset_after_sub = after.col + len(after.text) - (before.col + len(before.text))
-    let pair_before.col += offset_after_sub
-    let pair_after.col += offset_after_sub
+
+  if sub_offset
+    if pair_at == 'end'
+      let pair_before.col += sub_offset
+      let pair_after.col += sub_offset
+    else
+      let before.col += sub_offset
+      let after.col += sub_offset
+    endif
   endif
 
   call s:substitute(
@@ -749,6 +757,10 @@ function! s:sub_pair(params) "{{{
         \   a:params.items,
         \   s:cascade_options_for_callback(a:params.options),
         \ )
+
+  if sub_offset
+    let a:params.context.sub_offset = 0
+  endif
 endfunction "}}}
 
 
@@ -757,12 +769,19 @@ function! s:restrict_cursor(params) "{{{
   let after = a:params.after
   let pos = s:getpos()
   let end_col = before.col + strlen(after.text) - 1
+
   if a:params.class_name == 'v' || (after.text =~ '\W' && g:cycle_auto_visual)
     call cursor(before.line, before.col)
     normal! v
     call cursor(after.line, end_col)
-  elseif after.line > before.line || end_col < pos.col
+  elseif after.line > before.line
     call cursor(after.line, end_col)
+  else
+    if end_col < pos.col
+      call cursor(after.line, end_col)
+    elseif pos.col < after.col
+      call cursor(after.line, after.col)
+    endif
   endif
 endfunction "}}}
 
@@ -774,9 +793,6 @@ function! s:parse_callback_options(options) "{{{
         \   'after_sub': [],
         \ }
 
-  if get(options, s:OPTIONS.restrict_cursor)
-    call add(callbacks.after_sub, function('s:restrict_cursor'))
-  endif
 
   if get(options, s:OPTIONS.sub_tag)
     call add(callbacks.after_sub, function('s:sub_tag_pair'))
@@ -785,6 +801,10 @@ function! s:parse_callback_options(options) "{{{
   if get(options, s:OPTIONS.sub_pair)
     call add(callbacks.before_sub, function('s:find_pair'))
     call add(callbacks.after_sub, function('s:sub_pair'))
+  endif
+
+  if get(options, s:OPTIONS.restrict_cursor)
+    call add(callbacks.after_sub, function('s:restrict_cursor'))
   endif
 
   return callbacks

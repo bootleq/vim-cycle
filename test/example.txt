@@ -13,6 +13,7 @@ foo PlayStation foo
 foo ◯◯◯◯◯ foo
 foo👀👀foo
 
+\left(a+b\right)
 
 1 <blockquote cite=''>
 2   <q>
