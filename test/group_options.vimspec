@@ -11,14 +11,12 @@ Describe Group options
           \   [['Yes', 'No'], 'match_case'],
           \   [['GitHub', 'PlayStation'], 'hard_case'],
           \   [['em', 'STRONG'], 'sub_tag'],
-          \   [["do:end", "{:}"], 'sub_pairs'],
-          \   [[ '[', '<' ], 'sub_pair', {'end_with': [ ']', '>' ]}],
-          \   [[ ']', '>' ], 'sub_pair', {'begin_with': [ '[', '<' ]}],
           \   [['on', 'off'], 'match_word'],
           \   [['Mon', 'Tue']],
           \   [['==', '~='], { 'cond': function('s:cond_func') }],
           \   [['==', '!=']],
           \ ])
+    " for sub_pair / sub_pairs, see test/sub_pairs.vimspec
     new
   End
 
@@ -77,72 +75,6 @@ Describe Group options
         </sTrong></em > <eM>
     END
     Assert Equals(getline(1, '$'), expected, 'Expect </eM> -> </sTrong>')
-  End
-
-  It respects "sub_pair" and "end_with"
-    let line = '<= [1, 2, 3] < [a, b, c] -----> >'
-               "             B
-    call setline(1, line)
-
-    call search('< [a', 'W') " begin of second <
-    execute 'normal \a'
-    Assert Equals(getline(1), '<= [1, 2, 3] [ [a, b, c] -----] >')
-                              "             B                E
-    execute 'normal \a'
-    Assert Equals(getline(1), line)
-  End
-
-  It respects "sub_pair" and "begin_with"
-    let line = '<= [1, 2, 3] < [a, b, c] -----> >'
-               "                       E
-    call setline(1, line)
-
-    call search('] --', 'W') " end of second [ ... ]
-    execute 'normal \a'
-    Assert Equals(getline(1), '<= [1, 2, 3] < <a, b, c> -----> >')
-                              "               B       E
-    execute 'normal \a'
-    Assert Equals(getline(1), line)
-  End
-
-  Context sub_pairs with non-keyword text like LaTex
-    Before each
-      call cycle#test#reset_default_groups([[
-            \   [
-            \     '(:)',
-            \     '\left(:\right)',
-            \     '\mleft(:\mright)',
-            \     '\Bigl(:\Bigr)',
-            \   ],
-            \   'sub_pairs', 'hard_case', 'match_case'
-            \ ]])
-    End
-
-    It sub_pairs, from begin, sub end
-      let line = '(a+b)'
-      call setline(1, line)
-
-      execute 'normal \a'
-      Assert Equals(getline(1), '\left(a+b\right)')
-      execute 'normal \a'
-      Assert Equals(getline(1), '\mleft(a+b\mright)')
-
-      call cursor(1, 4) " on 'e' of \mleft
-      execute 'normal \a'
-      Assert Equals(getline(1), '\Bigl(a+b\Bigr)')
-      Assert Equals(col('.'), 4)
-    End
-
-    It sub_pairs, from end, sub begin
-      let line = '(a+b)'
-      call setline(1, line)
-
-      normal! $
-      execute 'normal \a'
-      Assert Equals(getline(1), '\left(a+b\right)')
-      Skip Assert Equals(col('.'), searchpos('\\right')[1], 'Expect cursor at the beginning of \right')
-      " FIXME: complete this test
-    End
   End
 
   Describe respects "match_word"

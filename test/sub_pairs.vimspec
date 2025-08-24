@@ -1,0 +1,120 @@
+Describe Sub pairs
+  Before each
+    call cycle#test#reset_default_groups([
+          \   [["do:end", "{:}"], 'sub_pairs'],
+          \   [[ '[', '<' ], 'sub_pair', {'end_with': [ ']', '>' ]}],
+          \   [[ ']', '>' ], 'sub_pair', {'begin_with': [ '[', '<' ]}],
+          \ ])
+    new
+  End
+
+  After each
+    bwipeout!
+  End
+
+  It respects "sub_pair" and "end_with"
+    let line = '<= [1, 2, 3] < [a, b, c] -----> >'
+               "             B
+    call setline(1, line)
+
+    call search('< [a', 'W') " begin of second <
+    execute 'normal \a'
+    Assert Equals(getline(1), '<= [1, 2, 3] [ [a, b, c] -----] >')
+                              "             B                E
+    execute 'normal \a'
+    Assert Equals(getline(1), line)
+  End
+
+  It respects "sub_pair" and "begin_with"
+    let line = '<= [1, 2, 3] < [a, b, c] -----> >'
+               "                       E
+    call setline(1, line)
+
+    call search('] --', 'W') " end of second [ ... ]
+    execute 'normal \a'
+    Assert Equals(getline(1), '<= [1, 2, 3] < <a, b, c> -----> >')
+                              "               B       E
+    execute 'normal \a'
+    Assert Equals(getline(1), line)
+  End
+
+  Context sub_pairs with non-keyword text like LaTex
+    Before each
+      call cycle#test#reset_default_groups([[
+            \   [
+            \     '(:)',
+            \     '\left(:\right)',
+            \     '\mleft(:\mright)',
+            \     '\Bigl(:\Bigr)',
+            \   ],
+            \   'sub_pairs', 'hard_case', 'match_case'
+            \ ]])
+    End
+
+    It sub_pairs, from begin, sub end
+      let line = '(a+b)'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), '\left(a+b\right)')
+      execute 'normal \a'
+      Assert Equals(getline(1), '\mleft(a+b\mright)')
+
+      call cursor(1, 4) " on 'e' of \mleft
+      execute 'normal \a'
+      Assert Equals(getline(1), '\Bigl(a+b\Bigr)')
+      Assert Equals(col('.'), 4)
+    End
+
+    It sub_pairs, from end, sub begin
+      let line = '(a+b)'
+      call setline(1, line)
+
+      normal! $
+      execute 'normal \a'
+      Assert Equals(getline(1), '\left(a+b\right)')
+      Skip Assert Equals(col('.'), searchpos('\\right')[1], 'Expect cursor at the beginning of \right')
+      " FIXME: complete this test
+    End
+  End
+
+  Context sub_pairs with multibyte characters
+    Before each
+      let lines =<< trim END
+        1 I don't always 」！「
+        2 but when I do,
+        3 it「ends」weekend
+      END
+      call setline(1, lines)
+    End
+
+    " FIXME: make it pass
+    It in the same line
+      call cursor([3, 1])
+      call search('」')
+      execute 'normal \a'
+      Assert Equals(getline(3), "3 it【『ends』】weekend")
+      Assert Equals(col('.'), searchpos('』', 'cnW')[1])
+
+      execute 'normal \a'
+      Assert Equals(getline(3), "3 it「ends」weekend")
+      Assert Equals(col('.'), searchpos('」', 'cnW')[1])
+    End
+
+    " FIXME: make it pass
+    It across lines
+      call cursor([1, 1])
+      call search('don')
+      execute 'normal \a'
+      Assert Equals(getline(1), "1 I {n't always 」！「")
+      Assert Equals(getline(3), "3 it「ends」week}")
+      Assert Equals(col('.'), searchpos('{', 'cnW')[1])
+
+      execute 'normal \a'
+      Assert Equals(getline(1), "1 I don't always 」！「")
+      Assert Equals(getline(3), "3 it「ends」weekend")
+      Assert Equals(col('.'), searchpos('don', 'cnW')[1])
+    End
+  End
+
+End
