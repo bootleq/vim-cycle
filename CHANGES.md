@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-## dev (2025-??-??)
+## 1.0.0 (2025-08-27)
 
 * Fix various `sub_pairs` / `sub_tag` cursor offset bugs.
 
