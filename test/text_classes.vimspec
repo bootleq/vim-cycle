@@ -1,0 +1,140 @@
+Describe Text classes
+  Before each
+    call cycle#test#reset_default_groups([
+          \   [['on', 'off']],
+          \   [['Mon', 'Tue']],
+          \   [['on', 'om']],
+          \   [['on the other hand', 'leg']],
+          \   [['◯', '✕']],
+          \   [['◯◯', '👀']],
+          \   [['◯◯◯', 'ゴゴゴゴ']],
+          \   [['◯◯ ◯', 'plz stop']],
+          \   [['Rails Metal', 'Thrash', 'Technical Death']],
+          \ ])
+    new
+  End
+
+  After each
+    bwipeout!
+  End
+
+  Context Word class ('w') phased search
+    It takes whole word matching: word > char
+      let line = 'Mon Tue'
+      call setline(1, line)
+
+      call cursor(1, 2) " on 'o'
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Tue Tue', 'Matches "Tue" but not "on"')
+    End
+
+    It takes multibyte character matching: char > word
+      let line = '◯◯◯◯△'
+      call setline(1, line)
+
+      call setcursorcharpos(1, 2) " on 2nd '◯'
+      execute 'normal \a'
+      Assert Equals(getline(1), '◯✕◯◯△', 'Matches single "◯" but not "◯◯◯"')
+    End
+
+    It searchs current line if no matches: word > char > line (exist)
+      let line = 'Is Technical Death Dead or Alive?'
+      call setline(1, line)
+
+      call search('De\zsath', 'W') " 'a' of Death
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Is Rails metaL Dead or Alive?')
+    End
+
+    Context Multiple matches in phases
+      Before each
+        let g:cycle_max_conflict = 100
+      End
+
+      After all
+        let g:cycle_max_conflict = 1
+      End
+
+      It takes "word" and "char", then line search
+        let line = 'on the other hands up'
+        call setline(1, line)
+
+        call cursor(1, 2) " on 1st 'n'
+        execute 'normal \a'
+        Assert Exists('g:cycle_test_conflict.items')
+        Assert Equals(g:cycle_test_conflict.items, ['off', 'om', 'leg'])
+
+        call search('other', 'W')
+        execute 'normal \a'
+        Assert Equals(getline(1), 'legs up', 'Ensure line search works')
+      End
+
+      It takes "char" and "word" (multibyte) and line search
+        let line = '◯◯ ◯◯◯ ◯◯ ◯◯'
+                   "12_456_89_12
+        call setline(1, line)
+
+                                    "◯◯ ◯◯◯ ◯◯ ◯◯
+        call setcursorcharpos(1, 4) "   ^
+        execute 'normal \a'
+        Assert Exists('g:cycle_test_conflict.items')
+        Assert Equals(g:cycle_test_conflict.items, ['✕', '👀', 'ゴゴゴゴ', 'plz stop'])
+
+                                    "◯◯ ◯◯◯ ◯◯ ◯◯
+        call setcursorcharpos(1, 5) "    ^
+        execute 'normal \a'
+        Assert Exists('g:cycle_test_conflict.items')
+        Assert Equals(g:cycle_test_conflict.items, ['✕', '👀', 'plz stop', 'ゴゴゴゴ'])
+
+                                    "◯◯ ◯◯◯ ◯◯ ◯◯
+        call setcursorcharpos(1, 8) "       ^
+        execute 'normal \a'
+        Assert Exists('g:cycle_test_conflict.items')
+        Assert Equals(g:cycle_test_conflict.items, ['✕', '👀', 'plz stop'])
+
+                                    "◯◯ ◯◯◯ ◯◯ ◯◯
+        call setcursorcharpos(1, 9) "        ^
+        execute 'normal \a'
+        Assert Exists('g:cycle_test_conflict.items')
+        Assert Equals(g:cycle_test_conflict.items, ['✕', '👀', 'plz stop'])
+      End
+    End
+  End
+
+  Context Visual class ('v') search
+    It takes whole selection matching only
+      let line = 'Mon Tue'
+      call setline(1, line)
+
+      call cursor(1, 2) " on 'o'
+      " Select 'on'
+      normal! vl
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Moff Tue', 'Matches "on" but not "Mon"')
+      Assert Equals(mode(), 'v')
+      normal! ""y
+      Assert Equals(getreg('""'), 'off', 'Expect visual selected "off"')
+
+      call setline(1, line) " Back to 'Mon Tue'
+      call cursor(1, 2) " on 'o'
+      " Select 'Mo'
+      normal! vh
+      execute 'normal \a'
+      Assert Equals(getline(1), line, 'Expect unchanged')
+    End
+
+    It takes selected matching over shorter multibyte characters matches
+      let line = '◯◯◯◯△'
+      call setline(1, line)
+
+      call setcursorcharpos(1, 2) " on 2nd '◯'
+      " Select '◯◯◯' (x3)
+      normal! vll
+      execute 'normal \a'
+      Assert Equals(getline(1), '◯ゴゴゴゴ△')
+      Assert Equals(mode(), 'v')
+      normal! ""y
+      Assert Equals(getreg('""'), 'ゴゴゴゴ')
+    End
+  End
+End

@@ -14,6 +14,7 @@ CONTENTS                                                      *cycle-contents*
       General options  ..................... |cycle-general-options|
       Define groups  ....................... |cycle-define-groups|
       Group options ........................ |cycle-group-options|
+      Phased search  ....................... |cycle-phased-search|
       Fallback mapping  .................... |cycle-fallback-mapping|
       Examples  ............................ |cycle-examples|
     Limitations  ........................... |cycle-limitations|
@@ -113,13 +114,15 @@ g:cycle_max_conflict      (default: 1) ~
   When there are more than 1 alternates (in different groups) for current
   text, you are prompted to select which is the wanted one.
 
-  When the number of conflicts is more than this setting, no prompt will be
-  shown, cycle aborts with a message instead.
+  This feature is only enabled when this value is greater than 1.
 
   The default value is 1, means no conflicts will be handled. This improve
   some performance since no extra search is needed after first found.
   And it's recommended to use buffer-scoped groups to prevent conflicts, see
   |cycle-define-groups-practice|.
+
+  When the number of conflicts is more than this setting, no prompt will be
+  shown, cycle aborts with a message instead.
 
                                                            *g:cycle_select_ui*
 g:cycle_select_ui      (default: "") ~
@@ -149,19 +152,6 @@ g:cycle_auto_visual       (default: 0) ~
   When starting a cycle in normal mode, and the result text is not a keyword
   (for example, it contains whitespace, see 'iskeyword'), you might want to
   select the new text with visual mode. Set this option to 1 to enable it.
-
-                                                       *g:cycle_phased_search*
-g:cycle_phased_search     (default: 1) ~
-
-  When starting a cycle, it might not obviously know which text should be
-  cycled. In most cases it's exactly the |<cword>| under cursor, however, for
-  example, to cycle "Hello World", we must visual-select it because it's not a
-  <cword>.
-
-  When this option is on, the search can smartly perform with multiple phases.
-  For example, while searching of <cword> in "foo_with_bar" fails, some
-  secondary search can find the "with" and return intended "foo_without_bar"
-  as a result.
 
 ------------------------------------------------------------------------------
 Define groups                                            *cycle-define-groups*
@@ -358,6 +348,16 @@ By default no options are set.
       \   [['==', '!='], { 'cond': function('s:not_lua_context') }],
       \ ]
 <
+------------------------------------------------------------------------------
+Phased Search                                            *cycle-phased-search*
+
+Sometimes the target text is not identical to |<cword>|, for example a group
+item "Hello World" with the cursor being put at the space between words.
+
+This plugin will try to guess what you want in several phases. For example it
+checks current multibyte char at cursor, then |<cword>|, then line search.
+
+To cycle on exactly known area, please visual-select the text first.
 
 ------------------------------------------------------------------------------
 Fallback mapping                                      *cycle-fallback-mapping*
@@ -384,7 +384,8 @@ General options:
 >
     let g:cycle_no_mappings = 1
     let g:cycle_max_conflict = 1
-    let g:cycle_phased_search = 1
+    let g:cycle_select_ui = 'ui.select'
+    let g:cycle_conflict_ui = 'confirm'
 <
 
 Key mappings:
@@ -395,6 +396,9 @@ Key mappings:
     vmap <silent> <Leader>a <Plug>CyclePrev
     noremap <silent> <Plug>CycleFallbackNext <C-A>
     noremap <silent> <Plug>CycleFallbackPrev <C-X>
+
+    nmap <silent> <LocalLeader>ga <Plug>CycleSelect
+    vmap <silent> <LocalLeader>ga <Plug>CycleSelect
 <
 
 Global groups:
@@ -402,7 +406,7 @@ Global groups:
     let g:cycle_default_groups = [
           \   [['true', 'false']],
           \   [['yes', 'no']],
-          \   [['on', 'off']],
+          \   [['on', 'off'], 'match_word'],
           \   [['+', '-']],
           \   [['>', '<']],
           \   [['"', "'"]],
@@ -421,6 +425,7 @@ Global groups:
           \   [["exclude", "include"]],
           \   [["asc", "desc"]],
           \   [['是', '否']],
+          \   [['在', '再']],
           \   [['{:}', '[:]', '(:)'], 'sub_pairs'],
           \   [['（:）', '「:」', '『:』'], 'sub_pairs'],
           \   [['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
@@ -464,8 +469,20 @@ Filetype specified groups:
           \   [['accessible', 'protected']],
           \   [['stylesheet_link_tag ', 'javascript_include_tag ']],
           \ ]
-<
 
+    " plaintex only
+    let g:cycle_default_groups_for_plaintex = [
+          \   [
+          \     '\left(:\right)',
+          \     '\mleft(:\mright)',
+          \     '\Bigl(:\Bigr)',
+          \     '(:)',
+          \   ],
+          \   'sub_pairs', 'hard_case', 'match_case'
+          \ ]
+          " Note (:) must be put at the end. The search runs in sequence,
+          " an earlier ( match can short-circuit the following items.
+<
 ==============================================================================
 LIMITATIONS                                                *cycle-limitations*
 

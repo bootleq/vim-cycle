@@ -1,0 +1,22 @@
+set encoding=utf-8
+
+let s:repo = simplify(expand('<sfile>:h:h'))
+execute printf('set runtimepath=%s', fnameescape(s:repo))
+execute printf('set runtimepath+=%s', fnameescape(s:repo) . '/test/vim-themis')
+execute printf('set runtimepath+=%s', fnameescape(s:repo) . '/test/cycle-test')
+if has('nvim')
+  execute printf('set runtimepath+=%s', $VIMRUNTIME)
+endif
+
+call themis#option('recursive', 1)
+call themis#option('exclude', [
+      \  'test/vim-themis/',
+      \])
+call themis#option('reporter', 'spec')
+
+let g:Expect = themis#helper('expect')
+call themis#helper('command').with(themis#helper('assert')).with({'Expect': g:Expect})
+
+let g:mapleader = '\'
+
+let g:cycle_conflict_ui = '_test'

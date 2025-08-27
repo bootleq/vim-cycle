@@ -1,0 +1,136 @@
+Describe Restrict cursor
+  Before all
+    " set nowrapscan " save us from repeating 'W' for search() and searchpos()
+  End
+  After all
+    " set wrapscan&
+  End
+
+  Before each
+    call cycle#test#reset_default_groups([
+          \   [['GitHub', 'PlayStation'], 'hard_case'],
+          \   [['◯◯◯◯◯', '👀👀']],
+          \   [['Rails Metal', 'Thrash', 'Technical Death']],
+          \   [['blockquote', 'q'], 'sub_tag'],
+          \ ])
+    new
+  End
+
+  After each
+    bwipeout!
+  End
+
+  Context Ensure cursor being positioned within group text
+    It longer text -> short, cursor at begin
+      call setline(1, 'foo PlayStation foo')
+      call search('P')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'foo GitHub foo')
+      Assert Equals(col('.'), searchpos('Git', 'cn')[1])
+
+      call setline(1, 'foo ◯◯◯◯◯ foo')
+      call search('◯')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'foo 👀👀 foo')
+      Assert Equals(col('.'), searchpos('👀', 'cn')[1])
+    End
+
+    It longer text -> short, cursor at end
+      call setline(1, 'foo PlayStation foo')
+      call search('Station', 'e')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'foo GitHub foo')
+      Assert Equals(col('.'), searchpos('Hub', 'cne')[1])
+
+      call setline(1, 'foo ◯◯◯◯◯ foo')
+      call search('◯\ze foo', 'e')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'foo 👀👀 foo')
+      Assert Equals(col('.'), searchpos('👀👀', 'cne')[1])
+    End
+  End
+
+  Context Visual selection
+    Before each
+      let line = 'Is Technical Death Dead or Alive?'
+      call setline(1, line)
+    End
+
+    It visual select
+      call search('Technical')
+      normal! v2E
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Is Rails metaL Dead or Alive?')
+      Assert Equals(mode(), 'v')
+      normal! ""y
+      Assert Equals(getreg('""'), 'Rails metaL')
+    End
+
+    It auto_visual ON, should select the new text
+      let g:cycle_auto_visual = 1
+
+      call search('Tech\zsnical') " 'n' in Technical
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Is Rails metaL Dead or Alive?')
+      Assert Equals(mode(), 'v')
+      normal! ""y
+      Assert Equals(getreg('""'), 'Rails metaL')
+    End
+
+    It auto_visual OFF
+      let g:cycle_auto_visual = 0
+
+      call search('Tech\zsnical', 'W') " 'n' in Technical
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Is Rails metaL Dead or Alive?')
+      Assert Equals(mode(), 'n')
+    End
+  End
+
+  Context sub_tag
+    Before each
+      let lines =<< trim END
+        1 <blockquote cite=''>
+        2   <q>
+        3     Gandhi had
+        4   </q> <blockquote> never said
+        5         <q cite='QQ'>that <i>相反地</i></q> 他認為
+        6       </blockquote>
+        7 </blockquote>
+        123456789 123456789 123456789 123456789 123456789
+      END
+      call setline(1, lines)
+    End
+
+    It in the same line, with multibyte characters
+      call cursor([5, 1])
+      call search('</q', 'e') " in last <q>
+      execute 'normal \a'
+      Assert Equals(getline(5), "5         <blockquote cite='QQ'>that <i>相反地</i></blockquote> 他認為")
+      Assert Equals(col('.'), searchpos('blockquote> ', 'cnW')[1])
+
+      " cycle back
+      execute 'normal \a'
+      Assert Equals(getline(5), "5         <q cite='QQ'>that <i>相反地</i></q> 他認為")
+      Assert Equals(col('.'), searchpos('q> ', 'cnW')[1])
+    End
+
+    It across lines
+      call cursor([7, 7]) " on 'c' of </blockquote>"
+      execute 'normal \a'
+      Assert Equals(getline(7), "7 </q>")
+      Assert Equals(getline(1), "1 <q cite=''>")
+      Assert Equals(col('.'), 5)
+
+      " cycle back
+      execute 'normal \a'
+      Assert Equals(getline(7), "7 </blockquote>")
+      Assert Equals(getline(1), "1 <blockquote cite=''>")
+      Assert Equals(col('.'), 5)
+    End
+  End
+
+  Context sub_pairs
+    " See test/sub_pairs.vimspec
+  End
+End

@@ -1,6 +1,20 @@
 CHANGES
 =======
 
+## dev (2025-??-??)
+
+* Fix various `sub_pairs` / `sub_tag` cursor offset bugs.
+
+* Change phased search behavior, do not skip final "search" phase even if there were already matches in previous phases.  
+  This ensures defined groups were searched, instead of silently omitted by rules hard to reason.  
+  This doesn't affect the case when `g:cycle_max_conflict` is 1 (still skip any further searches).
+
+* Show warning message if `sub_pairs` can't find opposite counterpart.
+
+* Add tests.
+
+* Remove unused `g:cycle_phased_search` option.
+
 ## 0.6.0 (2025-08-14)
 
 * Add `cond` group option, a way to dynamically toggle a group.

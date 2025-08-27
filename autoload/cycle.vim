@@ -82,15 +82,19 @@ function! cycle#search(class_name, ...) "{{{
   let s:tick += 1
 
   let options = a:0 ? a:1 : {}
-  let groups = s:groups()
+  let groups = deepcopy(s:groups())
   let direction = get(options, 'direction', 1)
   let l:count = get(options, 'count', 1)
   let matches = []
   let cword = s:new_cword()
   let cchar = s:new_cchar()
 
+  " Phased search
+  " - for word            : word => char => line  ['w', '']
+  " - for multibyte word  : char => word => line  ['.', 'w', '']
+  " - for visual selected : visual                ['v']
   if a:class_name == 'w'
-    if len(cchar.text) > 1
+    if len(cchar.text) > 1 " multibyte
       let phases = ['.', 'w']
       if cword != cchar
         call add(phases, '')
@@ -105,9 +109,16 @@ function! cycle#search(class_name, ...) "{{{
   endif
 
   for phase in phases
-    let matches = s:phased_search(phase, groups, direction, l:count)
     if len(matches)
-      break
+      if g:cycle_max_conflict <= 1 || len(matches) > g:cycle_max_conflict
+        break
+      endif
+    endif
+
+    let phase_matches = s:phased_search(phase, groups, direction, l:count)
+
+    if !empty(phase_matches)
+      call extend(matches, phase_matches)
     endif
   endfor
 
@@ -119,6 +130,10 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
   let matches = []
 
   for group in a:groups
+    if get(group, '_phase_matched', 0)
+      continue
+    endif
+
     if has_key(group.options, s:OPTIONS.cond)
       if type(group.options[s:OPTIONS.cond]) == v:t_func
         if !group.options[s:OPTIONS.cond](group, s:tick)
@@ -147,6 +162,8 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
         let new_index = (index + a:direction * a:count) % len(group.items)
         call add(matches, s:build_match(ctext, group, new_index))
       endif
+
+      let group._phase_matched = 1
     endif
   endfor
 
@@ -162,13 +179,18 @@ function! s:substitute(before, after, class_name, items, options) "{{{
         \   'class_name': a:class_name,
         \   'items': a:items,
         \   'options': a:options,
+        \   'context': {},
         \ }
+
+  for Fn in callbacks.before_sub
+    call call(Fn, [callback_params])
+  endfor
 
   call setline(
         \   a:before.line,
         \   substitute(
         \     getline(a:before.line),
-        \     '\%' . a:before.col . 'c' . s:escape_pattern(a:before.text),
+        \     '\%' . a:before.col . 'c' . s:escape_pattern(a:before.text) . '\c',
         \     s:escape_sub_expr(a:after.text),
         \     ''
         \   )
@@ -196,7 +218,7 @@ function! s:conflict(ctx) "{{{
           \ })
   endfor
 
-  return call(s:conflict_select_func, [options, a:ctx])
+  return cycle#conflict#ui(options, a:ctx)
 endfunction "}}}
 
 
@@ -324,6 +346,7 @@ function! s:group_search(group, class_name) "{{{
               \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
               \ ], '')
       else
+        " No match in other defined classes, try search backward/forward over current col
         let pattern = join([
               \   '\%>' . max([0, pos.col - strlen(item)]) . 'c',
               \   '\%<' . (pos.col + 1) . 'c' . s:escape_pattern(item),
@@ -479,6 +502,13 @@ endfunction "}}}
 
 " Text Classes: {{{
 
+" Classes:
+" . : current cursor char / cchar, might be multibyte (but still 1 character)
+" w : current cursor word / cword
+" v : visual selection
+"   : empty, no above classes matched, can try search in expanded range
+" - : dummy, noop
+
 function! s:new_ctext(text_class) "{{{
   if a:text_class == 'w'
     let ctext = s:new_cword()
@@ -576,12 +606,11 @@ function! s:sub_tag_pair(params) "{{{
   let ic_flag = get(options, s:OPTIONS.match_case) ? '\C' : '\c'
   let pos = s:getpos()
 
-  if search(
-        \ '\v\</?\m\%' . before.line . 'l\%' . before.col . 'c'
-        \              . pattern_till_tag_end . '\C',
-        \ 'n',
-        \ )
-    let in_closing_tag = search('/\m\%' . before.line . 'l\%' . before.col . 'c\C', 'n')
+  " To check if position is inside < and >, might across lines
+  let pattern_is_within_tag = '\v\</?\m\%' . before.line . 'l\%' . before.col . 'c' . pattern_till_tag_end . '\C'
+
+  if search(pattern_is_within_tag, 'n')
+    let in_closing_tag = search('/\m\%' . before.line . 'l\%' . before.col . 'c\C', 'n')  " search if a '/' exists before position
     let opposite = searchpairpos(
           \   '<' . s:escape_pattern(before.text) . pattern_till_tag_end,
           \   '',
@@ -599,7 +628,6 @@ function! s:sub_tag_pair(params) "{{{
             \   "line": opposite[0],
             \   "col": opposite[1] + 1 + !in_closing_tag,
             \ }
-      let len_diff = strlen(after.text) - strlen(ctext.text)
 
       call s:substitute(
             \   ctext,
@@ -610,74 +638,128 @@ function! s:sub_tag_pair(params) "{{{
             \ )
 
       if in_closing_tag && ctext.line == after.line
-        let new_col = before.col + len_diff
-        if a:params.class_name == 'v'
-          normal! "_y
-          call cursor(pos.line, new_col)
-          normal! vt>
-        else
-          if pos.col > new_col + strlen(after.text)
-            call cursor(pos.line, new_col)
-            execute 'normal! t>'
-          else
-            call cursor(pos.line, pos.col + len_diff)
-          endif
-        endif
+        let offset = strlen(after.text) - strlen(before.text)
+        let before.col += offset
+        let after.col += offset
       endif
-
     endif
   endif
 endfunction "}}}
 
 
-function! s:sub_pair(params) "{{{
-  let before = a:params.before
-  let after = a:params.after
+" Find target pair for "sub_pair".
+" For example when sub {{ foo }}  ->  (( foo ))
+"           cursor at: ^
+" We have:
+" - trigger: {{   ->   ((
+" - pair:    }}   ->   ))
+" - pair_at: end
+function! s:find_pair(params) abort " {{{
+  let trigger_before = a:params.before
+  let trigger_after = a:params.after
   let options = a:params.options
+  let sub_offset = 0
   let timeout = 600
   let ic_flag = get(options, s:OPTIONS.match_case) ? '\C' : '\c'
 
   if type(get(options, s:OPTIONS.end_with)) == type([])
-    let at_begin = 1
+    let trigger_at_begin = 1
   elseif type(get(options, s:OPTIONS.begin_with)) == type([])
-    let at_begin = 0
+    let trigger_at_begin = 0
   else
+    echohl WarningMsg | echo printf('Incomplete sub_pair for %s, missing "begin" or "end" with.', trigger_before.text) | echohl None
     return
   endif
-  let pair_at = at_begin ? 'end' : 'begin'
 
-  let pair_before = deepcopy(before)
+  let pair_at = trigger_at_begin ? 'end' : 'begin'
+
+  let pair_before = deepcopy(trigger_before)
   let pair_before.text = get(
         \   options[pair_at . '_with'],
-        \   index(a:params.items, before.text, 0, ic_flag ==# '\c'),
+        \   index(a:params.items, trigger_before.text, 0, ic_flag ==# '\c'),
         \ )
+
   let pair_after = {}
   let pair_after.text = get(
         \   options[pair_at . '_with'],
-        \   index(a:params.items, after.text, 0, ic_flag ==# '\c'),
+        \   index(a:params.items, trigger_after.text, 0, ic_flag ==# '\c'),
         \ )
 
-  let opposite = searchpairpos(
-        \   s:escape_pattern(at_begin ? before.text : pair_before.text),
+  let pair_pos = searchpairpos(
+        \   s:escape_pattern(trigger_at_begin ? trigger_before.text : pair_before.text),
         \   '',
-        \   s:escape_pattern(at_begin ? pair_before.text : pair_after.text)
-        \        . (at_begin ? '' : '\zs') . ic_flag,
-        \   'nW' . (at_begin ? '' : 'b'),
+        \   s:escape_pattern(trigger_at_begin ? pair_before.text : trigger_before.text)
+        \        . (trigger_at_begin ? '' : '\zs') . ic_flag,
+        \   'nW' . (trigger_at_begin ? '' : 'b'),
         \   '',
         \   '',
         \   timeout,
         \ )
-  if opposite != [0, 0]
-    let pair_before.line = opposite[0]
-    let pair_before.col = opposite[1]
+
+  if pair_pos == [0, 0]
+    echohl WarningMsg | echo printf("Can't find opposite %s for sub_pair.", pair_before.text) | echohl None
+  else
+    let pair_before.line = pair_pos[0]
+    let pair_before.col = pair_pos[1]
     call extend(pair_after, pair_before, 'keep')
-    call s:substitute(
-          \   pair_before,
-          \   pair_after,
-          \   '-',
-          \   a:params.items,
-          \   s:cascade_options_for_callback(options),
-          \ )
+
+    if trigger_before.line == pair_before.line && trigger_before.line == pair_after.line
+      if trigger_at_begin
+        let sub_offset =
+              \ trigger_after.col + len(trigger_after.text) -
+              \ (trigger_before.col + len(trigger_before.text))
+      else
+        let sub_offset =
+              \ pair_after.col + len(pair_after.text) -
+              \ (pair_before.col + len(pair_before.text))
+      endif
+    endif
+
+    let ctx = {
+          \   'pair_before': pair_before,
+          \   'pair_after': pair_after,
+          \   'pair_at': pair_at,
+          \   'sub_offset': sub_offset,
+          \ }
+    call extend(a:params.context, ctx)
+  endif
+endfunction " }}}
+
+
+function! s:sub_pair(params) "{{{
+  let ctx = get(a:params, 'context', {})
+  let pair_before = get(ctx, 'pair_before', {})
+  let pair_after = get(ctx, 'pair_after', {})
+  let pair_at = get(ctx, 'pair_at', '')
+  let sub_offset = get(ctx, 'sub_offset', 0)
+
+  if empty(pair_before) || empty(pair_after) || empty(pair_at)
+    return
+  endif
+
+  let before = a:params.before
+  let after = a:params.after
+
+  if sub_offset
+    if pair_at == 'end'
+      let pair_before.col += sub_offset
+      let pair_after.col += sub_offset
+    else
+      let before.col += sub_offset
+      let after.col += sub_offset
+    endif
+  endif
+
+  call s:substitute(
+        \   pair_before,
+        \   pair_after,
+        \   '-',
+        \   a:params.items,
+        \   s:cascade_options_for_callback(a:params.options),
+        \ )
+
+  if sub_offset
+    let a:params.context.sub_offset = 0
   endif
 endfunction "}}}
 
@@ -687,12 +769,19 @@ function! s:restrict_cursor(params) "{{{
   let after = a:params.after
   let pos = s:getpos()
   let end_col = before.col + strlen(after.text) - 1
+
   if a:params.class_name == 'v' || (after.text =~ '\W' && g:cycle_auto_visual)
     call cursor(before.line, before.col)
     normal! v
     call cursor(after.line, end_col)
-  elseif after.line > before.line || end_col < pos.col
+  elseif after.line > before.line
     call cursor(after.line, end_col)
+  else
+    if end_col < pos.col
+      call cursor(after.line, end_col)
+    elseif pos.col < after.col
+      call cursor(after.line, after.col)
+    endif
   endif
 endfunction "}}}
 
@@ -704,16 +793,18 @@ function! s:parse_callback_options(options) "{{{
         \   'after_sub': [],
         \ }
 
-  if get(options, s:OPTIONS.restrict_cursor)
-    call add(callbacks.after_sub, function('s:restrict_cursor'))
-  endif
 
   if get(options, s:OPTIONS.sub_tag)
     call add(callbacks.after_sub, function('s:sub_tag_pair'))
   endif
 
   if get(options, s:OPTIONS.sub_pair)
+    call add(callbacks.before_sub, function('s:find_pair'))
     call add(callbacks.after_sub, function('s:sub_pair'))
+  endif
+
+  if get(options, s:OPTIONS.restrict_cursor)
+    call add(callbacks.after_sub, function('s:restrict_cursor'))
   endif
 
   return callbacks
@@ -755,21 +846,6 @@ elseif (empty(g:cycle_select_ui) || g:cycle_select_ui == 'inputlist') && exists(
   let s:select_func = function('cycle#select#inputlist')
 else
   let s:select_func = function('cycle#select#confirm')
-endif
-" }}}
-
-
-" Conflict Selection UI {{{
-" s:conflict_select_func
-if (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'ui.select') && has('nvim') && luaeval('vim.ui.select')->type() == v:t_func
-  function! s:LuaConflictSelect(...) abort
-    return luaeval('require("vim_cycle").conflict_select(unpack(_A))', a:000)
-  endfunction
-  let s:conflict_select_func = function('s:LuaConflictSelect')
-elseif (empty(g:cycle_conflict_ui) || g:cycle_conflict_ui == 'inputlist') && exists('*inputlist')
-  let s:conflict_select_func = function('cycle#select#conflict_inputlist')
-else
-  let s:conflict_select_func = function('cycle#select#conflict_confirm')
 endif
 " }}}
 

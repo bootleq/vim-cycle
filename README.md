@@ -21,7 +21,6 @@ let g:cycle_no_mappings = 1
 let g:cycle_max_conflict = 14
 let g:cycle_select_ui = 'ui.select'
 let g:cycle_conflict_ui = 'confirm'
-let g:cycle_phased_search = 1
 
 nmap <silent> <LocalLeader>a <Plug>CycleNext
 vmap <silent> <LocalLeader>a <Plug>CycleNext
@@ -33,19 +32,19 @@ vmap <silent> <LocalLeader>ga <Plug>CycleSelect
 let g:cycle_default_groups = [
       \   [['true', 'false']],
       \   [['yes', 'no']],
-      \   [['on', 'off']],
+      \   [['on', 'off'], 'match_word'],
       \   [['+', '-']],
       \   [['>', '<']],
       \   [['"', "'"]],
       \   [['==', '!='], { 'cond': function('s:not_lua_context') }],
       \   [['0', '1']],
       \   [['and', 'or']],
-      \   [['next', 'previous', 'prev']],
       \   [['asc', 'desc']],
       \   [['是', '否']],
+      \   [['在', '再']],
       \   [['，', '。', '、']],
       \   [['✓', '✗', '◯', '✕', '✔', '✘', '⭕', '✖']],
-      \   [['lat', 'lon']],
+      \   [['lat', 'lon'], 'match_word'],
       \   [['latitude', 'longitude']],
       \   [['ancestor', 'descendant']],
       \   [['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
@@ -58,10 +57,18 @@ let g:cycle_default_groups_for_lua = [
       \   [['==', '~=']],
       \ ]
 
-" For fileType "ruby" only
-let g:cycle_default_groups_for_ruby = [
-      \   [['stylesheet_link_tag', 'javascript_include_tag']],
+" For fileType "plaintex" only
+let g:cycle_default_groups_for_plaintex = [
+      \   [
+      \     '\left(:\right)',
+      \     '\mleft(:\mright)',
+      \     '\Bigl(:\Bigr)',
+      \     '(:)',
+      \   ],
+      \   'sub_pairs', 'hard_case', 'match_case'
       \ ]
+      " Note (:) must be put at the end. The search runs in sequence,
+      " an earlier ( match can short-circuit the following items.
 
 " For HTML, but here just blindly add to global groups
 let g:cycle_default_groups += [
@@ -117,6 +124,27 @@ TODO
 [wiki/TODO](https://github.com/bootleq/vim-cycle/wiki/Todo)
 
 
+Development
+-----------
+
+### Test
+
+Run the test scripts, will clone [vim-themis][] and execute it.
+
+```sh
+make test
+```
+
+Or directly run:
+
+```sh
+./test/run.sh
+THEMIS_VIM=nvim ./test/run.sh
+./test/run.sh --reporter dot --target 'respects .match_case"'
+./test/run.sh --help
+```
+
+
 [toggle.vim]: https://www.vim.org/scripts/script.php?script_id=895
 [tteifel]: http://www.teifel.net/
 [SwapIt.vim]: https://github.com/mjbrownie/swapit
@@ -128,3 +156,4 @@ TODO
 [MadeByWiki]: http://madebykiwi.com/
 [vim-clurin]: https://github.com/syngan/vim-clurin
 [syngan]: https://github.com/syngan
+[vim-themis]: https://github.com/thinca/vim-themis
