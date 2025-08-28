@@ -11,6 +11,9 @@ let s:OPTIONS = {
       \ 'sub_pairs': 'sub_pairs',
       \ 'end_with': 'end_with',
       \ 'begin_with': 'begin_with',
+      \ 'matcher': 'matcher',
+      \ 'changer': 'changer',
+      \ 'replacer': 'replacer',
       \ 'regex': 'regex',
       \ 'cond': 'cond',
       \ }
@@ -40,6 +43,16 @@ let s:tick = 0
 "  text: string
 "  line: number
 "  col: number
+" }
+"
+"
+" Match: {
+"   group: Group,
+"   pairs: {
+"     before: Ctext   - the matched text before change
+"     after: Ctext    - expected changed result
+"   },
+"   index: number     - the index of matched item (before) in the group
 " }
 "
 " }}}
@@ -178,11 +191,7 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
     if index >= 0
       if a:count == '*'
         " Grab all group items for CycleSelect
-        for item_idx in range(len(group.items))
-          if item_idx != index
-            call add(matches, s:build_match(ctext, group, item_idx))
-          endif
-        endfor
+        call extend(matches, s:build_matches(ctext, group, index))
       else
         let new_index = (index + a:direction * a:count) % len(group.items)
         call add(matches, s:build_match(ctext, group, new_index))
@@ -340,11 +349,29 @@ function! s:groups(...) "{{{
 endfunction "}}}
 
 
+" Test if a group has item match in given text class.
+" Params:
+"   - group:      Group
+"   - class_name: TextClass
+" Returns:
+"   list<matched_col: number, ctext: Ctext>
 function! s:group_search(group, class_name) "{{{
   let options = a:group.options
   let pos = cycle#util#getpos()
   let index = -1
   let ctext = cycle#text#new_ctext(a:class_name)
+  let matcher = get(options, s:OPTIONS.matcher, 0)
+
+  if type(matcher) == type('')
+    if matcher == 'regex'
+      let args = [deepcopy(a:group), a:class_name]
+      let result = call('cycle#matcher#regex#test', args)
+      return result
+    else
+      echohl WarningMsg | echo printf('Cycle: invalid matcher option %s.', matcher) | echohl None
+      return [index, ctext]
+    endif
+  endif
 
   for item in a:group.items
     if type(get(options, s:OPTIONS.regex)) == type('')
@@ -441,6 +468,17 @@ function! s:add_group(scope, group_attrs) "{{{
     let options.sub_pair = 1
     call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {(s:OPTIONS.end_with): end_items})])
     call s:add_group(a:scope, [end_items, extend(deepcopy(options), {(s:OPTIONS.begin_with): begin_items})])
+    return
+  endif
+
+  if has_key(options, s:OPTIONS.regex)
+    " Expand from:  #{regex: [foo, bar]}
+    "          to:  #{matcher: 'regex', changer: 'regex', replacer: [foo, bar]}
+    let replacer = get(options, s:OPTIONS.regex, [])
+    let new_options = extend(deepcopy(options), {'matcher': 'regex', 'changer': 'regex', 'replacer': replacer}, 'keep')
+    unlet new_options[s:OPTIONS.regex]
+
+    call s:add_group(a:scope, [items, new_options])
     return
   endif
 
@@ -755,18 +793,41 @@ endfunction "}}}
 
 " Utils: {{{
 
+" Build a Match by matched group item, take responsibility to transform ctext
+" by group definition, and make a shaped result structure.
+"
+" Params:
+"   - ctext: Ctext
+"   - group: Group
+"   - item_idx: number
+" Returns:
+"   Match
 function! s:build_match(ctext, group, item_idx) "{{{
   let item = a:group.items[a:item_idx]
   let ctext = deepcopy(a:ctext)
   let new_text = cycle#text#new_ctext('')
+  let changer = get(a:group.options, s:OPTIONS.changer, 0)
 
-  let new_text.text = s:text_transform(
-        \   ctext.text,
-        \   item,
-        \   a:group.options,
-        \ )
-  let new_text.line = ctext.line
-  let new_text.col = ctext.col
+  if type(changer) != type(0)
+    let args = [ctext, deepcopy(a:group), a:item_idx]
+    if type(changer) == type('')
+      if changer == 'regex'
+        call extend(new_text, call('cycle#changer#regex#change', args), 'force')
+      else
+        echohl WarningMsg | echo printf('Cycle: invalid changer option %s.', changer) | echohl None
+      endif
+    else
+      echoerr "Cycle: Invalid changer in group:\n  " . string(a:group)
+    endif
+  else
+    let new_text.text = s:text_transform(
+          \   ctext.text,
+          \   item,
+          \   a:group.options,
+          \ )
+    let new_text.line = ctext.line
+    let new_text.col = ctext.col
+  endif
 
   return {
         \   'group': a:group,
@@ -774,7 +835,44 @@ function! s:build_match(ctext, group, item_idx) "{{{
         \     'before': deepcopy(ctext),
         \     'after': deepcopy(new_text)
         \   },
+        \   'index': a:item_idx
         \ }
+endfunction "}}}
+
+
+" Build a list of Match by matched group item.
+" Used to collect expected changed results of every item except of the matched one.
+"
+" Params:
+"   - ctext: Ctext
+"   - group: Group
+"   - item_idx: number
+" Returns:
+"   list<Match>
+function! s:build_matches(ctext, group, item_idx) "{{{
+  let matches = []
+  let changer = get(a:group.options, s:OPTIONS.changer, 0)
+
+  if type(changer) != type(0)
+    if type(changer) == type('')
+      let args = [deepcopy(a:ctext), deepcopy(a:group), a:item_idx]
+      if changer == 'regex'
+        call extend(matches, call('cycle#changer#regex#collect_selections', args), 'force')
+      else
+        echohl WarningMsg | echo printf('Cycle: invalid changer option %s.', changer) | echohl None
+      endif
+    else
+      echoerr "Cycle: Invalid changer in group:\n  " . string(a:group)
+    endif
+  else
+    for idx in range(len(a:group.items))
+      if idx != a:item_idx
+        call add(matches, s:build_match(a:ctext, a:group, idx))
+      endif
+    endfor
+  endif
+
+  return matches
 endfunction "}}}
 
 

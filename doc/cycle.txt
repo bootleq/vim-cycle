@@ -14,6 +14,7 @@ CONTENTS                                                      *cycle-contents*
       General options  ..................... |cycle-general-options|
       Define groups  ....................... |cycle-define-groups|
       Group options ........................ |cycle-group-options|
+        regex .............................. |cycle-group-option-regex|
       Phased search  ....................... |cycle-phased-search|
       Fallback mapping  .................... |cycle-fallback-mapping|
       Examples  ............................ |cycle-examples|
@@ -310,6 +311,64 @@ By default no options are set.
   For example, on/off only matches "on" but not "Mon".
   Set this option other than 0 to enforce word-bounded search.
 
+"matcher"           string (default: none) ~
+
+  Take different strategy to match group items.
+  Available options: `"regex"`
+
+  regex   Each group item is not an literal string, but a Vim regexp
+          |pattern|. An item is matched when the cursor is within the match.
+          Shoule be used with related options, see |cycle-group-option-regex|
+          for detail.
+
+  A matcher should implement `cycle#matcher#{name}#test()` to cover the group
+  search job.
+
+"changer"           string (default: none) ~
+
+  Take different strategy to change matched item.
+  Available options: `"regex"`
+
+  regex   Do not replace item by directly cycle to "next" item, but find a
+          corresponding {sub} (of |substitute()|) from "replacer" option, use
+          it to substitute the matched portion. Shoule be used with related
+          options, see |cycle-group-option-regex| for detail.
+
+  A changer should implement `cycle#changer#{name}#change()` to change an
+  matched item. And `cycle#changer#{name}#collect_selections()` to prepare
+  candidates for CycleSelect UI.
+
+"replacer"          (List) (default: none) ~
+
+  Used when "matcher" and "changer" are both "regex". This list defines how an
+  matched pattern should be substituted. See |cycle-group-option-regex|.
+
+                                                    *cycle-group-option-regex*
+"regex"             (List) (default: none) ~
+
+  This is a shorthand to put "matcher", "changer" and "replacer" options
+  together to use regex strategy. For example: >
+
+    [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{regex: ['\1: ', ':\1 => ']}]
+
+< expands to: >
+
+    [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{
+      \   matcher: 'regex',
+      \   changer: 'regex',
+      \   replacer: ['\1: ', ':\1 => '],
+      \ }]
+<
+  this mimics the way switch.vim works.
+  https://github.com/AndrewRadev/switch.vim
+  In fact above rules were derived from one of switch.vim's builtin: >
+    \   'ruby_hash_style': {
+    \     ':\(\k\+\)\s*=>\s*': '\1: ',
+    \     '\<\(\k\+\): ':      ':\1 => ',
+    \   },
+<
+  Many useful patterns are only achievable with this feature.
+
 "cond"              Funcref (default: none) ~
 
   Condition, a group will not match if this function doesn't returns true.
@@ -495,6 +554,11 @@ CREDITS                                                        *cycle-credits*
   Author of SwapIt.vim: https://github.com/mjbrownie/swapit
   SwapIt originally provides lots of awesome features include visual
   multi-words, xml tag pairs, omni-completion cycling.
+
+- Andrew Radev ~
+  Author of switch.vim https://github.com/AndrewRadev/switch.vim
+  The "regex" strategy's crucial first search('bcW') detection is learnt from
+  switch.vim.
 
 ==============================================================================
 vim:tw=78:fo=tcroq2mM:et:sts=2:sw=2:ft=help:norl:
