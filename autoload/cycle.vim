@@ -190,8 +190,8 @@ function! s:substitute(before, after, class_name, items, options) "{{{
         \   a:before.line,
         \   substitute(
         \     getline(a:before.line),
-        \     '\%' . a:before.col . 'c' . s:escape_pattern(a:before.text) . '\c',
-        \     s:escape_sub_expr(a:after.text),
+        \     '\%' . a:before.col . 'c' . cycle#util#escape_pattern(a:before.text) . '\c',
+        \     cycle#util#escape_sub_expr(a:after.text),
         \     ''
         \   )
         \ )
@@ -342,14 +342,14 @@ function! s:group_search(group, class_name) "{{{
       if a:class_name != ''
         let pattern = join([
               \   '\%' . ctext.col . 'c',
-              \   s:escape_pattern(item),
+              \   cycle#util#escape_pattern(item),
               \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
               \ ], '')
       else
         " No match in other defined classes, try search backward/forward over current col
         let pattern = join([
               \   '\%>' . max([0, pos.col - strlen(item)]) . 'c',
-              \   '\%<' . (pos.col + 1) . 'c' . s:escape_pattern(item),
+              \   '\%<' . (pos.col + 1) . 'c' . cycle#util#escape_pattern(item),
               \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
               \ ], '')
       endif
@@ -539,11 +539,11 @@ function! s:new_cword() "{{{
         \   "col": 0,
         \ }
 
-  if match(ckeyword, s:escape_pattern(cchar.text)) >= 0
+  if match(ckeyword, cycle#util#escape_pattern(cchar.text)) >= 0
     let cword.line = line('.')
     let cword.col = match(
           \   getline('.'),
-          \   '\%>' . max([0, cchar.col - strlen(ckeyword) - 1]) . 'c' . s:escape_pattern(ckeyword),
+          \   '\%>' . max([0, cchar.col - strlen(ckeyword) - 1]) . 'c' . cycle#util#escape_pattern(ckeyword),
           \ ) + 1
     let cword.text = ckeyword
   endif
@@ -612,9 +612,9 @@ function! s:sub_tag_pair(params) "{{{
   if search(pattern_is_within_tag, 'n')
     let in_closing_tag = search('/\m\%' . before.line . 'l\%' . before.col . 'c\C', 'n')  " search if a '/' exists before position
     let opposite = searchpairpos(
-          \   '<' . s:escape_pattern(before.text) . pattern_till_tag_end,
+          \   '<' . cycle#util#escape_pattern(before.text) . pattern_till_tag_end,
           \   '',
-          \   '</' . s:escape_pattern(before.text) . '\s*>'
+          \   '</' . cycle#util#escape_pattern(before.text) . '\s*>'
           \        . (in_closing_tag ? '\zs' : '') . ic_flag,
           \   'nW' . (in_closing_tag ? 'b' : ''),
           \   '',
@@ -686,9 +686,9 @@ function! s:find_pair(params) abort " {{{
         \ )
 
   let pair_pos = searchpairpos(
-        \   s:escape_pattern(trigger_at_begin ? trigger_before.text : pair_before.text),
+        \   cycle#util#escape_pattern(trigger_at_begin ? trigger_before.text : pair_before.text),
         \   '',
-        \   s:escape_pattern(trigger_at_begin ? pair_before.text : trigger_before.text)
+        \   cycle#util#escape_pattern(trigger_at_begin ? pair_before.text : trigger_before.text)
         \        . (trigger_at_begin ? '' : '\zs') . ic_flag,
         \   'nW' . (trigger_at_begin ? '' : 'b'),
         \   '',
@@ -824,16 +824,6 @@ endfunction "}}}
 
 
 " Utils: {{{
-
-function! s:escape_pattern(pattern) "{{{
-  return escape(a:pattern, '.*~\[^$')
-endfunction "}}}
-
-
-function! s:escape_sub_expr(pattern) "{{{
-  return escape(a:pattern, '~\&')
-endfunction "}}}
-
 
 " Selection UI {{{
 " s:select_func

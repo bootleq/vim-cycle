@@ -8,3 +8,13 @@ function! cycle#util#restore_reg(name) "{{{
     call setreg(a:name, s:save_reg[0], s:save_reg[1])
   endif
 endfunction "}}}
+
+
+function! cycle#util#escape_pattern(pattern) "{{{
+  return escape(a:pattern, '.*~\[^$')
+endfunction "}}}
+
+
+function! cycle#util#escape_sub_expr(pattern) "{{{
+  return escape(a:pattern, '~\&')
+endfunction "}}}
