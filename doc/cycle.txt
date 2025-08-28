@@ -371,7 +371,9 @@ By default no options are set.
 
                                      *cycle#group_converter#regex_dict_list()*
   Hint: you can use `cycle#group_converter#regex_dict_list()` to convert
-  `switch_custom_definitions` list to groups for cycle.
+  `switch_custom_definitions` list to cycle groups. However remember to check
+  the order of items, because Vim |Dictionary| doesn't have specific ordering,
+  incorrect order can breaks CycleSelect option generation.
 
 "cond"              Funcref (default: none) ~
 
@@ -533,15 +535,27 @@ Filetype specified groups:
           \   [['stylesheet_link_tag ', 'javascript_include_tag ']],
           \ ]
 
-    " demo how to convert switch.vim definition
-    let switch_vim_ruby_keyword_string = {
-          \   '"\(\k\+\%([?!]\)\=\)"':                '''\1''',
-          \   '''\(\k\+\%([?!]\)\=\)''':              ':\1',
-          \   ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!': '"\1"\2',
-          \ }
-    let switch_demo_definitions = [switch_vim_ruby_keyword_string]
-    let g:cycle_default_groups_for_ruby +=
-          \ cycle#group_converter#regex_dict_list(switch_demo_definitions)
+    " " demo how to convert 'switch.vim' definition:
+    " let switch_vim_ruby_keyword_string = {
+    "     \   '"\(\k\+\%([?!]\)\=\)"':                '''\1''',
+    "     \   '''\(\k\+\%([?!]\)\=\)''':              ':\1',
+    "     \   ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!': '"\1"\2',
+    "     \ }
+    " let switch_demo_definitions = [switch_vim_ruby_keyword_string]
+    " let groups = cycle#group_converter#regex_dict_list(switch_demo_definitions)
+    " " due to Dict ordering issue, you should check above result and write down
+    " " manually:
+    let g:cycle_default_groups_for_ruby += [
+      \   [[
+      \     '"\(\k\+\%([?!]\)\=\)"',
+      \     '''\(\k\+\%([?!]\)\=\)''',
+      \     ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!'
+      \    ], #{regex: [
+      \                 '''\1''',
+      \                 ':\1',
+      \                 '"\1"\2'
+      \    ]}]
+      \ ]
 
     " plaintex only
     let g:cycle_default_groups_for_plaintex = [

@@ -21,17 +21,11 @@ Describe Group Converter
     let expected = [
           \   [
           \     ['\C\<and\>', '\C\<or\>'],
-          \     {
-          \       'replacer': ['or', 'and'],
-          \       'matcher': 'regex', 'changer': 'regex'
-          \     }
+          \     { 'regex': ['or', 'and'] }
           \   ],
           \   [
           \     ['\.to ', '\.not_to ', '\.to_not '],
-          \     {
-          \       'replacer': ['.not_to ', '.to ', '.to '],
-          \       'matcher': 'regex', 'changer': 'regex'
-          \     }
+          \     { 'regex': ['.not_to ', '.to ', '.to '] }
           \   ],
           \ ]
 

@@ -1,5 +1,7 @@
 " Convert switch.vim dict definition to cycle groups
 
+" Note the converted items can have incorrect "order" due to the unordered
+" natural of Dict.
 function! cycle#group_converter#regex_dict(dict) "{{{
   let items = []
   let replacers = []
@@ -9,11 +11,7 @@ function! cycle#group_converter#regex_dict(dict) "{{{
     call add(replacers, sub)
   endfor
 
-  return [items, {
-        \   'matcher': 'regex',
-        \   'changer': 'regex',
-        \   'replacer': replacers,
-        \ }]
+  return [items, { 'regex': replacers }]
 endfunction "}}}
 
 
