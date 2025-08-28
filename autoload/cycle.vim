@@ -20,6 +20,31 @@ let s:tick = 0
 " }}} Constants
 
 
+" Types {{{
+"
+" Group: {
+"   items: list
+"   options: dict
+" }
+"
+"
+" TextClass: '.' | '' | 'w' | 'v' | '' | '-'
+" . : current cursor char / cchar, might be multibyte (is still 1 character)
+" w : current cursor word / cword
+" v : visual selection
+"   : empty, no above classes matched, can try search in expanded range
+" - : dummy, noop
+"
+"
+" Ctext: {
+"  text: string
+"  line: number
+"  col: number
+" }
+"
+" }}}
+
+
 " Main Functions: {{{
 
 function! cycle#new(class_name, direction, count) "{{{
@@ -86,8 +111,8 @@ function! cycle#search(class_name, ...) "{{{
   let direction = get(options, 'direction', 1)
   let l:count = get(options, 'count', 1)
   let matches = []
-  let cword = s:new_cword()
-  let cchar = s:new_cchar()
+  let cword = cycle#text#new_cword()
+  let cchar = cycle#text#new_cchar()
 
   " Phased search
   " - for word            : word => char => line  ['w', '']
@@ -190,8 +215,8 @@ function! s:substitute(before, after, class_name, items, options) "{{{
         \   a:before.line,
         \   substitute(
         \     getline(a:before.line),
-        \     '\%' . a:before.col . 'c' . s:escape_pattern(a:before.text) . '\c',
-        \     s:escape_sub_expr(a:after.text),
+        \     '\%' . a:before.col . 'c' . cycle#util#escape_pattern(a:before.text) . '\c',
+        \     cycle#util#escape_sub_expr(a:after.text),
         \     ''
         \   )
         \ )
@@ -279,7 +304,7 @@ endfunction "}}}
 
 
 function! s:fallback(range, direction, count) "{{{
-  let pos = s:getpos()
+  let pos = cycle#util#getpos()
   let seq = "\<Plug>CycleFallback" . (a:direction > 0 ? "Next" : "Prev")
 
   execute a:range . "normal " . a:count . seq
@@ -317,9 +342,9 @@ endfunction "}}}
 
 function! s:group_search(group, class_name) "{{{
   let options = a:group.options
-  let pos = s:getpos()
+  let pos = cycle#util#getpos()
   let index = -1
-  let ctext = s:new_ctext(a:class_name)
+  let ctext = cycle#text#new_ctext(a:class_name)
 
   for item in a:group.items
     if type(get(options, s:OPTIONS.regex)) == type('')
@@ -342,24 +367,24 @@ function! s:group_search(group, class_name) "{{{
       if a:class_name != ''
         let pattern = join([
               \   '\%' . ctext.col . 'c',
-              \   s:escape_pattern(item),
+              \   cycle#util#escape_pattern(item),
               \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
               \ ], '')
       else
         " No match in other defined classes, try search backward/forward over current col
         let pattern = join([
               \   '\%>' . max([0, pos.col - strlen(item)]) . 'c',
-              \   '\%<' . (pos.col + 1) . 'c' . s:escape_pattern(item),
+              \   '\%<' . (pos.col + 1) . 'c' . cycle#util#escape_pattern(item),
               \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
               \ ], '')
       endif
       let text_index = match(getline('.'), pattern)
 
-      if a:class_name == 'v' && item != s:new_cvisual().text
+      if a:class_name == 'v' && item != cycle#text#new_cvisual().text
         continue
       endif
 
-      if a:class_name == 'w' && item != s:new_cword().text
+      if a:class_name == 'w' && item != cycle#text#new_cword().text
         continue
       endif
 
@@ -500,101 +525,6 @@ endfunction "}}}
 " }}} Group Operations
 
 
-" Text Classes: {{{
-
-" Classes:
-" . : current cursor char / cchar, might be multibyte (but still 1 character)
-" w : current cursor word / cword
-" v : visual selection
-"   : empty, no above classes matched, can try search in expanded range
-" - : dummy, noop
-
-function! s:new_ctext(text_class) "{{{
-  if a:text_class == 'w'
-    let ctext = s:new_cword()
-    if ctext.col == 0
-      let ctext = s:new_cchar()
-    endif
-  elseif a:text_class == '.'
-    let ctext = s:new_cchar()
-  elseif a:text_class == 'v'
-    let ctext = s:new_cvisual()
-  else
-    let ctext = {
-          \   "text": '',
-          \   'line': 0,
-          \   "col": 0,
-          \ }
-  endif
-  return ctext
-endfunction "}}}
-
-
-function! s:new_cword() "{{{
-  let ckeyword = expand('<cword>')
-  let cchar = s:new_cchar()
-  let cword = {
-        \   "text": '',
-        \   'line': 0,
-        \   "col": 0,
-        \ }
-
-  if match(ckeyword, s:escape_pattern(cchar.text)) >= 0
-    let cword.line = line('.')
-    let cword.col = match(
-          \   getline('.'),
-          \   '\%>' . max([0, cchar.col - strlen(ckeyword) - 1]) . 'c' . s:escape_pattern(ckeyword),
-          \ ) + 1
-    let cword.text = ckeyword
-  endif
-  return cword
-endfunction "}}}
-
-
-function! s:new_cvisual() "{{{
-  let save_mode = mode()
-
-  call s:save_reg('a')
-  silent normal! gv"ay
-  let cvisual = {
-        \   "text": @a,
-        \   "line": getpos('v')[1],
-        \   "col": getpos('v')[2],
-        \ }
-
-  if save_mode == 'v'
-    normal! gv
-  endif
-  call s:restore_reg('a')
-
-  return cvisual
-endfunction "}}}
-
-
-function! s:new_cchar() "{{{
-  call s:save_reg('a')
-  normal! "ayl
-  let cchar = {
-        \   "text": @a,
-        \   "line": getpos('.')[1],
-        \   "col": getpos('.')[2],
-        \ }
-  call s:restore_reg('a')
-  return cchar
-endfunction "}}}
-
-
-function! s:getpos() "{{{
-  let pos = getpos('.')
-  return {
-        \   "line": pos[1],
-        \   "col": pos[2],
-        \ }
-endfunction "}}}
-
-" }}} Text Classes
-
-
 " Optional Callbacks: {{{
 
 function! s:sub_tag_pair(params) "{{{
@@ -604,7 +534,7 @@ function! s:sub_tag_pair(params) "{{{
   let timeout = 600
   let pattern_till_tag_end = '\_[^>]*>'
   let ic_flag = get(options, s:OPTIONS.match_case) ? '\C' : '\c'
-  let pos = s:getpos()
+  let pos = cycle#util#getpos()
 
   " To check if position is inside < and >, might across lines
   let pattern_is_within_tag = '\v\</?\m\%' . before.line . 'l\%' . before.col . 'c' . pattern_till_tag_end . '\C'
@@ -612,9 +542,9 @@ function! s:sub_tag_pair(params) "{{{
   if search(pattern_is_within_tag, 'n')
     let in_closing_tag = search('/\m\%' . before.line . 'l\%' . before.col . 'c\C', 'n')  " search if a '/' exists before position
     let opposite = searchpairpos(
-          \   '<' . s:escape_pattern(before.text) . pattern_till_tag_end,
+          \   '<' . cycle#util#escape_pattern(before.text) . pattern_till_tag_end,
           \   '',
-          \   '</' . s:escape_pattern(before.text) . '\s*>'
+          \   '</' . cycle#util#escape_pattern(before.text) . '\s*>'
           \        . (in_closing_tag ? '\zs' : '') . ic_flag,
           \   'nW' . (in_closing_tag ? 'b' : ''),
           \   '',
@@ -686,9 +616,9 @@ function! s:find_pair(params) abort " {{{
         \ )
 
   let pair_pos = searchpairpos(
-        \   s:escape_pattern(trigger_at_begin ? trigger_before.text : pair_before.text),
+        \   cycle#util#escape_pattern(trigger_at_begin ? trigger_before.text : pair_before.text),
         \   '',
-        \   s:escape_pattern(trigger_at_begin ? pair_before.text : trigger_before.text)
+        \   cycle#util#escape_pattern(trigger_at_begin ? pair_before.text : trigger_before.text)
         \        . (trigger_at_begin ? '' : '\zs') . ic_flag,
         \   'nW' . (trigger_at_begin ? '' : 'b'),
         \   '',
@@ -767,7 +697,7 @@ endfunction "}}}
 function! s:restrict_cursor(params) "{{{
   let before = a:params.before
   let after = a:params.after
-  let pos = s:getpos()
+  let pos = cycle#util#getpos()
   let end_col = before.col + strlen(after.text) - 1
 
   if a:params.class_name == 'v' || (after.text =~ '\W' && g:cycle_auto_visual)
@@ -825,16 +755,6 @@ endfunction "}}}
 
 " Utils: {{{
 
-function! s:escape_pattern(pattern) "{{{
-  return escape(a:pattern, '.*~\[^$')
-endfunction "}}}
-
-
-function! s:escape_sub_expr(pattern) "{{{
-  return escape(a:pattern, '~\&')
-endfunction "}}}
-
-
 " Selection UI {{{
 " s:select_func
 if (empty(g:cycle_select_ui) || g:cycle_select_ui == 'ui.select') && has('nvim') && luaeval('vim.ui.select')->type() == v:t_func
@@ -853,7 +773,7 @@ endif
 function! s:build_match(ctext, group, item_idx) "{{{
   let item = a:group.items[a:item_idx]
   let ctext = deepcopy(a:ctext)
-  let new_text = s:new_ctext('')
+  let new_text = cycle#text#new_ctext('')
 
   let new_text.text = s:text_transform(
         \   ctext.text,
@@ -908,18 +828,6 @@ function! s:imitate_case(text, reference) "{{{
       let uppers = substitute(uppers, '\%' . (index + 1) . 'c.', '0', '')
     endwhile
     return new_text
-  endif
-endfunction "}}}
-
-
-function! s:save_reg(name) "{{{
-  let s:save_reg = [getreg(a:name), getregtype(a:name)]
-endfunction "}}}
-
-
-function! s:restore_reg(name) "{{{
-  if exists('s:save_reg')
-    call setreg(a:name, s:save_reg[0], s:save_reg[1])
   endif
 endfunction "}}}
 
