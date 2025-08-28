@@ -25,6 +25,21 @@ function! cycle#test#reinitialize_groups() "{{{
 endfunction "}}}
 
 
+function! cycle#test#select_ui(options, ctx) "{{{
+  let candidates = []
+  for option in a:options
+    let text = option.text
+    call add(candidates, text)
+  endfor
+
+  " Set global var for test assertion
+  let g:cycle_test_select = {
+        \   'items': candidates,
+        \ }
+  return
+endfunction "}}}
+
+
 function! cycle#test#conflict_ui(options, ctx) "{{{
   let candidates = []
   for option in a:options

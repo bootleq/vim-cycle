@@ -19,4 +19,8 @@ call themis#helper('command').with(themis#helper('assert')).with({'Expect': g:Ex
 
 let g:mapleader = '\'
 
+
+let g:cycle_select_ui = '_test'
 let g:cycle_conflict_ui = '_test'
+
+nmap <silent> <unique> <Leader>s <Plug>CycleSelect

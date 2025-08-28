@@ -99,7 +99,7 @@ function! cycle#select(class_name) "{{{
         \   "matches":    matches,
         \   "sid":        s:sid_prefix(),
         \ }
-  return call(s:select_func, [options, ctx])
+  return cycle#select#ui(options, ctx)
 endfunction "}}}
 
 
@@ -754,21 +754,6 @@ endfunction "}}}
 
 
 " Utils: {{{
-
-" Selection UI {{{
-" s:select_func
-if (empty(g:cycle_select_ui) || g:cycle_select_ui == 'ui.select') && has('nvim') && luaeval('vim.ui.select')->type() == v:t_func
-  function! s:LuaSelect(...) abort
-    return luaeval('require("vim_cycle").select(unpack(_A))', a:000)
-  endfunction
-  let s:select_func = function('s:LuaSelect')
-elseif (empty(g:cycle_select_ui) || g:cycle_select_ui == 'inputlist') && exists('*inputlist')
-  let s:select_func = function('cycle#select#inputlist')
-else
-  let s:select_func = function('cycle#select#confirm')
-endif
-" }}}
-
 
 function! s:build_match(ctext, group, item_idx) "{{{
   let item = a:group.items[a:item_idx]
