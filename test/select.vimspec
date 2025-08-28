@@ -1,0 +1,29 @@
+Describe CycleSelect
+  Before each
+    call cycle#test#reset_default_groups([
+          \   [['111', '222', '333', '444']],
+          \ ])
+    new
+  End
+
+  After each
+    bwipeout!
+  End
+
+  It shows warning message if no match
+    let line = '~~~~~'
+    call setline(1, line)
+
+    let output = execute('normal \s')
+    Assert Equals(trim(output), 'No match, aborted.')
+    Assert Equals(getline(1), line, 'Expect no change')
+  End
+
+  It shows all items except of current match
+    call setline(1, '222')
+
+    execute 'normal \s'
+    Assert Exists('g:cycle_test_select.items')
+    Assert Equals(g:cycle_test_select.items, ['111', '333', '444'])
+  End
+End
