@@ -20,6 +20,31 @@ let s:tick = 0
 " }}} Constants
 
 
+" Types {{{
+"
+" Group: {
+"   items: list
+"   options: dict
+" }
+"
+"
+" TextClass: '.' | '' | 'w' | 'v' | '' | '-'
+" . : current cursor char / cchar, might be multibyte (is still 1 character)
+" w : current cursor word / cword
+" v : visual selection
+"   : empty, no above classes matched, can try search in expanded range
+" - : dummy, noop
+"
+"
+" Ctext: {
+"  text: string
+"  line: number
+"  col: number
+" }
+"
+" }}}
+
+
 " Main Functions: {{{
 
 function! cycle#new(class_name, direction, count) "{{{

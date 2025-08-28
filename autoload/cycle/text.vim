@@ -4,6 +4,8 @@
 " v : visual selection
 "   : empty, no above classes matched, can try search in expanded range
 " - : dummy, noop
+"
+" These functions returns 'Ctext' dict for certain 'TextClass' context.
 
 function! cycle#text#new_ctext(text_class) "{{{
   if a:text_class == 'w'
