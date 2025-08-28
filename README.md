@@ -11,6 +11,7 @@ Cycle text within predefined candidates.
   - `Rails Metal` =&gt; `Thrash` =&gt; `Technical Death` &nbsp; handle multi-words by visual selection, or smart auto search
   - `<em>`important`</em>` =&gt; `<strong>`important`</strong>` &nbsp; tag pairs cycle together
   - `「`quoted`」` =&gt; `『`quoted`』` &nbsp; special pairs cycle together
+  - `{ :one => 'two' }` =&gt; `{ one: 'two' }` &nbsp; now supports pattern replace like [switch.vim][]
 
 
 Configuration Example
@@ -69,6 +70,13 @@ let g:cycle_default_groups_for_plaintex = [
       \ ]
       " Note (:) must be put at the end. The search runs in sequence,
       " an earlier ( match can short-circuit the following items.
+
+" For filetype "ruby" only
+" This uses "regex" option to works on patterns
+let g:cycle_default_groups_for_ruby = [
+      \   [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{regex: ['\1: ', ':\1 => '], name: 'ruby_hash_style'}],
+      \   [['"\(\k\+\%([?!]\)\=\)"', '''\(\k\+\%([?!]\)\=\)''', ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!'], #{regex: ['''\1''', ':\1', '"\1"\2']}]
+      \ ]
 
 " For HTML, but here just blindly add to global groups
 let g:cycle_default_groups += [
