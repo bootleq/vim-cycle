@@ -18,3 +18,12 @@ endfunction "}}}
 function! cycle#util#escape_sub_expr(pattern) "{{{
   return escape(a:pattern, '~\&')
 endfunction "}}}
+
+
+function! cycle#util#getpos() "{{{
+  let pos = getpos('.')
+  return {
+        \   "line": pos[1],
+        \   "col": pos[2],
+        \ }
+endfunction "}}}
