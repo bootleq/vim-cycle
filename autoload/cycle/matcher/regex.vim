@@ -8,7 +8,7 @@
 function! cycle#matcher#regex#test(group, class_name) "{{{
   " Opt-out phased search by only performed in final phase ('' or v)
   if a:class_name != '' && a:class_name != 'v'
-    return [-1, {}]
+    return s:not_found(a:class_name)
   endif
 
   for item in a:group.items
@@ -18,11 +18,13 @@ function! cycle#matcher#regex#test(group, class_name) "{{{
     endif
   endfor
 
-  let not_found_ctext = cycle#text#new_ctext(a:class_name)
-  return [-1, not_found_ctext]
+  return s:not_found(a:class_name)
 endfunction "}}}
 
 
+" Returns:
+"   list<matched_col: number, ctext: Ctext>
+"   or 0 (when not found)
 function! s:test_item(item, group) "{{{
   let saved_pos = getpos('.')
   let [line, col] = getpos('.')[1:2]
@@ -63,3 +65,9 @@ function! s:test_item(item, group) "{{{
     return [index, ctext]
   endif
 endfunction "}}}
+
+
+function! s:not_found(class_name) abort " {{{
+  let not_found_ctext = cycle#text#new_ctext(a:class_name)
+  return [-1, not_found_ctext]
+endfunction " }}}
