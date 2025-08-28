@@ -554,7 +554,7 @@ endfunction "}}}
 function! s:new_cvisual() "{{{
   let save_mode = mode()
 
-  call s:save_reg('a')
+  call cycle#util#save_reg('a')
   silent normal! gv"ay
   let cvisual = {
         \   "text": @a,
@@ -565,21 +565,21 @@ function! s:new_cvisual() "{{{
   if save_mode == 'v'
     normal! gv
   endif
-  call s:restore_reg('a')
+  call cycle#util#restore_reg('a')
 
   return cvisual
 endfunction "}}}
 
 
 function! s:new_cchar() "{{{
-  call s:save_reg('a')
+  call cycle#util#save_reg('a')
   normal! "ayl
   let cchar = {
         \   "text": @a,
         \   "line": getpos('.')[1],
         \   "col": getpos('.')[2],
         \ }
-  call s:restore_reg('a')
+  call cycle#util#restore_reg('a')
   return cchar
 endfunction "}}}
 
@@ -908,18 +908,6 @@ function! s:imitate_case(text, reference) "{{{
       let uppers = substitute(uppers, '\%' . (index + 1) . 'c.', '0', '')
     endwhile
     return new_text
-  endif
-endfunction "}}}
-
-
-function! s:save_reg(name) "{{{
-  let s:save_reg = [getreg(a:name), getregtype(a:name)]
-endfunction "}}}
-
-
-function! s:restore_reg(name) "{{{
-  if exists('s:save_reg')
-    call setreg(a:name, s:save_reg[0], s:save_reg[1])
   endif
 endfunction "}}}
 
