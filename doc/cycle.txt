@@ -369,6 +369,10 @@ By default no options are set.
 <
   Many useful patterns are only achievable with this feature.
 
+                                     *cycle#group_converter#regex_dict_list()*
+  Hint: you can use `cycle#group_converter#regex_dict_list()` to convert
+  `switch_custom_definitions` list to groups for cycle.
+
 "cond"              Funcref (default: none) ~
 
   Condition, a group will not match if this function doesn't returns true.
@@ -529,6 +533,16 @@ Filetype specified groups:
           \   [['stylesheet_link_tag ', 'javascript_include_tag ']],
           \ ]
 
+    " demo how to convert switch.vim definition
+    let switch_vim_ruby_keyword_string = {
+          \   '"\(\k\+\%([?!]\)\=\)"':                '''\1''',
+          \   '''\(\k\+\%([?!]\)\=\)''':              ':\1',
+          \   ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!': '"\1"\2',
+          \ }
+    let switch_demo_definitions = [switch_vim_ruby_keyword_string]
+    let g:cycle_default_groups_for_ruby +=
+          \ cycle#group_converter#regex_dict_list(switch_demo_definitions)
+
     " plaintex only
     let g:cycle_default_groups_for_plaintex = [
           \   [
@@ -541,6 +555,13 @@ Filetype specified groups:
           \ ]
           " Note (:) must be put at the end. The search runs in sequence,
           " an earlier ( match can short-circuit the following items.
+
+    " markdown only
+    let g:cycle_default_groups_for_markdown = [
+          \   [['^\(\s*\)- \[ \] ', '^\(\s*\)- \[x\] '],
+          \    #{regex: ['\1- [x] ', '\1- [ ] '],
+          \    name: 'Markdown task checkbox'}],
+          \ ]
 <
 ==============================================================================
 LIMITATIONS                                                *cycle-limitations*
