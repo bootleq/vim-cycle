@@ -378,57 +378,42 @@ function! s:group_search(group, class_name) "{{{
   endif
 
   for item in a:group.items
-    if type(get(options, s:OPTIONS.regex)) == type('')
-      let pattern = item
-      let text_index = match(getline('.'), pattern)
-      if text_index >= 0
-        let index = index(a:group.items, item)
-        let ctext = {
-              \   'text': matchstr(getline('.'), pattern),
-              \   'line': line('.'),
-              \   'col': text_index + 1,
-              \ }
-        break
-      endif
+    if get(options, s:OPTIONS.match_word) && a:class_name != 'w'
+      continue
+    endif
+
+    if a:class_name != ''
+      let pattern = join([
+            \   '\%' . ctext.col . 'c',
+            \   cycle#util#escape_pattern(item),
+            \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
+            \ ], '')
     else
-      if get(options, s:OPTIONS.match_word) && a:class_name != 'w'
-        continue
-      endif
+      " No match in other defined classes, try search backward/forward over current col
+      let pattern = join([
+            \   '\%>' . max([0, pos.col - strlen(item)]) . 'c',
+            \   '\%<' . (pos.col + 1) . 'c' . cycle#util#escape_pattern(item),
+            \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
+            \ ], '')
+    endif
+    let text_index = match(getline('.'), pattern)
 
-      if a:class_name != ''
-        let pattern = join([
-              \   '\%' . ctext.col . 'c',
-              \   cycle#util#escape_pattern(item),
-              \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
-              \ ], '')
-      else
-        " No match in other defined classes, try search backward/forward over current col
-        let pattern = join([
-              \   '\%>' . max([0, pos.col - strlen(item)]) . 'c',
-              \   '\%<' . (pos.col + 1) . 'c' . cycle#util#escape_pattern(item),
-              \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
-              \ ], '')
-      endif
-      let text_index = match(getline('.'), pattern)
+    if a:class_name == 'v' && item != cycle#text#new_cvisual().text
+      continue
+    endif
 
-      if a:class_name == 'v' && item != cycle#text#new_cvisual().text
-        continue
-      endif
+    if a:class_name == 'w' && item != cycle#text#new_cword().text
+      continue
+    endif
 
-      if a:class_name == 'w' && item != cycle#text#new_cword().text
-        continue
-      endif
-
-      if text_index >= 0
-        let index = index(a:group.items, item)
-        let ctext = {
-              \   'text': strpart(getline('.'), text_index, len(item)),
-              \   'line': line('.'),
-              \   'col': text_index + 1,
-              \ }
-        break
-      endif
-
+    if text_index >= 0
+      let index = index(a:group.items, item)
+      let ctext = {
+            \   'text': strpart(getline('.'), text_index, len(item)),
+            \   'line': line('.'),
+            \   'col': text_index + 1,
+            \ }
+      break
     endif
   endfor
 
@@ -885,13 +870,6 @@ endfunction "}}}
 
 function! s:text_transform(before, after, options) "{{{
   let text = a:after
-
-  if type(get(a:options, s:OPTIONS.regex)) == type('')
-    let text = matchstr(
-          \   a:after,
-          \   get(a:options, s:OPTIONS.regex),
-          \ )
-  endif
 
   if !get(a:options, s:OPTIONS.hard_case)
     let text = s:imitate_case(text, a:before)
