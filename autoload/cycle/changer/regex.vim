@@ -1,9 +1,9 @@
 " Regex changer
 "
 " Change group item by regex.
-" Requires a `replacer` option to define the {sub} list for every group
-" item. For exampe group items: ['x(\d)x', 'o(\d)o']  requires replacer like
-"                     replacer: ['o\1o',   'x\1x']
+" Requires a regex:`to` option to define the {sub} list for every group
+" item. For exampe group items: ['x(\d)x', 'o(\d)o']  requires settings like
+"                           to: ['o\1o',   'x\1x']
 "               to change item:   x4x   =>  o4o
 
 
@@ -11,8 +11,8 @@
 "   - ctext: Ctext        - matched text
 "   - group: Group        - matched group
 "   - next_index: number  - index of next item of current match. While we will
-"                           go back 1 step because the actual replacer is
-"                           defined there without 'cycle to next'
+"                           go back 1 step because the actual "to" is defined
+"                           there without 'cycle to next'
 " Returns:
 "   Ctext - the changed text info
 function! cycle#changer#regex#change(ctext, group, next_index) "{{{
@@ -108,10 +108,10 @@ endfunction " }}}
 
 function! s:parse_options(group) abort " {{{
   let opts = get(a:group.options, 'regex', {})
-  let replacers = get(opts, 'replacer', [])
+  let replacers = get(opts, 'to', [])
   let subp = get(opts, 'subp', [])
   if empty(replacers)
-    echoerr "Cycle: missing regex replacer in group:\n  " . string(a:group)
+    echoerr "Cycle: missing regex 'to' in group:\n  " . string(a:group)
   endif
   return [replacers, subp]
 endfunction " }}}

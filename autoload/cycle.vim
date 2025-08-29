@@ -18,7 +18,7 @@ let s:OPTIONS = {
       \ }
 
 let s:REGEX_OPTIONS = {
-      \ 'replacer': 'replacer',
+      \ 'to': 'to',
       \ 'subp': 'subp',
       \ }
 
@@ -477,13 +477,13 @@ function! s:add_group(scope, group_attrs) "{{{
 
   if has_key(options, s:OPTIONS.regex)
     " Expand from:  #{regex: [foo, bar]}
-    "          to:  #{matcher: 'regex', changer: 'regex', regex: {'replacer: [foo, bar]'}}
-    " Expand from:  #{regex: #{replacer: [foo, bar], subp: [fo, ba]}}
-    "          to:  #{matcher: 'regex', changer: 'regex', regex: {'replacer: [foo, bar]', subp: [fo, ba]}}
+    "          to:  #{matcher: 'regex', changer: 'regex', regex: {'to: [foo, bar]'}}
+    " Expand from:  #{regex: #{to: [foo, bar], subp: [fo, ba]}}
+    "          to:  #{matcher: 'regex', changer: 'regex', regex: {'to: [foo, bar]', subp: [fo, ba]}}
     let regex_opts = get(options, s:OPTIONS.regex, {})
     if type(regex_opts) == type([])
-      let replacer = regex_opts
-      let regex_opts = {'replacer': replacer}
+      let to = regex_opts
+      let regex_opts = {'to': to}
     endif
     call extend(options, {'matcher': 'regex', 'changer': 'regex'}, 'keep')
     call extend(options, {'regex': regex_opts}, 'force')

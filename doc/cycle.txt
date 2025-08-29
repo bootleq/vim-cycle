@@ -332,7 +332,7 @@ By default no options are set.
   Available options: `"regex"`
 
   regex   Do not replace item by directly cycle to "next" item, but find a
-          corresponding {sub} (of |substitute()|) from "replacer" option, use
+          corresponding {sub} (of |substitute()|) from regex:"to" option, use
           it to substitute the matched portion. Shoule be used with related
           options, see |cycle-group-option-regex| for detail.
 
@@ -356,7 +356,7 @@ By default no options are set.
       \   matcher: 'regex',
       \   changer: 'regex',
       \   regex: {
-      \     'replacer': ['\1: ', ':\1 => '],
+      \     'to': ['\1: ', ':\1 => '],
       \   }
       \ }]
 <
@@ -373,22 +373,22 @@ By default no options are set.
 
   "regex" dictionary can contain props:
 
-  - "replacer"       (List) (default: none) ~
+  - "to"             (List | Dict) (default: none) ~
 
     Defines how an matched pattern should be substituted. It should have the
     same size of group items, and each pattern is used for the item at the
     same index (not for "next" item as you might expect like usual cycle).
 
-    For example, items: `['x\(\d\)x', 'o\(\d\)o']`  can have replacer like
-              replacer: `['o\1o',     'x\1x']`
+    For example, items: `['x\(\d\)x', 'o\(\d\)o']`  can have settings like
+                    to: `['o\1o',     'x\1x']`
         to change item: `x4x` => `o4o`
 
-    Replacer can also be a Dict like switch.vim's "nested dict definition",
-    the matched text will be global substituted with {pattern} and {sub} comes
+    Can also be set as |Dict| like switch.vim's "nested dict definition", the
+    matched text will be global substituted with {pattern} and {sub} comes
     from the dict's key and value. For example: >
       [['\<[a-z0-9]\+_\k\+\>'],
         #{regex: {
-          'replacer': { '_\(.\)': '\U\1' },
+          'to': { '_\(.\)': '\U\1' },
         }]
 <   the text `foo_bar_baz` will be matched as `foo_bar_baz` (whole string),
     then conceptually a `substitute('_\(.\)', '\U\1')` is run on the matched
@@ -404,10 +404,10 @@ By default no options are set.
   - "subp"           (List) (default: none) ~
 
     Provides loosen "sub patterns" for "matched" text. Refer to the Limitation
-    section of "replacer" as reason. For example: >
+    section of "to" as reason. For example: >
       [['\(ex-\)\@<=\(\k\+\)'],
         #{regex: {
-          'replacer': ['OK'],
+          'to': ['OK'],
           'subp': ['\(\k\+\)'],
         }]
 <   can successfully cycle "ex-friend" to "OK". Without "subp" it can't.
