@@ -23,13 +23,17 @@ endfunction "}}}
 
 
 " Returns:
-"   list<matched_col: number, ctext: Ctext>
-"   or 0 (when not found)
-function! s:test_item(item, group) "{{{
+"   list<
+"     line: number    - matched line
+"     col: number     - matched col
+"     text: string    - matched text
+"   >
+function! cycle#matcher#regex#test_pattern(pattern) "{{{
   let saved_pos = getpos('.')
   let [line, col] = getpos('.')[1:2]
-  let pattern = a:item
+  let pattern = a:pattern
   let text = ''
+  let not_found = [0, -1, '']
 
   try
     call cycle#util#save_reg('a')
@@ -46,7 +50,7 @@ function! s:test_item(item, group) "{{{
         let text = @a
 
         if match_start + strlen(text) <= col
-          return
+          return not_found
         endif
       endif
     endif
@@ -55,12 +59,25 @@ function! s:test_item(item, group) "{{{
     call setpos('.', saved_pos)
   endtry
 
+  if match_start
+    return [line, match_start, text]
+  endif
+
+  return not_found
+endfunction "}}}
+
+
+" Returns:
+"   list<matched_col: number, ctext: Ctext>
+function! s:test_item(item, group) "{{{
+  let [line, col, text] = cycle#matcher#regex#test_pattern(a:item)
+
   if len(text)
     let index = index(a:group.items, a:item)
     let ctext = {
           \   'text': text,
           \   'line': line,
-          \   'col': match_start,
+          \   'col': col,
           \ }
     return [index, ctext]
   endif
