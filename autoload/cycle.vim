@@ -13,9 +13,13 @@ let s:OPTIONS = {
       \ 'begin_with': 'begin_with',
       \ 'matcher': 'matcher',
       \ 'changer': 'changer',
-      \ 'replacer': 'replacer',
       \ 'regex': 'regex',
       \ 'cond': 'cond',
+      \ }
+
+let s:REGEX_OPTIONS = {
+      \ 'to': 'to',
+      \ 'subp': 'subp',
       \ }
 
 let s:tick = 0
@@ -473,13 +477,16 @@ function! s:add_group(scope, group_attrs) "{{{
 
   if has_key(options, s:OPTIONS.regex)
     " Expand from:  #{regex: [foo, bar]}
-    "          to:  #{matcher: 'regex', changer: 'regex', replacer: [foo, bar]}
-    let replacer = get(options, s:OPTIONS.regex, [])
-    let new_options = extend(deepcopy(options), {'matcher': 'regex', 'changer': 'regex', 'replacer': replacer}, 'keep')
-    unlet new_options[s:OPTIONS.regex]
-
-    call s:add_group(a:scope, [items, new_options])
-    return
+    "          to:  #{matcher: 'regex', changer: 'regex', regex: {'to: [foo, bar]'}}
+    " Expand from:  #{regex: #{to: [foo, bar], subp: [fo, ba]}}
+    "          to:  #{matcher: 'regex', changer: 'regex', regex: {'to: [foo, bar]', subp: [fo, ba]}}
+    let regex_opts = get(options, s:OPTIONS.regex, {})
+    if type(regex_opts) == type([])
+      let to = regex_opts
+      let regex_opts = {'to': to}
+    endif
+    call extend(options, {'matcher': 'regex', 'changer': 'regex'}, 'keep')
+    call extend(options, {'regex': regex_opts}, 'force')
   endif
 
   let group = {

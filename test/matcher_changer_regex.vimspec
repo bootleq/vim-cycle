@@ -1,4 +1,4 @@
-Describe Regex Matcher/Changer/Replacer
+Describe Regex Matcher/Changer
   Before each
     new
   End
@@ -7,11 +7,11 @@ Describe Regex Matcher/Changer/Replacer
     bwipeout!
   End
 
-  Context items are patterns, change by replacer for each item
+  Context items are patterns, change by {regex: to} for each item
     It ruby hash style
       " From switch.vim
       call cycle#test#reset_default_groups([
-            \   [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{matcher: 'regex', changer: 'regex', replacer: ['\1: ', ':\1 => ']}],
+            \   [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{matcher: 'regex', changer: 'regex', regex: {'to': ['\1: ', ':\1 => ']}}],
             \ ])
       let line1 = "foo = { :one => 'two' }"
       "            123456789 123456789 123
@@ -49,7 +49,7 @@ Describe Regex Matcher/Changer/Replacer
     It markdown task item (has pattern with ^)
       " From switch.vim
       call cycle#test#reset_default_groups([
-            \   [['^\(\s*\)- \[ \] \(.*\)', '^\(\s*\)- \[x\] \(.*\)'], #{matcher: 'regex', changer: 'regex', replacer: ['\1- [x] \2', '\1- [ ] \2']}],
+            \   [['^\(\s*\)- \[ \] \(.*\)', '^\(\s*\)- \[x\] \(.*\)'], #{matcher: 'regex', changer: 'regex', regex: {'to': ['\1- [x] \2', '\1- [ ] \2']}}],
             \ ])
       let line = '- [ ] foo'
       call setline(1, line)
@@ -76,7 +76,7 @@ Describe Regex Matcher/Changer/Replacer
 
     It handles multibyte chars
       call cycle#test#reset_default_groups([
-            \   [['\v(的)', '\v(得+)'], #{matcher: 'regex', changer: 'regex', replacer: ['得得得', '的']}],
+            \   [['\v(的)', '\v(得+)'], #{matcher: 'regex', changer: 'regex', regex: {'to': ['得得得', '的']}}],
             \ ])
       let line1 = '一foo一一的一'
       let line2 = '一foo一一得得得一'
@@ -153,8 +153,10 @@ Describe Regex Matcher/Changer/Replacer
     It handles CoffeeScript dictionary shorthand (has pattern with \@<=)
       call cycle#test#reset_default_groups([
             \   [['\([{,]\_s*\)\@<=\(\k\+\)\(\s*[},]\)', '\([{,]\_s*\)\@<=\(\k\+\): \?\2\(\s*[},]\)'],
-            \    #{regex_sub_patterns: ['\(\k\+\)\(\s*[},]\)', '\(\k\+\): \?\1\(\s*[},]\)'],
-            \      regex: ['\1: \1\2', '\1\2']}],
+            \    #{regex: {
+            \       'to': ['\1: \1\2', '\1\2'],
+            \       'subp': ['\(\k\+\)\(\s*[},]\)', '\(\k\+\): \?\1\(\s*[},]\)'],
+            \     }}]
             \ ])
       let line = 'foo = {one, two}'
       call setline(1, line)
