@@ -73,8 +73,10 @@ let g:cycle_default_groups_for_plaintex = [
 
 " For filetype "ruby" only
 " This uses "regex" option to works on patterns
+" 1. cycles:  :bar =>    bar:
+" 2. cycles: "foo" 'foo' :foo
 let g:cycle_default_groups_for_ruby = [
-      \   [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{regex: ['\1: ', ':\1 => '], name: 'ruby_hash_style'}],
+      \   [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{regex: ['\1: ', ':\1 => '], name: 'ruby hash style'}],
       \   [['"\(\k\+\%([?!]\)\=\)"', '''\(\k\+\%([?!]\)\=\)''', ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!'], #{regex: ['''\1''', ':\1', '"\1"\2']}]
       \ ]
 

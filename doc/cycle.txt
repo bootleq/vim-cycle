@@ -579,6 +579,7 @@ Filetype specified groups:
           \ ]
 
     " " demo how to convert 'switch.vim' definition:
+    " " This cycles "foo" / 'foo' / :foo
     " let switch_vim_ruby_keyword_string = {
     "     \   '"\(\k\+\%([?!]\)\=\)"':                '''\1''',
     "     \   '''\(\k\+\%([?!]\)\=\)''':              ':\1',
