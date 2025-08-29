@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+## 1.?.? (2025-??-??)
+
+* Add `regex` group option, cycle more complicated patterns like switch.vim (https://github.com/AndrewRadev/switch.vim)
+
+* `regex` is actually a shorthand of 3 added options: `matcher`, `changer` and `replacer`.
+
 ## 1.0.0 (2025-08-27)
 
 * Fix various `sub_pairs` / `sub_tag` cursor offset bugs.

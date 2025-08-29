@@ -14,6 +14,7 @@ CONTENTS                                                      *cycle-contents*
       General options  ..................... |cycle-general-options|
       Define groups  ....................... |cycle-define-groups|
       Group options ........................ |cycle-group-options|
+        regex .............................. |cycle-group-option-regex|
       Phased search  ....................... |cycle-phased-search|
       Fallback mapping  .................... |cycle-fallback-mapping|
       Examples  ............................ |cycle-examples|
@@ -310,6 +311,113 @@ By default no options are set.
   For example, on/off only matches "on" but not "Mon".
   Set this option other than 0 to enforce word-bounded search.
 
+"matcher"           string (default: none) ~
+
+  Take different strategy to match group items.
+  Available options: `"regex"`
+
+  regex   Each group item is not an literal string, but a Vim regexp
+          |pattern|. An item is matched when the cursor is within the match.
+          Shoule be used with related options, see |cycle-group-option-regex|
+          for detail.
+
+  A matcher should implement `cycle#matcher#{name}#test()` to cover the group
+  search job.
+
+  With custom matcher, other group options might not work.
+
+"changer"           string (default: none) ~
+
+  Take different strategy to change matched item.
+  Available options: `"regex"`
+
+  regex   Do not replace item by directly cycle to "next" item, but find a
+          corresponding {sub} (of |substitute()|) from regex:"to" option, use
+          it to substitute the matched portion. Shoule be used with related
+          options, see |cycle-group-option-regex| for detail.
+
+  A changer should implement `cycle#changer#{name}#change()` to change an
+  matched item. And `cycle#changer#{name}#collect_selections()` to prepare
+  candidates for CycleSelect UI.
+
+  With custom changer, other group options might not work.
+
+                                                    *cycle-group-option-regex*
+"regex"             (Dict) (default: none) ~
+
+  This provides detailed info for working together with "matcher" and
+  "changer" were set to "regex" strategy. Example usage: >
+
+    [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{regex: ['\1: ', ':\1 => ']}]
+
+< expands to: >
+
+    [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{
+      \   matcher: 'regex',
+      \   changer: 'regex',
+      \   regex: {
+      \     'to': ['\1: ', ':\1 => '],
+      \   }
+      \ }]
+<
+  this mimics the way switch.vim works.
+  https://github.com/AndrewRadev/switch.vim
+  In fact above rules were derived from one of switch.vim's builtin: >
+    \   'ruby_hash_style': {
+    \     ':\(\k\+\)\s*=>\s*': '\1: ',
+    \     '\<\(\k\+\): ':      ':\1 => ',
+    \   },
+< which cycles between `foo:` and `:foo =>`.
+
+  Many useful patterns are only achievable with this feature.
+
+  "regex" dictionary can contain props:
+
+  - "to"             (List | Dict) (default: none) ~
+
+    Defines how an matched pattern should be substituted. It should have the
+    same size of group items, and each pattern is used for the item at the
+    same index (not for "next" item as you might expect like usual cycle).
+
+    For example, items: `['x\(\d\)x', 'o\(\d\)o']`  can have settings like
+                    to: `['o\1o',     'x\1x']`
+        to change item: `x4x` => `o4o`
+
+    Can also be set as |Dict| like switch.vim's "nested dict definition", the
+    matched text will be global substituted with {pattern} and {sub} comes
+    from the dict's key and value. For example: >
+      [['\<[a-z0-9]\+_\k\+\>'],
+        #{regex: {
+          'to': { '_\(.\)': '\U\1' },
+        }]
+<   the text `foo_bar_baz` will be matched as `foo_bar_baz` (whole string),
+    then conceptually a `substitute('_\(.\)', '\U\1')` is run on the matched
+    text and result to `fooBarBaz`.
+
+    Limitation: ~
+    Cycle operations do substitute on "matched" text rather than directly on
+    text in buffer, which means patterns like |\_||\@<=||\%'m||\%23c| can be
+    found, but can not be substitute (matched text can't be matched again).
+    See |cycle-group-option-regex-subp| for rescue.
+
+                                               *cycle-group-option-regex-subp*
+  - "subp"           (List) (default: none) ~
+
+    Provides loosen "sub patterns" for "matched" text. Refer to the Limitation
+    section of "to" as reason. For example: >
+      [['\(ex-\)\@<=\(\k\+\)'],
+        #{regex: {
+          'to': ['OK'],
+          'subp': ['\(\k\+\)'],
+        }]
+<   can successfully cycle "ex-friend" to "OK". Without "subp" it can't.
+
+                                     *cycle#group_converter#regex_dict_list()*
+  Hint: you can use `cycle#group_converter#regex_dict_list()` to convert
+  `switch_custom_definitions` list to cycle groups. However remember to check
+  the order of items, because Vim |Dictionary| doesn't have specific ordering,
+  incorrect order can breaks CycleSelect option generation.
+
 "cond"              Funcref (default: none) ~
 
   Condition, a group will not match if this function doesn't returns true.
@@ -470,6 +578,29 @@ Filetype specified groups:
           \   [['stylesheet_link_tag ', 'javascript_include_tag ']],
           \ ]
 
+    " " demo how to convert 'switch.vim' definition:
+    " " This cycles "foo" / 'foo' / :foo
+    " let switch_vim_ruby_keyword_string = {
+    "     \   '"\(\k\+\%([?!]\)\=\)"':                '''\1''',
+    "     \   '''\(\k\+\%([?!]\)\=\)''':              ':\1',
+    "     \   ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!': '"\1"\2',
+    "     \ }
+    " let switch_demo_definitions = [switch_vim_ruby_keyword_string]
+    " let groups = cycle#group_converter#regex_dict_list(switch_demo_definitions)
+    " " due to Dict ordering issue, you should check above result and write down
+    " " manually:
+    let g:cycle_default_groups_for_ruby += [
+      \   [[
+      \     '"\(\k\+\%([?!]\)\=\)"',
+      \     '''\(\k\+\%([?!]\)\=\)''',
+      \     ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!'
+      \    ], #{regex: [
+      \                 '''\1''',
+      \                 ':\1',
+      \                 '"\1"\2'
+      \    ]}]
+      \ ]
+
     " plaintex only
     let g:cycle_default_groups_for_plaintex = [
           \   [
@@ -482,6 +613,13 @@ Filetype specified groups:
           \ ]
           " Note (:) must be put at the end. The search runs in sequence,
           " an earlier ( match can short-circuit the following items.
+
+    " markdown only
+    let g:cycle_default_groups_for_markdown = [
+          \   [['^\(\s*\)- \[ \] ', '^\(\s*\)- \[x\] '],
+          \    #{regex: ['\1- [x] ', '\1- [ ] '],
+          \    name: 'Markdown task checkbox'}],
+          \ ]
 <
 ==============================================================================
 LIMITATIONS                                                *cycle-limitations*
@@ -495,6 +633,11 @@ CREDITS                                                        *cycle-credits*
   Author of SwapIt.vim: https://github.com/mjbrownie/swapit
   SwapIt originally provides lots of awesome features include visual
   multi-words, xml tag pairs, omni-completion cycling.
+
+- Andrew Radev ~
+  Author of switch.vim https://github.com/AndrewRadev/switch.vim
+  The "regex" strategy's crucial first search('bcW') detection is learnt from
+  switch.vim.
 
 ==============================================================================
 vim:tw=78:fo=tcroq2mM:et:sts=2:sw=2:ft=help:norl:

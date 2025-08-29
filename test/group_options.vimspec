@@ -16,7 +16,9 @@ Describe Group options
           \   [['==', '~='], { 'cond': function('s:cond_func') }],
           \   [['==', '!=']],
           \ ])
-    " for sub_pair / sub_pairs, see test/sub_pairs.vimspec
+    " - For sub_pair / sub_pairs, see test/sub_pairs.vimspec
+    " - For matcher / changer, see corresponding test cases:
+    "   - For regex / replacer, see test/matcher_changer_regex.vimspec
     new
   End
 
