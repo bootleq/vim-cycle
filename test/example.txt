@@ -9,6 +9,8 @@ const foo = `${bar}/baz`
 const foo = '${bar}/baz'
 const foo = "${bar}/baz"
 
+foo = {one, two}
+
 foo = { :one => 'two' }
 foo = { one: 'two' }
 

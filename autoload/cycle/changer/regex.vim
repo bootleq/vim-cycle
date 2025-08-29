@@ -81,7 +81,13 @@ function! s:change(ctext, group, index, replacers) abort " {{{
   let index = a:index
 
   let replacer = a:replacers[index]
-  let pattern = a:group.items[index]
+  let sub_patterns = get(options, 'regex_sub_patterns', 0)
+
+  if type(sub_patterns) == type([])
+    let pattern = sub_patterns[index]
+  else
+    let pattern = a:group.items[index]
+  endif
 
   if type(replacer) == type('')
     let Sub = replacer

@@ -375,6 +375,10 @@ By default no options are set.
   the order of items, because Vim |Dictionary| doesn't have specific ordering,
   incorrect order can breaks CycleSelect option generation.
 
+"regex_sub_patterns" ~
+
+  TODO: later.
+
 "cond"              Funcref (default: none) ~
 
   Condition, a group will not match if this function doesn't returns true.

@@ -135,6 +135,36 @@ Describe Regex Matcher/Changer/Replacer
     End
   End
 
+  Context sub patterns
+    It can't directly handle patterns with \@<=
+      " From switch.vim (builtins.coffee_dictionary_shorthand)
+      call cycle#test#reset_default_groups([
+            \   [['\([{,]\_s*\)\@<=\(\k\+\)\(\s*[},]\)', '\([{,]\_s*\)\@<=\(\k\+\): \?\2\(\s*[},]\)'],
+            \    #{regex: ['\2: \2\3', '\2\3']}],
+            \ ])
+      let line = 'foo = {one, two}'
+      call setline(1, line)
+
+      call search('one')
+      execute 'normal \a'
+      Assert Equals(getline(1), line, "Unchanged, doesn't support this.")
+    End
+
+    It handles CoffeeScript dictionary shorthand (has pattern with \@<=)
+      call cycle#test#reset_default_groups([
+            \   [['\([{,]\_s*\)\@<=\(\k\+\)\(\s*[},]\)', '\([{,]\_s*\)\@<=\(\k\+\): \?\2\(\s*[},]\)'],
+            \    #{regex_sub_patterns: ['\(\k\+\)\(\s*[},]\)', '\(\k\+\): \?\1\(\s*[},]\)'],
+            \      regex: ['\1: \1\2', '\1\2']}],
+            \ ])
+      let line = 'foo = {one, two}'
+      call setline(1, line)
+
+      call search('one')
+      execute 'normal \a'
+      Assert Equals(getline(1), "foo = {one: one, two}")
+    End
+  End
+
   Context integration case
     Before each
       " From othree's switchCase.vim https://gist.github.com/othree/5655583
