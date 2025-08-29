@@ -1,7 +1,7 @@
 " Regex changer
 "
 " Change group item by regex.
-" Requires a `replacer` group option to define the {sub} list for every group
+" Requires a `replacer` option to define the {sub} list for every group
 " item. For exampe group items: ['x(\d)x', 'o(\d)o']  requires replacer like
 "                     replacer: ['o\1o',   'x\1x']
 "               to change item:   x4x   =>  o4o
@@ -19,9 +19,9 @@ function! cycle#changer#regex#change(ctext, group, next_index) "{{{
   " Back 1 step because regex item is actually defined at the same position
   let index = a:next_index == 0 ? len(a:group.items) - 1 : a:next_index - 1
 
-  let replacers = s:parse_replacers(a:group)
+  let [replacers, sub_patterns] = s:parse_options(a:group)
 
-  return s:change(a:ctext, a:group, index, replacers)
+  return s:change(a:ctext, a:group, index, replacers, sub_patterns)
 endfunction "}}}
 
 
@@ -38,7 +38,7 @@ function! cycle#changer#regex#collect_selections(ctext, group, index) "{{{
   let matches = []
   let ctext = a:ctext
   let last_text = {}
-  let replacers = s:parse_replacers(a:group)
+  let [replacers, sub_patterns] = s:parse_options(a:group)
 
   " For Nth match, the original form (to be skipped) is the previous item
   let idx_to_skip = a:index == 0 ? len(a:group.items) - 1 : a:index - 1
@@ -51,7 +51,7 @@ function! cycle#changer#regex#collect_selections(ctext, group, index) "{{{
 
   for idx in work_seq
     let iter_text = empty(last_text) ? ctext : last_text
-    let changed = s:change(iter_text, a:group, idx, replacers)
+    let changed = s:change(iter_text, a:group, idx, replacers, sub_patterns)
     let m = {
           \   'group': a:group,
           \   'pairs': {
@@ -69,24 +69,24 @@ endfunction " }}}
 
 
 " Params:
-"   - ctext:     Ctext
-"   - group:     Group
-"   - index:     number       - index of current match
-"   - replacers: list<string>
+"   - ctext:        Ctext
+"   - group:        Group
+"   - index:        number       - index of current match
+"   - replacers:    list<string>
+"   - sub_patterns: list<string>
 " Returns:
 "   Ctext - the changed text info
-function! s:change(ctext, group, index, replacers) abort " {{{
+function! s:change(ctext, group, index, replacers, sub_patterns) abort " {{{
   let options = a:group.options
   let col = a:ctext.col
   let index = a:index
 
   let replacer = a:replacers[index]
-  let sub_patterns = get(options, 'regex_sub_patterns', 0)
 
-  if type(sub_patterns) == type([])
-    let pattern = sub_patterns[index]
-  else
+  if empty(a:sub_patterns)
     let pattern = a:group.items[index]
+  else
+    let pattern = a:sub_patterns[index]
   endif
 
   if type(replacer) == type('')
@@ -106,12 +106,14 @@ function! s:change(ctext, group, index, replacers) abort " {{{
 endfunction " }}}
 
 
-function! s:parse_replacers(group) abort " {{{
-  let replacers = get(a:group.options, 'replacer', [])
+function! s:parse_options(group) abort " {{{
+  let opts = get(a:group.options, 'regex', {})
+  let replacers = get(opts, 'replacer', [])
+  let subp = get(opts, 'subp', [])
   if empty(replacers)
-    echoerr "Cycle: missing replacer in group:\n  " . string(a:group)
+    echoerr "Cycle: missing regex replacer in group:\n  " . string(a:group)
   endif
-  return replacers
+  return [replacers, subp]
 endfunction " }}}
 
 

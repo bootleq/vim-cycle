@@ -324,6 +324,8 @@ By default no options are set.
   A matcher should implement `cycle#matcher#{name}#test()` to cover the group
   search job.
 
+  With custom matcher, other group options might not work.
+
 "changer"           string (default: none) ~
 
   Take different strategy to change matched item.
@@ -338,16 +340,13 @@ By default no options are set.
   matched item. And `cycle#changer#{name}#collect_selections()` to prepare
   candidates for CycleSelect UI.
 
-"replacer"          (List) (default: none) ~
-
-  Used when "matcher" and "changer" are both "regex". This list defines how an
-  matched pattern should be substituted. See |cycle-group-option-regex|.
+  With custom changer, other group options might not work.
 
                                                     *cycle-group-option-regex*
-"regex"             (List) (default: none) ~
+"regex"             (Dict) (default: none) ~
 
-  This is a shorthand to put "matcher", "changer" and "replacer" options
-  together to use regex strategy. For example: >
+  This provides detailed info for working together with "matcher" and
+  "changer" were set to "regex" strategy. Example usage: >
 
     [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{regex: ['\1: ', ':\1 => ']}]
 
@@ -356,7 +355,9 @@ By default no options are set.
     [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{
       \   matcher: 'regex',
       \   changer: 'regex',
-      \   replacer: ['\1: ', ':\1 => '],
+      \   regex: {
+      \     'replacer': ['\1: ', ':\1 => '],
+      \   }
       \ }]
 <
   this mimics the way switch.vim works.
@@ -366,18 +367,56 @@ By default no options are set.
     \     ':\(\k\+\)\s*=>\s*': '\1: ',
     \     '\<\(\k\+\): ':      ':\1 => ',
     \   },
-<
+< which cycles between `foo:` and `:foo =>`.
+
   Many useful patterns are only achievable with this feature.
+
+  "regex" dictionary can contain props:
+
+  - "replacer"       (List) (default: none) ~
+
+    Defines how an matched pattern should be substituted. It should have the
+    same size of group items, and each pattern is used for the item at the
+    same index (not for "next" item as you might expect like usual cycle).
+
+    For example, items: `['x\(\d\)x', 'o\(\d\)o']`  can have replacer like
+              replacer: `['o\1o',     'x\1x']`
+        to change item: `x4x` => `o4o`
+
+    Replacer can also be a Dict like switch.vim's "nested dict definition",
+    the matched text will be global substituted with {pattern} and {sub} comes
+    from the dict's key and value. For example: >
+      [['\<[a-z0-9]\+_\k\+\>'],
+        #{regex: {
+          'replacer': { '_\(.\)': '\U\1' },
+        }]
+<   the text `foo_bar_baz` will be matched as `foo_bar_baz` (whole string),
+    then conceptually a `substitute('_\(.\)', '\U\1')` is run on the matched
+    text and result to `fooBarBaz`.
+
+    Limitation: ~
+    Cycle operations do substitute on "matched" text rather than directly on
+    text in buffer, which means patterns like |\_||\@<=||\%'m||\%23c| can be
+    found, but can not be substitute (matched text can't be matched again).
+    See |cycle-group-option-regex-subp| for rescue.
+
+                                               *cycle-group-option-regex-subp*
+  - "subp"           (List) (default: none) ~
+
+    Provides loosen "sub patterns" for "matched" text. Refer to the Limitation
+    section of "replacer" as reason. For example: >
+      [['\(ex-\)\@<=\(\k\+\)'],
+        #{regex: {
+          'replacer': ['OK'],
+          'subp': ['\(\k\+\)'],
+        }]
+<   can successfully cycle "ex-friend" to "OK". Without "subp" it can't.
 
                                      *cycle#group_converter#regex_dict_list()*
   Hint: you can use `cycle#group_converter#regex_dict_list()` to convert
   `switch_custom_definitions` list to cycle groups. However remember to check
   the order of items, because Vim |Dictionary| doesn't have specific ordering,
   incorrect order can breaks CycleSelect option generation.
-
-"regex_sub_patterns" ~
-
-  TODO: later.
 
 "cond"              Funcref (default: none) ~
 
