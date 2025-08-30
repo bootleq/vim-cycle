@@ -368,6 +368,10 @@ function! s:group_search(group, class_name) "{{{
       let args = [deepcopy(a:group), a:class_name]
       let result = call('cycle#matcher#regex#test', args)
       return result
+    elseif matcher == 'year'
+      let args = [deepcopy(a:group), a:class_name]
+      let result = call('cycle#matcher#' . matcher . '#test', args)
+      return result
     else
       echohl WarningMsg | echo printf('Cycle: invalid matcher option %s.', matcher) | echohl None
       return [index, ctext]
@@ -802,8 +806,10 @@ function! s:build_match(ctext, group, item_idx) "{{{
     if type(changer) == type('')
       if changer == 'regex'
         call extend(new_text, call('cycle#changer#regex#change', args), 'force')
+      elseif changer == 'year'
+        call extend(new_text, call('cycle#changer#' . changer . '#change', args), 'force')
       else
-        echohl WarningMsg | echo printf('Cycle: invalid changer option %s.', changer) | echohl None
+        echohl WarningMsg | echo printf('Cycle: invalid changer option "%s".', changer) | echohl None
       endif
     else
       echoerr "Cycle: Invalid changer in group:\n  " . string(a:group)
@@ -847,8 +853,10 @@ function! s:build_matches(ctext, group, item_idx) "{{{
       let args = [deepcopy(a:ctext), deepcopy(a:group), a:item_idx]
       if changer == 'regex'
         call extend(matches, call('cycle#changer#regex#collect_selections', args), 'force')
+      elseif changer == 'year'
+        call extend(matches, call('cycle#changer#' . changer . '#collect_selections', args), 'force')
       else
-        echohl WarningMsg | echo printf('Cycle: invalid changer option %s.', changer) | echohl None
+        echohl WarningMsg | echo printf('Cycle: invalid changer option "%s".', changer) | echohl None
       endif
     else
       echoerr "Cycle: Invalid changer in group:\n  " . string(a:group)

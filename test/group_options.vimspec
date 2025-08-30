@@ -19,6 +19,7 @@ Describe Group options
     " - For sub_pair / sub_pairs, see test/sub_pairs.vimspec
     " - For matcher / changer, see corresponding test cases:
     "   - For regex / replacer, see test/matcher_changer_regex.vimspec
+    "   - year, see test/matcher_changer_year.vimspec
     new
   End
 
