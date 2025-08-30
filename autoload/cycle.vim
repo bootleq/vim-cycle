@@ -137,10 +137,7 @@ function! cycle#search(class_name, ...) "{{{
   " - for visual selected : visual                ['v']
   if a:class_name == 'w'
     if len(cchar.text) > 1 " multibyte
-      let phases = ['.', 'w']
-      if cword != cchar
-        call add(phases, '')
-      endif
+      let phases = ['.', 'w', '']
     else
       let phases = ['w', '']
     endif

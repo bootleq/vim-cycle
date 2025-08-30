@@ -93,6 +93,17 @@ Describe Regex Matcher/Changer
       Assert Equals(getline(1), line1)
     End
 
+    It multibyte char with cword identical to cchar
+      call cycle#test#reset_default_groups([
+            \   [['พ.ศ.', 'dummy'], #{matcher: 'regex', changer: 'regex', regex: {'to': ['OK', 'fine']}}],
+            \ ])
+      let line = 'พ.ศ. 2569'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), 'OK 2569')
+    End
+
     It takes 'regex' shorthand option
       " From switch.vim
       call cycle#test#reset_default_groups([
