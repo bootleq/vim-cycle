@@ -12,6 +12,7 @@ Cycle text within predefined candidates.
   - `<em>`important`</em>` =&gt; `<strong>`important`</strong>` &nbsp; tag pairs cycle together
   - `「`quoted`」` =&gt; `『`quoted`』` &nbsp; special pairs cycle together
   - `{ :one => 'two' }` =&gt; `{ one: 'two' }` &nbsp; now supports pattern replace like [switch.vim][]
+  - `民國 40` =&gt; `昭和 26` =&gt; `พ.ศ. 2495` =&gt; `1951` &nbsp; cycle calendar era systems with "year" option
 
 
 Configuration Example
@@ -51,6 +52,7 @@ let g:cycle_default_groups = [
       \   [['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
       \     'Friday', 'Saturday'], ['hard_case', {'name': 'Days'}]],
       \   [['(:)', '（:）', '「:」', '『:』'], 'sub_pairs'],
+      \   [['民國', '令和', '平成', '昭和', '大正', '明治', 'พ.ศ.', 'CE'], #{matcher: 'year', changer: 'year'}],
       \ ]
 
 " For fileType "lua" only

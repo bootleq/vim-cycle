@@ -53,3 +53,14 @@ function! cycle#test#conflict_ui(options, ctx) "{{{
         \ }
   return
 endfunction "}}}
+
+
+function! cycle#test#capture(command) abort " {{{
+  try
+    redir => out
+    silent execute a:command
+  finally
+    redir END
+  endtry
+  return substitute(out, '\n', '', '')
+endfunction " }}}

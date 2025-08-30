@@ -14,6 +14,7 @@ let s:OPTIONS = {
       \ 'matcher': 'matcher',
       \ 'changer': 'changer',
       \ 'regex': 'regex',
+      \ 'year': 'year',
       \ 'cond': 'cond',
       \ }
 
@@ -137,10 +138,7 @@ function! cycle#search(class_name, ...) "{{{
   " - for visual selected : visual                ['v']
   if a:class_name == 'w'
     if len(cchar.text) > 1 " multibyte
-      let phases = ['.', 'w']
-      if cword != cchar
-        call add(phases, '')
-      endif
+      let phases = ['.', 'w', '']
     else
       let phases = ['w', '']
     endif
@@ -292,6 +290,11 @@ endfunction "}}}
 
 function! s:accept_match(match, ctx) "{{{
   let m = a:match
+  if m.pairs.before == m.pairs.after
+    echohl WarningMsg | echo "Cycle to nothing, aborted." | echohl None
+    return
+  endif
+
   call s:substitute(
         \   m.pairs.before,
         \   m.pairs.after,
@@ -370,6 +373,10 @@ function! s:group_search(group, class_name) "{{{
     if matcher == 'regex'
       let args = [deepcopy(a:group), a:class_name]
       let result = call('cycle#matcher#regex#test', args)
+      return result
+    elseif matcher == 'year'
+      let args = [deepcopy(a:group), a:class_name]
+      let result = call('cycle#matcher#' . matcher . '#test', args)
       return result
     else
       echohl WarningMsg | echo printf('Cycle: invalid matcher option %s.', matcher) | echohl None
@@ -458,6 +465,11 @@ function! s:add_group(scope, group_attrs) "{{{
     call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {(s:OPTIONS.end_with): end_items})])
     call s:add_group(a:scope, [end_items, extend(deepcopy(options), {(s:OPTIONS.begin_with): begin_items})])
     return
+  endif
+
+  if has_key(options, s:OPTIONS.year)
+    unlet options[s:OPTIONS.year]
+    call extend(options, {'matcher': 'year', 'changer': 'year'}, 'keep')
   endif
 
   if has_key(options, s:OPTIONS.regex)
@@ -805,8 +817,10 @@ function! s:build_match(ctext, group, item_idx) "{{{
     if type(changer) == type('')
       if changer == 'regex'
         call extend(new_text, call('cycle#changer#regex#change', args), 'force')
+      elseif changer == 'year'
+        call extend(new_text, call('cycle#changer#' . changer . '#change', args), 'force')
       else
-        echohl WarningMsg | echo printf('Cycle: invalid changer option %s.', changer) | echohl None
+        echohl WarningMsg | echo printf('Cycle: invalid changer option "%s".', changer) | echohl None
       endif
     else
       echoerr "Cycle: Invalid changer in group:\n  " . string(a:group)
@@ -850,8 +864,10 @@ function! s:build_matches(ctext, group, item_idx) "{{{
       let args = [deepcopy(a:ctext), deepcopy(a:group), a:item_idx]
       if changer == 'regex'
         call extend(matches, call('cycle#changer#regex#collect_selections', args), 'force')
+      elseif changer == 'year'
+        call extend(matches, call('cycle#changer#' . changer . '#collect_selections', args), 'force')
       else
-        echohl WarningMsg | echo printf('Cycle: invalid changer option %s.', changer) | echohl None
+        echohl WarningMsg | echo printf('Cycle: invalid changer option "%s".', changer) | echohl None
       endif
     else
       echoerr "Cycle: Invalid changer in group:\n  " . string(a:group)
