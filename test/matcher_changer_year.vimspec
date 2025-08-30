@@ -10,6 +10,8 @@ Describe Year Matcher/Changer
 
   Context cycles calendar era systems
     Before each
+      unlet! g:cycle_test_select
+      unlet! g:cycle_test_conflict
       call cycle#test#reset_default_groups([
             \   [['民國', '令和', '平成', '昭和', '大正', '明治', 'พ.ศ.', 'CE'], #{matcher: 'year', changer: 'year'}],
             \ ])
@@ -52,12 +54,20 @@ Describe Year Matcher/Changer
       Assert Equals(getline(1), '1983')
     End
 
-    It select UI
+    It select UI, normal
       call setline(1, '平成 6 年 12 月 3 日')
 
       execute 'normal \s'
       Assert Exists('g:cycle_test_select.items')
       Assert Equals(g:cycle_test_select.items, ['民國 83', 'พ.ศ. 2538', '1994'])
+    End
+
+    It select UI, no valid result
+      call setline(1, '2650')
+
+      let out = cycle#test#capture('normal \s')
+      Assert NotExists('g:cycle_test_select.items')
+      Assert Equals(out, 'No match, aborted.')
     End
 
     It conflict UI

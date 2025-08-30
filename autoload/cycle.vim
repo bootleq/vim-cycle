@@ -289,6 +289,11 @@ endfunction "}}}
 
 function! s:accept_match(match, ctx) "{{{
   let m = a:match
+  if m.pairs.before == m.pairs.after
+    echohl WarningMsg | echo "Cycle to nothing, aborted." | echohl None
+    return
+  endif
+
   call s:substitute(
         \   m.pairs.before,
         \   m.pairs.after,
