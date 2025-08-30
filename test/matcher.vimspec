@@ -7,7 +7,7 @@ Describe Matcher
     bwipeout!
   End
 
-  Context allows custom function matcher
+  Context allows custom #test() function of matcher
     Before all
       function! Foo(group, class_name) abort
         let index = 4
@@ -20,26 +20,22 @@ Describe Matcher
       endfunction
     End
 
-    It sets matcher in form of String "*function_name"
+    It sets matcher: 'test' in form of String
       call cycle#test#reset_default_groups([
-            \   [['foo', 'bar'], #{matcher: '*Foo'}],
+            \   [['foo', 'bar'], #{matcher: #{test: 'Foo'}}],
             \ ])
 
-      let line = '123456789'
-      call setline(1, line)
-
+      call setline(1, '123456789')
       execute 'normal \a'
       Assert Equals(getline(1), '123456bar89')
     End
 
-    It sets matcher in form of Funcref
+    It sets matcher: 'test' in form of Funcref
       call cycle#test#reset_default_groups([
-            \   [['foo', 'bar'], #{matcher: function('Foo')}],
+            \   [['foo', 'bar'], #{matcher: #{test: function('Foo')}}],
             \ ])
 
-      let line = '123456789'
-      call setline(1, line)
-
+      call setline(1, '123456789')
       execute 'normal \a'
       Assert Equals(getline(1), '123456bar89')
     End

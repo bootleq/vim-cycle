@@ -7,7 +7,7 @@ Describe Changer
     bwipeout!
   End
 
-  Context allows custom function changer
+  Context allows custom #change() function of changer
     Before all
       function! Foo(ctext, group, index) abort
         let ctext = extend(a:ctext, #{text: toupper(a:ctext.text) . string(a:index)})
@@ -15,9 +15,9 @@ Describe Changer
       endfunction
     End
 
-    It sets changer in form of String "*function_name"
+    It sets changer: 'change' in form of String
       call cycle#test#reset_default_groups([
-            \   [['foo', 'bar'], #{changer: '*Foo'}],
+            \   [['foo', 'bar'], #{changer: #{change: 'Foo'}}],
             \ ])
 
       call setline(1, 'foo')
@@ -25,9 +25,9 @@ Describe Changer
       Assert Equals(getline(1), 'FOO1')
     End
 
-    It sets changer in form of Funcref
+    It sets changer: 'change' in form of Funcref
       call cycle#test#reset_default_groups([
-            \   [['foo', 'bar'], #{changer: function('Foo')}],
+            \   [['foo', 'bar'], #{changer: #{change: function('Foo')}}],
             \ ])
 
       call setline(1, 'foo')

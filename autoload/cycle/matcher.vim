@@ -18,25 +18,27 @@ function! s:dispatch_test(matcher, ctx) " {{{
     if index(['regex', 'year'], Matcher) >= 0
       let result = call('cycle#matcher#' . Matcher . '#test', args)
       return result
-    elseif Matcher[0] == '*'
-      let result = call(Matcher[1:], args)
+    else
+      call s:invalid_test_option(group)
+      return [index, ctext]
+    endif
+  elseif matcher_type == type({})
+    let Fn = get(Matcher, 'test')
+    if index([v:t_func, v:t_string], type(Fn)) >= 0
+      let result = call(Fn, args)
       if type(result) != type([])
-        echoerr printf('Cycle: invalid matcher result of "%s"', Matcher)
+        echoerr printf('Cycle: invalid test result of group\n  ', string(group))
         return [0, ctext]
       endif
       return result
-    else
-      echohl WarningMsg | echo printf('Cycle: invalid matcher option "%s".', Matcher) | echohl None
-      return [index, ctext]
     endif
-  elseif matcher_type == v:t_func
-    let result = call(Matcher, args)
-    if type(result) != type([])
-      echoerr printf('Cycle: invalid matcher result of "%s"', Matcher)
-      return [0, ctext]
-    endif
-    return result
-  else
-    echoerr printf("Cycle: invalid matcher: %s", string(Matcher))
   endif
+
+  call s:invalid_test_option(group)
+  return [index, ctext]
+endfunction " }}}
+
+
+function! s:invalid_test_option(group) abort " {{{
+  echoerr "Cycle: Invalid matcher :test in group:\n  " . string(a:group)
 endfunction " }}}

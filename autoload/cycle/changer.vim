@@ -17,24 +17,27 @@ function! s:dispatch_change(changer, ctx) " {{{
     if index(['regex', 'year'], Changer) >= 0
       let result = call('cycle#changer#' . Changer . '#change', args)
       return result
-    elseif Changer[0] == '*'
-      let result = call(Changer[1:], args)
+    else
+      call s:invalid_change_option(group)
+      return ctext
+    endif
+  elseif changer_type == type({})
+    let Fn = get(Changer, 'change')
+    if index([v:t_func, v:t_string], type(Fn)) >= 0
+      let result = call(Fn, args)
       if type(result) != type({})
-        echoerr printf('Cycle: invalid changer result of "%s"', Changer)
+        echoerr printf('Cycle: invalid change result of group\n  ', string(group))
         return ctext
       endif
       return result
-    else
-      echohl WarningMsg | echo printf('Cycle: invalid changer option "%s".', Changer) | echohl None
     endif
-  elseif changer_type == v:t_func
-    let result = call(Changer, args)
-    if type(result) != type({})
-      echoerr printf('Cycle: invalid changer result of "%s"', Changer)
-      return ctext
-    endif
-    return result
-  else
-    echoerr "Cycle: Invalid changer in group:\n  " . string(group)
   endif
+
+  call s:invalid_change_option(group)
+  return ctext
+endfunction " }}}
+
+
+function! s:invalid_change_option(group) abort " {{{
+  echoerr "Cycle: Invalid changer :change in group:\n  " . string(a:group)
 endfunction " }}}
