@@ -311,7 +311,7 @@ By default no options are set.
   For example, on/off only matches "on" but not "Mon".
   Set this option other than 0 to enforce word-bounded search.
 
-"matcher"           string (default: none) ~
+"matcher"           string | Dict (default: none) ~
 
   Take different strategy to match group items.
   Available options: `"regex" "year"`
@@ -327,12 +327,15 @@ By default no options are set.
           民國, 令和, 平成, 昭和, 大正, 明治, พ.ศ., CE
           'CE' must be put on last to avoid overshadow others.
 
+  {dict}  You can provide custom "test" function for matcher. Set this option
+          to a dict with `test` key pointer to the function name or Funcref.
+
   A matcher should implement `cycle#matcher#{name}#test()` to cover the group
   search job.
 
   With custom matcher, other group options might not work.
 
-"changer"           string (default: none) ~
+"changer"           string | Dict (default: none) ~
 
   Take different strategy to change matched item.
   Available options: `"regex"`
@@ -345,6 +348,10 @@ By default no options are set.
   year    Convert matched year to next calendar era system.
           If a calculated year is invalid (e.g., over the range of known
           historical era), discard the result and try next item.
+
+  {dict}  You can provide custom `#change` functions for changer. Set this
+          option to a dict with `change` key pointer to the function name or
+          Funcref.
 
   A changer should implement `cycle#changer#{name}#change()` to change an
   matched item. And `cycle#changer#{name}#collect_selections()` to prepare

@@ -369,19 +369,9 @@ function! s:group_search(group, class_name) "{{{
   let ctext = cycle#text#new_ctext(a:class_name)
   let matcher = get(options, s:OPTIONS.matcher, 0)
 
-  if type(matcher) == type('')
-    if matcher == 'regex'
-      let args = [deepcopy(a:group), a:class_name]
-      let result = call('cycle#matcher#regex#test', args)
-      return result
-    elseif matcher == 'year'
-      let args = [deepcopy(a:group), a:class_name]
-      let result = call('cycle#matcher#' . matcher . '#test', args)
-      return result
-    else
-      echohl WarningMsg | echo printf('Cycle: invalid matcher option %s.', matcher) | echohl None
-      return [index, ctext]
-    endif
+  if type(matcher) != type(0)
+    let ctx = {'group': a:group, 'class_name': a:class_name, 'index': index, 'ctext': ctext}
+    return cycle#matcher#dispatch(matcher, 'test', ctx)
   endif
 
   for item in a:group.items
@@ -813,18 +803,9 @@ function! s:build_match(ctext, group, item_idx) "{{{
   let changer = get(a:group.options, s:OPTIONS.changer, 0)
 
   if type(changer) != type(0)
-    let args = [ctext, deepcopy(a:group), a:item_idx]
-    if type(changer) == type('')
-      if changer == 'regex'
-        call extend(new_text, call('cycle#changer#regex#change', args), 'force')
-      elseif changer == 'year'
-        call extend(new_text, call('cycle#changer#' . changer . '#change', args), 'force')
-      else
-        echohl WarningMsg | echo printf('Cycle: invalid changer option "%s".', changer) | echohl None
-      endif
-    else
-      echoerr "Cycle: Invalid changer in group:\n  " . string(a:group)
-    endif
+    let ctx = {'ctext': deepcopy(ctext), 'group': deepcopy(a:group), 'index': a:item_idx}
+    let changed_text = cycle#changer#dispatch(changer, 'change', ctx)
+    call extend(new_text, changed_text, 'force')
   else
     let new_text.text = s:text_transform(
           \   ctext.text,
@@ -860,18 +841,8 @@ function! s:build_matches(ctext, group, item_idx) "{{{
   let changer = get(a:group.options, s:OPTIONS.changer, 0)
 
   if type(changer) != type(0)
-    if type(changer) == type('')
-      let args = [deepcopy(a:ctext), deepcopy(a:group), a:item_idx]
-      if changer == 'regex'
-        call extend(matches, call('cycle#changer#regex#collect_selections', args), 'force')
-      elseif changer == 'year'
-        call extend(matches, call('cycle#changer#' . changer . '#collect_selections', args), 'force')
-      else
-        echohl WarningMsg | echo printf('Cycle: invalid changer option "%s".', changer) | echohl None
-      endif
-    else
-      echoerr "Cycle: Invalid changer in group:\n  " . string(a:group)
-    endif
+    let ctx = {'ctext': deepcopy(a:ctext), 'group': deepcopy(a:group), 'index': a:item_idx}
+    let matches = cycle#changer#dispatch(changer, 'collect_selections', ctx)
   else
     for idx in range(len(a:group.items))
       if idx != a:item_idx
