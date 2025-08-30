@@ -841,18 +841,8 @@ function! s:build_matches(ctext, group, item_idx) "{{{
   let changer = get(a:group.options, s:OPTIONS.changer, 0)
 
   if type(changer) != type(0)
-    if type(changer) == type('')
-      let args = [deepcopy(a:ctext), deepcopy(a:group), a:item_idx]
-      if changer == 'regex'
-        call extend(matches, call('cycle#changer#regex#collect_selections', args), 'force')
-      elseif changer == 'year'
-        call extend(matches, call('cycle#changer#' . changer . '#collect_selections', args), 'force')
-      else
-        echohl WarningMsg | echo printf('Cycle: invalid changer option "%s".', changer) | echohl None
-      endif
-    else
-      echoerr "Cycle: Invalid changer in group:\n  " . string(a:group)
-    endif
+    let ctx = {'ctext': deepcopy(a:ctext), 'group': deepcopy(a:group), 'index': a:item_idx}
+    let matches = cycle#changer#dispatch(changer, 'collect_selections', ctx)
   else
     for idx in range(len(a:group.items))
       if idx != a:item_idx

@@ -35,4 +35,47 @@ Describe Changer
       Assert Equals(getline(1), 'FOO1')
     End
   End
+
+  Context allows custom #collect_selections() function of changer
+    Before all
+      function! Foo(ctext, group, index) abort
+        let m = {
+              \   'group': a:group,
+              \   'pairs': {
+              \     'before': a:ctext,
+              \     'after': a:ctext,
+              \   },
+              \   'index': a:index,
+              \ }
+        let matches = [
+              \   extend(deepcopy(m), #{pairs: #{after: #{text: 'AAA'}}}),
+              \   extend(deepcopy(m), #{pairs: #{after: #{text: 'BBB'}}}),
+              \   extend(deepcopy(m), #{pairs: #{after: #{text: 'CCC'}}}),
+              \ ]
+        return matches
+      endfunction
+    End
+
+    It sets changer: 'collect_selections' in form of String
+      call cycle#test#reset_default_groups([
+            \   [['foo', 'bar'], #{changer: #{collect_selections: 'Foo'}}],
+            \ ])
+
+      call setline(1, 'foo')
+      execute 'normal \s'
+      Assert Exists('g:cycle_test_select.items')
+      Assert Equals(g:cycle_test_select.items, ['AAA', 'BBB', 'CCC'])
+    End
+
+    It sets changer: 'collect_selections' in form of Funcref
+      call cycle#test#reset_default_groups([
+            \   [['foo', 'bar'], #{changer: #{collect_selections: function('Foo')}}],
+            \ ])
+
+      call setline(1, 'foo')
+      execute 'normal \s'
+      Assert Exists('g:cycle_test_select.items')
+      Assert Equals(g:cycle_test_select.items, ['AAA', 'BBB', 'CCC'])
+    End
+  End
 End
