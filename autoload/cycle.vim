@@ -800,21 +800,12 @@ function! s:build_match(ctext, group, item_idx) "{{{
   let item = a:group.items[a:item_idx]
   let ctext = deepcopy(a:ctext)
   let new_text = cycle#text#new_ctext('')
-  let changer = get(a:group.options, s:OPTIONS.changer, 0)
+  let Changer = get(a:group.options, s:OPTIONS.changer, 0)
 
-  if type(changer) != type(0)
-    let args = [ctext, deepcopy(a:group), a:item_idx]
-    if type(changer) == type('')
-      if changer == 'regex'
-        call extend(new_text, call('cycle#changer#regex#change', args), 'force')
-      elseif changer == 'year'
-        call extend(new_text, call('cycle#changer#' . changer . '#change', args), 'force')
-      else
-        echohl WarningMsg | echo printf('Cycle: invalid changer option "%s".', changer) | echohl None
-      endif
-    else
-      echoerr "Cycle: Invalid changer in group:\n  " . string(a:group)
-    endif
+  if type(Changer) != type(0)
+    let ctx = {'ctext': deepcopy(ctext), 'group': deepcopy(a:group), 'index': a:item_idx}
+    let changed_text = cycle#changer#dispatch(Changer, 'change', ctx)
+    call extend(new_text, changed_text, 'force')
   else
     let new_text.text = s:text_transform(
           \   ctext.text,
