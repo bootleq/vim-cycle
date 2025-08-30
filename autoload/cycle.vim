@@ -369,19 +369,9 @@ function! s:group_search(group, class_name) "{{{
   let ctext = cycle#text#new_ctext(a:class_name)
   let matcher = get(options, s:OPTIONS.matcher, 0)
 
-  if type(matcher) == type('')
-    if matcher == 'regex'
-      let args = [deepcopy(a:group), a:class_name]
-      let result = call('cycle#matcher#regex#test', args)
-      return result
-    elseif matcher == 'year'
-      let args = [deepcopy(a:group), a:class_name]
-      let result = call('cycle#matcher#' . matcher . '#test', args)
-      return result
-    else
-      echohl WarningMsg | echo printf('Cycle: invalid matcher option %s.', matcher) | echohl None
-      return [index, ctext]
-    endif
+  if type(matcher) != type(0)
+    let ctx = {'group': a:group, 'class_name': a:class_name, 'index': index, 'ctext': ctext}
+    return cycle#matcher#dispatch(matcher, 'test', ctx)
   endif
 
   for item in a:group.items
