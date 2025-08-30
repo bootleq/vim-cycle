@@ -363,58 +363,15 @@ endfunction "}}}
 " Returns:
 "   list<matched_col: number, ctext: Ctext>
 function! s:group_search(group, class_name) "{{{
-  let options = a:group.options
-  let pos = cycle#util#getpos()
-  let index = -1
-  let ctext = cycle#text#new_ctext(a:class_name)
-  let matcher = get(options, s:OPTIONS.matcher, 0)
+  let matcher = get(a:group.options, s:OPTIONS.matcher, 0)
 
   if type(matcher) != type(0)
-    let ctx = {'group': a:group, 'class_name': a:class_name, 'index': index, 'ctext': ctext}
+    let ctx = {'group': a:group, 'class_name': a:class_name}
     return cycle#matcher#dispatch(matcher, 'test', ctx)
   endif
 
-  for item in a:group.items
-    if get(options, s:OPTIONS.match_word) && a:class_name != 'w'
-      continue
-    endif
-
-    if a:class_name != ''
-      let pattern = join([
-            \   '\%' . ctext.col . 'c',
-            \   cycle#util#escape_pattern(item),
-            \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
-            \ ], '')
-    else
-      " No match in other defined classes, try search backward/forward over current col
-      let pattern = join([
-            \   '\%>' . max([0, pos.col - strlen(item)]) . 'c',
-            \   '\%<' . (pos.col + 1) . 'c' . cycle#util#escape_pattern(item),
-            \   get(options, s:OPTIONS.match_case) ? '\C' : '\c',
-            \ ], '')
-    endif
-    let text_index = match(getline('.'), pattern)
-
-    if a:class_name == 'v' && item != cycle#text#new_cvisual().text
-      continue
-    endif
-
-    if a:class_name == 'w' && item != cycle#text#new_cword().text
-      continue
-    endif
-
-    if text_index >= 0
-      let index = index(a:group.items, item)
-      let ctext = {
-            \   'text': strpart(getline('.'), text_index, len(item)),
-            \   'line': line('.'),
-            \   'col': text_index + 1,
-            \ }
-      break
-    endif
-  endfor
-
-  return [index, ctext]
+  let result = call('cycle#matcher#default#test', [a:group, a:class_name])
+  return result
 endfunction "}}}
 
 
@@ -797,7 +754,6 @@ endfunction "}}}
 " Returns:
 "   Match
 function! s:build_match(ctext, group, item_idx) "{{{
-  let item = a:group.items[a:item_idx]
   let ctext = deepcopy(a:ctext)
   let new_text = cycle#text#new_ctext('')
   let changer = get(a:group.options, s:OPTIONS.changer, 0)
@@ -807,13 +763,8 @@ function! s:build_match(ctext, group, item_idx) "{{{
     let changed_text = cycle#changer#dispatch(changer, 'change', ctx)
     call extend(new_text, changed_text, 'force')
   else
-    let new_text.text = s:text_transform(
-          \   ctext.text,
-          \   item,
-          \   a:group.options,
-          \ )
-    let new_text.line = ctext.line
-    let new_text.col = ctext.col
+    let changed_text = call('cycle#changer#default#change', [ctext, a:group, a:item_idx])
+    call extend(new_text, changed_text, 'force')
   endif
 
   return {
@@ -844,46 +795,10 @@ function! s:build_matches(ctext, group, item_idx) "{{{
     let ctx = {'ctext': deepcopy(a:ctext), 'group': deepcopy(a:group), 'index': a:item_idx}
     let matches = cycle#changer#dispatch(changer, 'collect_selections', ctx)
   else
-    for idx in range(len(a:group.items))
-      if idx != a:item_idx
-        call add(matches, s:build_match(a:ctext, a:group, idx))
-      endif
-    endfor
+    let matches = call('cycle#changer#default#collect_selections', [deepcopy(a:ctext), a:group, a:item_idx])
   endif
 
   return matches
-endfunction "}}}
-
-
-function! s:text_transform(before, after, options) "{{{
-  let text = a:after
-
-  if !get(a:options, s:OPTIONS.hard_case)
-    let text = s:imitate_case(text, a:before)
-  endif
-
-  return text
-endfunction "}}}
-
-
-function! s:imitate_case(text, reference) "{{{
-  if a:reference =~# '^\u*$'
-    return toupper(a:text)
-  elseif a:reference =~# '^\U*$'
-    return tolower(a:text)
-  else
-    let uppers = substitute(a:reference, '\U', '0', 'g')
-    let new_text = tolower(a:text)
-    while uppers !~ '^0\+$'
-      let index = match(uppers, '[^0]')
-      if len(new_text) < index
-        break
-      endif
-      let new_text = substitute(new_text, '\%' . (index + 1) . 'c[a-z]', toupper(new_text[index]), '')
-      let uppers = substitute(uppers, '\%' . (index + 1) . 'c.', '0', '')
-    endwhile
-    return new_text
-  endif
 endfunction "}}}
 
 

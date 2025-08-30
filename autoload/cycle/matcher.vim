@@ -10,8 +10,8 @@ function! s:dispatch_test(matcher, ctx) " {{{
   let matcher_type = type(matcher)
   let group = get(a:ctx, 'group')
   let class_name = get(a:ctx, 'class_name')
-  let index = get(a:ctx, 'index')
-  let ctext = get(a:ctx, 'ctext')
+  let index = -1
+  let ctext = cycle#text#new_ctext(class_name)
   let args = [deepcopy(group), class_name]
 
   if matcher_type == type('')
