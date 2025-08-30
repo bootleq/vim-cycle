@@ -14,6 +14,7 @@ let s:OPTIONS = {
       \ 'matcher': 'matcher',
       \ 'changer': 'changer',
       \ 'regex': 'regex',
+      \ 'year': 'year',
       \ 'cond': 'cond',
       \ }
 
@@ -464,6 +465,11 @@ function! s:add_group(scope, group_attrs) "{{{
     call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {(s:OPTIONS.end_with): end_items})])
     call s:add_group(a:scope, [end_items, extend(deepcopy(options), {(s:OPTIONS.begin_with): begin_items})])
     return
+  endif
+
+  if has_key(options, s:OPTIONS.year)
+    unlet options[s:OPTIONS.year]
+    call extend(options, {'matcher': 'year', 'changer': 'year'}, 'keep')
   endif
 
   if has_key(options, s:OPTIONS.regex)

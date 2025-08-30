@@ -428,6 +428,11 @@ By default no options are set.
   the order of items, because Vim |Dictionary| doesn't have specific ordering,
   incorrect order can breaks CycleSelect option generation.
 
+"year"              Number (default: none) ~
+
+  This is merely a shorthand for "year" matcher/changer. It expands to: >
+    #{matcher: 'year', changer: 'year'}
+<
 "cond"              Funcref (default: none) ~
 
   Condition, a group will not match if this function doesn't returns true.
@@ -552,8 +557,7 @@ Global groups:
 
     " Year cycle
     let g:cycle_default_groups == [
-          \   [['民國', '令和', '平成', '昭和', '大正', '明治', 'พ.ศ.', 'CE'],
-          \    #{matcher: 'year', changer: 'year'}],
+          \   [['民國', '令和', '平成', '昭和', '大正', 'พ.ศ.', 'CE'], 'year'],
           \ ]
           " Note that 'CE' must be put at the end.
 

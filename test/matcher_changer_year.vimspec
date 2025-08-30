@@ -54,6 +54,22 @@ Describe Year Matcher/Changer
       Assert Equals(getline(1), '1983')
     End
 
+    It takes 'year' shorthand option
+      call cycle#test#reset_default_groups([
+            \   [['民國', 'พ.ศ.', 'CE'], 'year'],
+            \ ])
+
+      let line = '2024'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), '民國113')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'พ.ศ.2568')
+      execute 'normal \a'
+      Assert Equals(getline(1), '2024')
+    End
+
     It select UI, normal
       call setline(1, '平成 6 年 12 月 3 日')
 
