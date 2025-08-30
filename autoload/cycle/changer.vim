@@ -6,23 +6,23 @@ endfunction "}}}
 
 
 function! s:dispatch_change(changer, ctx) " {{{
-  let Changer = a:changer
-  let changer_type = type(Changer)
+  let changer = a:changer
+  let changer_type = type(changer)
   let ctext = get(a:ctx, 'ctext')
   let group = get(a:ctx, 'group')
   let index = get(a:ctx, 'index')
   let args = [ctext, group, index]
 
   if changer_type == type('')
-    if index(['regex', 'year'], Changer) >= 0
-      let result = call('cycle#changer#' . Changer . '#change', args)
+    if index(['regex', 'year'], changer) >= 0
+      let result = call('cycle#changer#' . changer . '#change', args)
       return result
     else
       call s:invalid_change_option(group)
       return ctext
     endif
   elseif changer_type == type({})
-    let Fn = get(Changer, 'change')
+    let Fn = get(changer, 'change')
     if index([v:t_func, v:t_string], type(Fn)) >= 0
       let result = call(Fn, args)
       if type(result) != type({})

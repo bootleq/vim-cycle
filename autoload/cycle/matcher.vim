@@ -6,8 +6,8 @@ endfunction "}}}
 
 
 function! s:dispatch_test(matcher, ctx) " {{{
-  let Matcher = a:matcher
-  let matcher_type = type(Matcher)
+  let matcher = a:matcher
+  let matcher_type = type(matcher)
   let group = get(a:ctx, 'group')
   let class_name = get(a:ctx, 'class_name')
   let index = get(a:ctx, 'index')
@@ -15,15 +15,15 @@ function! s:dispatch_test(matcher, ctx) " {{{
   let args = [deepcopy(group), class_name]
 
   if matcher_type == type('')
-    if index(['regex', 'year'], Matcher) >= 0
-      let result = call('cycle#matcher#' . Matcher . '#test', args)
+    if index(['regex', 'year'], matcher) >= 0
+      let result = call('cycle#matcher#' . matcher . '#test', args)
       return result
     else
       call s:invalid_test_option(group)
       return [index, ctext]
     endif
   elseif matcher_type == type({})
-    let Fn = get(Matcher, 'test')
+    let Fn = get(matcher, 'test')
     if index([v:t_func, v:t_string], type(Fn)) >= 0
       let result = call(Fn, args)
       if type(result) != type([])

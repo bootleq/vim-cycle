@@ -367,11 +367,11 @@ function! s:group_search(group, class_name) "{{{
   let pos = cycle#util#getpos()
   let index = -1
   let ctext = cycle#text#new_ctext(a:class_name)
-  let Matcher = get(options, s:OPTIONS.matcher, 0)
+  let matcher = get(options, s:OPTIONS.matcher, 0)
 
-  if type(Matcher) != type(0)
+  if type(matcher) != type(0)
     let ctx = {'group': a:group, 'class_name': a:class_name, 'index': index, 'ctext': ctext}
-    return cycle#matcher#dispatch(Matcher, 'test', ctx)
+    return cycle#matcher#dispatch(matcher, 'test', ctx)
   endif
 
   for item in a:group.items
@@ -800,11 +800,11 @@ function! s:build_match(ctext, group, item_idx) "{{{
   let item = a:group.items[a:item_idx]
   let ctext = deepcopy(a:ctext)
   let new_text = cycle#text#new_ctext('')
-  let Changer = get(a:group.options, s:OPTIONS.changer, 0)
+  let changer = get(a:group.options, s:OPTIONS.changer, 0)
 
-  if type(Changer) != type(0)
+  if type(changer) != type(0)
     let ctx = {'ctext': deepcopy(ctext), 'group': deepcopy(a:group), 'index': a:item_idx}
-    let changed_text = cycle#changer#dispatch(Changer, 'change', ctx)
+    let changed_text = cycle#changer#dispatch(changer, 'change', ctx)
     call extend(new_text, changed_text, 'force')
   else
     let new_text.text = s:text_transform(
