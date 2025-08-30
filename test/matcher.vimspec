@@ -1,0 +1,47 @@
+Describe Matcher
+  Before each
+    new
+  End
+
+  After each
+    bwipeout!
+  End
+
+  Context allows custom function matcher
+    Before all
+      function! Foo(group, class_name) abort
+        let index = 4
+        let ctext = {
+              \   'text': '7',
+              \   'line': 1,
+              \   'col': 7,
+              \ }
+        return [index, ctext]
+      endfunction
+    End
+
+    It sets matcher in form of String "*function_name"
+      call cycle#test#reset_default_groups([
+            \   [['foo', 'bar'], #{matcher: '*Foo'}],
+            \ ])
+
+      let line = '123456789'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), '123456bar89')
+    End
+
+    It sets matcher in form of Funcref
+      call cycle#test#reset_default_groups([
+            \   [['foo', 'bar'], #{matcher: function('Foo')}],
+            \ ])
+
+      let line = '123456789'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), '123456bar89')
+    End
+  End
+End

@@ -5,6 +5,11 @@
 
 
 " See `s:group_search()` in autoload/cycle.vim
+" Params:
+"   - group:      Group
+"   - class_name: TextClass
+" Returns:
+"   list<matched_col: number, ctext: Ctext>
 function! cycle#matcher#regex#test(group, class_name) "{{{
   " Opt-out phased search by only performed in final phase ('' or v)
   if a:class_name != '' && a:class_name != 'v'

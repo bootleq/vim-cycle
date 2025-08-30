@@ -367,11 +367,11 @@ function! s:group_search(group, class_name) "{{{
   let pos = cycle#util#getpos()
   let index = -1
   let ctext = cycle#text#new_ctext(a:class_name)
-  let matcher = get(options, s:OPTIONS.matcher, 0)
+  let Matcher = get(options, s:OPTIONS.matcher, 0)
 
-  if type(matcher) != type(0)
+  if type(Matcher) != type(0)
     let ctx = {'group': a:group, 'class_name': a:class_name, 'index': index, 'ctext': ctext}
-    return cycle#matcher#dispatch(matcher, 'test', ctx)
+    return cycle#matcher#dispatch(Matcher, 'test', ctx)
   endif
 
   for item in a:group.items
