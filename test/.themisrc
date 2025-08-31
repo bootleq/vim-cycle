@@ -11,6 +11,7 @@ endif
 call themis#option('recursive', 1)
 call themis#option('exclude', [
       \  'test/vim-themis/',
+      \  'test/fixtures/',
       \])
 call themis#option('reporter', 'spec')
 

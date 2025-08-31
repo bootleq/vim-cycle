@@ -39,9 +39,18 @@ function! cycle#matcher#default#test(group, class_name) abort "{{{
     endif
 
     if text_index >= 0
+      let text = strpart(getline('.'), text_index, len(item))
+
+      let ambi_pair = get(options, 'ambi_pair')
+      if !empty(ambi_pair) && index(ambi_pair, text) > -1
+        if !cycle#matcher#default#ambi_pair#test(text, options)
+          continue
+        endif
+      endif
+
       let index = index(a:group.items, item)
       let ctext = {
-            \   'text': strpart(getline('.'), text_index, len(item)),
+            \   'text': text,
             \   'line': line('.'),
             \   'col': text_index + 1,
             \ }

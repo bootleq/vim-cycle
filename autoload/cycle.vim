@@ -9,6 +9,7 @@ let s:OPTIONS = {
       \ 'sub_tag': 'sub_tag',
       \ 'sub_pair': 'sub_pair',
       \ 'sub_pairs': 'sub_pairs',
+      \ 'ambi_pair': 'ambi_pair',
       \ 'end_with': 'end_with',
       \ 'begin_with': 'begin_with',
       \ 'matcher': 'matcher',
@@ -401,14 +402,24 @@ function! s:add_group(scope, group_attrs) "{{{
 
   if has_key(options, s:OPTIONS.sub_pairs)
     let separator = type(options.sub_pairs) == type(0) ? ':' : options.sub_pairs
-    let [begin_items, end_items] = [[], []]
+    let [begin_items, end_items, ambi_items] = [[], [], []]
     for item in items
       let [begin_item, end_item] = split(item, separator)
+      if begin_item == end_item
+        if len(begin_item) == 1
+          call add(ambi_items, begin_item)
+        else
+          echohl WarningMsg | echomsg "Cycle: `sub_pairs` can't handle pairs with the same text" | echohl None
+        endif
+      endif
       call add(begin_items, begin_item)
       call add(end_items, end_item)
     endfor
     unlet options.sub_pairs
     let options.sub_pair = 1
+    if !empty(ambi_items)
+      let options.ambi_pair = ambi_items
+    endif
     call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {(s:OPTIONS.end_with): end_items})])
     call s:add_group(a:scope, [end_items, extend(deepcopy(options), {(s:OPTIONS.begin_with): begin_items})])
     return
@@ -711,7 +722,6 @@ function! s:parse_callback_options(options) "{{{
         \   'before_sub': [],
         \   'after_sub': [],
         \ }
-
 
   if get(options, s:OPTIONS.sub_tag)
     call add(callbacks.after_sub, function('s:sub_tag_pair'))
