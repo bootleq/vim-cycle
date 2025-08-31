@@ -575,7 +575,7 @@ function! s:sub_tag_pair(params) "{{{
             \   after,
             \   '-',
             \   [],
-            \   s:cascade_options_for_callback(options),
+            \   {},
             \ )
 
       if in_closing_tag && ctext.line == after.line
@@ -696,7 +696,7 @@ function! s:sub_pair(params) "{{{
         \   pair_after,
         \   '-',
         \   a:params.items,
-        \   s:cascade_options_for_callback(a:params.options),
+        \   {},
         \ )
 
   if sub_offset
@@ -748,16 +748,6 @@ function! s:parse_callback_options(options) "{{{
   endif
 
   return callbacks
-endfunction "}}}
-
-
-function! s:cascade_options_for_callback(options, ...) "{{{
-  let extras = a:0 ? a:1 : {}
-  let filtered =  filter(
-        \   deepcopy(a:options),
-        \   "index([s:OPTIONS.match_case, s:OPTIONS.hard_case], v:key) >= 0"
-        \ )
-  return extend(filtered, extras)
 endfunction "}}}
 
 " }}} Optional Callbacks
