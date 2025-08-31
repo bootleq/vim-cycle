@@ -1,4 +1,8 @@
-" ambi_pair (ambiguous sub_pair member)
+" Functions for 'ambi_pair' (ambiguous sub_pair member) group option.
+"
+" Currently the ambi_pair items have some assumptions:
+" 1. can only contain 1 character
+" 2. end_with items were searched BEFORE begin_with items
 
 let s:vim_text_obj_chars = ['"', "'", '`']
 

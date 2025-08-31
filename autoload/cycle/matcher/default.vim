@@ -1,9 +1,10 @@
 " Params:
 "   - group:      Group
 "   - class_name: TextClass
+"   - ctx:        dict - arbitrary search info shared during group_search
 " Returns:
 "   list<matched_col: number, ctext: Ctext>
-function! cycle#matcher#default#test(group, class_name) abort "{{{
+function! cycle#matcher#default#test(group, class_name, ctx) abort "{{{
   let options = a:group.options
   let pos = cycle#util#getpos()
   let index = -1
@@ -43,7 +44,8 @@ function! cycle#matcher#default#test(group, class_name) abort "{{{
 
       let ambi_pair = get(options, 'ambi_pair')
       if !empty(ambi_pair) && index(ambi_pair, text) > -1
-        if !cycle#matcher#default#ambi_pair#test(text, options)
+        let found_by_end_with = index(get(a:ctx, 'ambi_pair_found', []), text) > -1
+        if !found_by_end_with && !cycle#matcher#default#ambi_pair#test(text, options)
           continue
         endif
       endif

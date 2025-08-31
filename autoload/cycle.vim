@@ -169,6 +169,7 @@ endfunction "}}}
 
 function! s:phased_search(class_name, groups, direction, count) "{{{
   let matches = []
+  let search_ctx = {}
 
   for group in a:groups
     if get(group, '_phase_matched', 0)
@@ -190,7 +191,7 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
       break
     endif
 
-    let [index, ctext] = s:group_search(group, a:class_name)
+    let [index, ctext] = s:group_search(group, a:class_name, search_ctx)
     if index >= 0
       if a:count == '*'
         " Grab all group items for CycleSelect
@@ -198,6 +199,13 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
       else
         let new_index = (index + a:direction * a:count) % len(group.items)
         call add(matches, s:build_match(ctext, group, new_index))
+
+        if type(get(group.options, 'ambi_pair')) == type([])
+          if index(group.options['ambi_pair'], ctext.text) > -1
+            let founds = get(search_ctx, 'ambi_pair_found', [])
+            call add(founds, ctext.text)
+          endif
+        endif
       endif
 
       let group._phase_matched = 1
@@ -361,9 +369,10 @@ endfunction "}}}
 " Params:
 "   - group:      Group
 "   - class_name: TextClass
+"   - search_ctx: dict - arbitrary search info shared during group_search
 " Returns:
 "   list<matched_col: number, ctext: Ctext>
-function! s:group_search(group, class_name) "{{{
+function! s:group_search(group, class_name, search_ctx) "{{{
   let matcher = get(a:group.options, s:OPTIONS.matcher, 0)
 
   if type(matcher) != type(0)
@@ -371,7 +380,7 @@ function! s:group_search(group, class_name) "{{{
     return cycle#matcher#dispatch(matcher, 'test', ctx)
   endif
 
-  let result = call('cycle#matcher#default#test', [a:group, a:class_name])
+  let result = call('cycle#matcher#default#test', [a:group, a:class_name, a:search_ctx])
   return result
 endfunction "}}}
 
@@ -420,6 +429,8 @@ function! s:add_group(scope, group_attrs) "{{{
     if !empty(ambi_items)
       let options.ambi_pair = ambi_items
     endif
+    " Note that the `end_with` must go before `begin_with`, `ambi_pair` relies
+    " on this order to make orphaned behave as the begin part.
     call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {(s:OPTIONS.end_with): end_items})])
     call s:add_group(a:scope, [end_items, extend(deepcopy(options), {(s:OPTIONS.begin_with): begin_items})])
     return

@@ -6,11 +6,11 @@ I don't write lorem ipsum, but when I do,
 one |holy-grail| |中文|
 
     ||
-          | foo bar |
+          | foo "bar |
                                 |  |gg|   ||   |
                         |
 
-E149: Sorry, no help for YOU
+E149: Sorry, no help for "YOU"
 
     mode   {lhs}     {rhs} ~
     ----   --------  --------------- ~
