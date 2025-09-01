@@ -33,15 +33,13 @@ function! cycle#callback#sub_pair#find(params) abort " {{{
   let ic_flag = get(options, 'match_case') ? '\C' : '\c'
 
   if type(get(options, 'end_with')) == type([])
-    let trigger_at_begin = 1
+    let pair_at = 'end'
   elseif type(get(options, 'begin_with')) == type([])
-    let trigger_at_begin = 0
+    let pair_at = 'begin'
   else
     echohl WarningMsg | echo printf('Incomplete sub_pair for %s, missing "begin" or "end" with.', trigger_before.text) | echohl None
     return
   endif
-
-  let pair_at = trigger_at_begin ? 'end' : 'begin'
 
   let pair_before = deepcopy(trigger_before)
   let pair_before.text = get(
@@ -60,7 +58,7 @@ function! cycle#callback#sub_pair#find(params) abort " {{{
     " TODO: find by other methods
     " let pair_pos =
   else
-    let pair_pos = s:find_by_searchpairpos(trigger_before, pair_before, trigger_at_begin, options)
+    let pair_pos = s:find_by_searchpairpos(trigger_before, pair_before, pair_at, options)
   endif
 
   if pair_pos == [0, 0]
@@ -71,7 +69,7 @@ function! cycle#callback#sub_pair#find(params) abort " {{{
     call extend(pair_after, pair_before, 'keep')
 
     if trigger_before.line == pair_before.line && trigger_before.line == pair_after.line
-      if trigger_at_begin
+      if pair_at == 'end'
         let sub_offset =
               \ trigger_after.col + len(trigger_after.text) -
               \ (trigger_before.col + len(trigger_before.text))
@@ -131,20 +129,27 @@ function! cycle#callback#sub_pair#sub(params) "{{{
 endfunction "}}}
 
 
-function! s:find_by_searchpairpos(trigger_before, pair_before, trigger_at_begin, options) abort " {{{
+function! s:find_by_searchpairpos(trigger_before, pair_before, pair_at, options) abort " {{{
   let ic_flag = get(a:options, 'match_case') ? '\C' : '\c'
   let timeout = 600
 
-  let pair_pos = searchpairpos(
-        \   cycle#util#escape_pattern(a:trigger_at_begin ? a:trigger_before.text : a:pair_before.text),
-        \   '',
-        \   cycle#util#escape_pattern(a:trigger_at_begin ? a:pair_before.text : a:trigger_before.text)
-        \        . (a:trigger_at_begin ? '' : '\zs') . ic_flag,
-        \   'nW' . (a:trigger_at_begin ? '' : 'b'),
-        \   '',
-        \   '',
-        \   timeout,
-        \ )
+  if a:pair_at == 'end'
+    let pair_pos = searchpairpos(
+          \   cycle#util#escape_pattern(a:trigger_before.text),
+          \   '',
+          \   cycle#util#escape_pattern(a:pair_before.text) . ic_flag,
+          \   'nW',
+          \   '', 0, timeout
+          \ )
+  else
+    let pair_pos = searchpairpos(
+          \   cycle#util#escape_pattern(a:pair_before.text),
+          \   '',
+          \   cycle#util#escape_pattern(a:trigger_before.text) . '\zs' . ic_flag,
+          \   'bnW',
+          \   '', 0, timeout
+          \ )
+  endif
 
   return pair_pos
 endfunction " }}}
