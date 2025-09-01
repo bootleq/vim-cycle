@@ -214,7 +214,18 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
 endfunction "}}}
 
 
-function! s:substitute(before, after, class_name, items, options) "{{{
+" Change buffer with accepted cycle data.
+"
+" Params:
+"   - before:     Ctext
+"   - after:      Ctext
+"   - class_name: TextClass
+"   - items:      list<string> | '-'  - Mainly to delegate items to callbacks,
+"                                       real change may occurs there.
+"   - options:    dict
+"
+" Returns: 0
+function! cycle#substitute(before, after, class_name, items, options) "{{{
   let callbacks = s:parse_callback_options(a:options)
   let callback_params = {
         \   'before': a:before,
@@ -302,7 +313,7 @@ function! s:accept_match(match, ctx) "{{{
     return
   endif
 
-  call s:substitute(
+  call cycle#substitute(
         \   m.pairs.before,
         \   m.pairs.after,
         \   a:ctx.class_name,
@@ -568,7 +579,7 @@ function! s:sub_tag_pair(params) "{{{
             \   "col": opposite[1] + 1 + !in_closing_tag,
             \ }
 
-      call s:substitute(
+      call cycle#substitute(
             \   ctext,
             \   after,
             \   '-',
@@ -689,7 +700,7 @@ function! s:sub_pair(params) "{{{
     endif
   endif
 
-  call s:substitute(
+  call cycle#substitute(
         \   pair_before,
         \   pair_after,
         \   '-',
