@@ -174,5 +174,26 @@ Describe Sub pairs
         Assert Equals(getline(2), "2 foo '中文'")
       End
     End
+
+    Context by treesitter range
+      Before each
+        let lines =<< trim END
+          local should_ask = function(_, bufname)
+            print("foo bar\" \\\"
+
+            2000 ")
+          end
+        END
+        set filetype=lua
+        call setline(1, lines)
+      End
+
+      It from begin
+        if exists('*v:lua.vim.treesitter.get_parser')
+          let parser = luaeval("type(vim.treesitter.get_parser(vim.api.nvim_get_current_buf(), 'lua', {error = false})) == 'table'")
+        endif
+        " FIXME: this test is incomplete
+      End
+    End
   End
 End
