@@ -220,8 +220,8 @@ endfunction "}}}
 "   - before:     Ctext
 "   - after:      Ctext
 "   - class_name: TextClass
-"   - items:      list<string> | '-'  - Mainly to delegate items to callbacks,
-"                                       real change may occurs there.
+"   - items:      list<string>  - Mainly to delegate items to callbacks, real
+"                                 change may occurs there.
 "   - options:    dict
 "
 " Returns: 0
@@ -579,13 +579,7 @@ function! s:sub_tag_pair(params) "{{{
             \   "col": opposite[1] + 1 + !in_closing_tag,
             \ }
 
-      call cycle#substitute(
-            \   ctext,
-            \   after,
-            \   '-',
-            \   [],
-            \   {},
-            \ )
+      call cycle#substitute(ctext, after, [], [], {})
 
       if in_closing_tag && ctext.line == after.line
         let offset = strlen(after.text) - strlen(before.text)
@@ -703,7 +697,7 @@ function! s:sub_pair(params) "{{{
   call cycle#substitute(
         \   pair_before,
         \   pair_after,
-        \   '-',
+        \   [],
         \   a:params.items,
         \   {},
         \ )
