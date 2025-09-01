@@ -1,3 +1,15 @@
+" Callback Params:
+"
+" params: {
+"   before:     Ctext
+"   after:      Ctext
+"   class_name: TextClass
+"   items:      list<string>
+"   options:    dict
+"   context:    dict          - mutable data payload shared around callbacks
+" }
+
+
 " Find target pair for "sub_pair".
 " For example when sub {{ foo }}  ->  (( foo ))
 "           cursor at: ^
@@ -5,12 +17,19 @@
 " - trigger: {{   ->   ((
 " - pair:    }}   ->   ))
 " - pair_at: end
+"
+" Found pair will be added to 'context' with:
+" {
+"   pair_before:  Ctext
+"   pair_after:   Ctext
+"   pair_at:      'begin' | 'end'   - the side of pair_after
+"   sub_offset:   number            - expected col offset after substitute
+" }
 function! cycle#callback#sub_pair#find(params) abort " {{{
   let trigger_before = a:params.before
   let trigger_after = a:params.after
   let options = a:params.options
   let sub_offset = 0
-  let timeout = 600
   let ic_flag = get(options, 'match_case') ? '\C' : '\c'
 
   if type(get(options, 'end_with')) == type([])
@@ -36,16 +55,13 @@ function! cycle#callback#sub_pair#find(params) abort " {{{
         \   index(a:params.items, trigger_after.text, 0, ic_flag ==# '\c'),
         \ )
 
-  let pair_pos = searchpairpos(
-        \   cycle#util#escape_pattern(trigger_at_begin ? trigger_before.text : pair_before.text),
-        \   '',
-        \   cycle#util#escape_pattern(trigger_at_begin ? pair_before.text : trigger_before.text)
-        \        . (trigger_at_begin ? '' : '\zs') . ic_flag,
-        \   'nW' . (trigger_at_begin ? '' : 'b'),
-        \   '',
-        \   '',
-        \   timeout,
-        \ )
+  let ambi_pair = get(options, 'ambi_pair', [])
+  if index(ambi_pair, trigger_before.text) > -1
+    " TODO: find by other methods
+    " let pair_pos =
+  else
+    let pair_pos = s:find_by_searchpairpos(trigger_before, pair_before, trigger_at_begin, options)
+  endif
 
   if pair_pos == [0, 0]
     echohl WarningMsg | echo printf("Can't find opposite %s for sub_pair.", pair_before.text) | echohl None
@@ -113,3 +129,22 @@ function! cycle#callback#sub_pair#sub(params) "{{{
     let a:params.context.sub_offset = 0
   endif
 endfunction "}}}
+
+
+function! s:find_by_searchpairpos(trigger_before, pair_before, trigger_at_begin, options) abort " {{{
+  let ic_flag = get(a:options, 'match_case') ? '\C' : '\c'
+  let timeout = 600
+
+  let pair_pos = searchpairpos(
+        \   cycle#util#escape_pattern(a:trigger_at_begin ? a:trigger_before.text : a:pair_before.text),
+        \   '',
+        \   cycle#util#escape_pattern(a:trigger_at_begin ? a:pair_before.text : a:trigger_before.text)
+        \        . (a:trigger_at_begin ? '' : '\zs') . ic_flag,
+        \   'nW' . (a:trigger_at_begin ? '' : 'b'),
+        \   '',
+        \   '',
+        \   timeout,
+        \ )
+
+  return pair_pos
+endfunction " }}}
