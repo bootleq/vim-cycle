@@ -19,7 +19,7 @@ let s:testers = {}
 function! cycle#matcher#default#ambi_pair#test(text, options) abort " {{{
   for name in s:testers_names
     let Tester = s:testers[name]
-    let result = Tester(a:text, a:options)
+    let [result, pos] = Tester(a:text, a:options)
     if result != 0
       return result > 0
       break
@@ -27,6 +27,21 @@ function! cycle#matcher#default#ambi_pair#test(text, options) abort " {{{
   endfor
 
   return 0
+endfunction " }}}
+
+
+" Find the pair position
+function! cycle#matcher#default#ambi_pair#find_pair_pos(text, options) abort " {{{
+  for name in s:testers_names
+    let Tester = s:testers[name]
+    let [result, pos] = Tester(a:text, a:options)
+    if result == 1
+      return pos
+      break
+    endif
+  endfor
+
+  return [0, 0]
 endfunction " }}}
 
 
@@ -38,18 +53,21 @@ endfunction " }}}
 "   - text: string
 "   - options: dict
 " Returns:
-"   number
-"        -1 - invalid
-"         0 - unknown
-"         2 - valid
+"   [
+"     valid: number,                    - 0: unknown / -1: invalid / valid
+"     pos: [line: number, col:number]   - line, col of the found pair (could have value even when invalid)
+"   ]
 
 
 " 'vim_text_objs'
 " Try builtin vi' series text objects, if col changed it has pairs recognized.
 " This only searches in one line.
 function! s:tester_vim_text_objs(text, options) abort " {{{
+  let valid = 0
+  let pair_pos = [0, 0]
+
   if index(s:vim_text_obj_chars, a:text) < 0
-    return 0
+    return [valid, pair_pos]
   endif
 
   let saved_pos = getpos('.')
@@ -61,9 +79,12 @@ function! s:tester_vim_text_objs(text, options) abort " {{{
     let new_col = col('.')
     if new_col != col
       if new_col > col
-        return !empty(get(a:options, 'end_with')) ? 1 : -1
+        let valid = !empty(get(a:options, 'end_with')) ? 1 : -1
+        let pair_pos = [line, new_col + 1]
       else
-        return !empty(get(a:options, 'begin_with')) ? 1 : -1
+        let valid = !empty(get(a:options, 'begin_with')) ? 1 : -1
+        normal! oh
+        let pair_pos = [line, col('.')]
       endif
     endif
   finally
@@ -71,13 +92,16 @@ function! s:tester_vim_text_objs(text, options) abort " {{{
     call setpos('.', saved_pos)
   endtry
 
-  return 0
+  return [valid, pair_pos]
 endfunction " }}}
 
 
 " 'treesitter_range_edge'
 " Check treesitter node range, pairs are on the both edges
 function! s:tester_treesitter_range_edge(text, options) abort " {{{
+  let valid = 0
+  let pair_pos = [0, 0]
+
   if exists('*v:lua.vim.treesitter.get_node')
     let range = luaeval('require("vim_cycle.treesitter").get_node_range()')
 
@@ -88,18 +112,20 @@ function! s:tester_treesitter_range_edge(text, options) abort " {{{
       if pos == range_begin
         let opposite = s:char_at_pos(range_end)
         if opposite == a:text
-          return !empty(get(a:options, 'end_with')) ? 1 : -1
+          let valid = !empty(get(a:options, 'end_with')) ? 1 : -1
+          let pair_pos = range_end
         endif
       elseif pos == range_end
         let opposite = s:char_at_pos(range_begin)
         if opposite == a:text
-          return !empty(get(a:options, 'begin_with')) ? 1 : -1
+          let valid = !empty(get(a:options, 'begin_with')) ? 1 : -1
+          let pair_pos = range_begin
         endif
       endif
     endif
   endif
 
-  return 0
+  return [valid, pair_pos]
 endfunction " }}}
 
 
@@ -107,8 +133,11 @@ endfunction " }}}
 " Try search paris in current line
 " Simulate the logic of vi' text objects, while support other characters.
 function! s:tester_line_search(text, options) abort " {{{
+  let valid = 0
+  let pair_pos = [0, 0]
+
   if index(s:vim_text_obj_chars, a:text) > -1
-    return 0
+    return [valid, pair_pos]
   endif
 
   let line_text = getline('.')
@@ -124,15 +153,17 @@ function! s:tester_line_search(text, options) abort " {{{
     let match_end = matchend(line_text, pattern, start_idx)
 
     if match_begin + 1 == col && s:char_at_pos([line, match_end]) == a:text
-      return !empty(get(a:options, 'end_with')) ? 1 : -1
+      let valid = !empty(get(a:options, 'end_with')) ? 1 : -1
+      let pair_pos = [line, match_end]
     elseif match_end == col && s:char_at_pos([line, match_begin + 1]) == a:text
-      return !empty(get(a:options, 'begin_with')) ? 1 : -1
+      let valid = !empty(get(a:options, 'begin_with')) ? 1 : -1
+      let pair_pos = [line, match_begin + 1]
     endif
 
     let start_idx = match_end
   endwhile
 
-  return 0
+  return [valid, pair_pos]
 endfunction " }}}
 
 

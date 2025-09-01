@@ -55,8 +55,7 @@ function! cycle#callback#sub_pair#find(params) abort " {{{
 
   let ambi_pair = get(options, 'ambi_pair', [])
   if index(ambi_pair, trigger_before.text) > -1
-    " TODO: find by other methods
-    " let pair_pos =
+    let pair_pos = cycle#matcher#default#ambi_pair#find_pair_pos(trigger_before.text, options)
   else
     let pair_pos = s:find_by_searchpairpos(trigger_before, pair_before, pair_at, options)
   endif
