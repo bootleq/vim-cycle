@@ -226,7 +226,7 @@ endfunction "}}}
 "
 " Returns: 0
 function! cycle#substitute(before, after, class_name, items, options) "{{{
-  let callbacks = s:parse_callback_options(a:options)
+  let callbacks = s:add_callbacks(a:options)
   let callback_params = {
         \   'before': a:before,
         \   'after':  a:after,
@@ -347,6 +347,30 @@ function! s:fallback(range, direction, count) "{{{
   if !empty(a:range)
     call cursor(line("'<"), pos.col)
   endif
+endfunction "}}}
+
+
+function! s:add_callbacks(options) "{{{
+  let options = a:options
+  let callbacks = {
+        \   'before_sub': [],
+        \   'after_sub': [],
+        \ }
+
+  if get(options, 'sub_tag')
+    call add(callbacks.after_sub, function('cycle#callback#sub_tag#sub'))
+  endif
+
+  if get(options, 'sub_pair')
+    call add(callbacks.before_sub, function('cycle#callback#sub_pair#find'))
+    call add(callbacks.after_sub, function('cycle#callback#sub_pair#sub'))
+  endif
+
+  if get(options, 'restrict_cursor')
+    call add(callbacks.after_sub, function('cycle#callback#restrict_cursor#do'))
+  endif
+
+  return callbacks
 endfunction "}}}
 
 " }}} Main Functions
@@ -543,34 +567,6 @@ function! cycle#reset_ft_groups() "{{{
 endfunction "}}}
 
 " }}} Group Operations
-
-
-" Optional Callbacks: {{{
-
-function! s:parse_callback_options(options) "{{{
-  let options = a:options
-  let callbacks = {
-        \   'before_sub': [],
-        \   'after_sub': [],
-        \ }
-
-  if get(options, 'sub_tag')
-    call add(callbacks.after_sub, function('cycle#callback#sub_tag#sub'))
-  endif
-
-  if get(options, 'sub_pair')
-    call add(callbacks.before_sub, function('cycle#callback#sub_pair#find'))
-    call add(callbacks.after_sub, function('cycle#callback#sub_pair#sub'))
-  endif
-
-  if get(options, 'restrict_cursor')
-    call add(callbacks.after_sub, function('cycle#callback#restrict_cursor#do'))
-  endif
-
-  return callbacks
-endfunction "}}}
-
-" }}} Optional Callbacks
 
 
 " Utils: {{{
