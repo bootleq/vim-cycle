@@ -547,72 +547,6 @@ endfunction "}}}
 
 " Optional Callbacks: {{{
 
-function! s:sub_tag_pair(params) "{{{
-  let before = a:params.before
-  let after = a:params.after
-  let options = a:params.options
-  let timeout = 600
-  let pattern_till_tag_end = '\_[^>]*>'
-  let ic_flag = get(options, 'match_case') ? '\C' : '\c'
-  let pos = cycle#util#getpos()
-
-  " To check if position is inside < and >, might across lines
-  let pattern_is_within_tag = '\v\</?\m\%' . before.line . 'l\%' . before.col . 'c' . pattern_till_tag_end . '\C'
-
-  if search(pattern_is_within_tag, 'n')
-    let in_closing_tag = search('/\m\%' . before.line . 'l\%' . before.col . 'c\C', 'n')  " search if a '/' exists before position
-    let opposite = searchpairpos(
-          \   '<' . cycle#util#escape_pattern(before.text) . pattern_till_tag_end,
-          \   '',
-          \   '</' . cycle#util#escape_pattern(before.text) . '\s*>'
-          \        . (in_closing_tag ? '\zs' : '') . ic_flag,
-          \   'nW' . (in_closing_tag ? 'b' : ''),
-          \   '',
-          \   '',
-          \   timeout,
-          \ )
-
-    if opposite != [0, 0]
-      let ctext = {
-            \   "text": before.text,
-            \   "line": opposite[0],
-            \   "col": opposite[1] + 1 + !in_closing_tag,
-            \ }
-
-      call cycle#substitute(ctext, after, [], [], {})
-
-      if in_closing_tag && ctext.line == after.line
-        let offset = strlen(after.text) - strlen(before.text)
-        let before.col += offset
-        let after.col += offset
-      endif
-    endif
-  endif
-endfunction "}}}
-
-
-function! s:restrict_cursor(params) "{{{
-  let before = a:params.before
-  let after = a:params.after
-  let pos = cycle#util#getpos()
-  let end_col = before.col + strlen(after.text) - 1
-
-  if a:params.class_name == 'v' || (after.text =~ '\W' && g:cycle_auto_visual)
-    call cursor(before.line, before.col)
-    normal! v
-    call cursor(after.line, end_col)
-  elseif after.line > before.line
-    call cursor(after.line, end_col)
-  else
-    if end_col < pos.col
-      call cursor(after.line, end_col)
-    elseif pos.col < after.col
-      call cursor(after.line, after.col)
-    endif
-  endif
-endfunction "}}}
-
-
 function! s:parse_callback_options(options) "{{{
   let options = a:options
   let callbacks = {
@@ -621,7 +555,7 @@ function! s:parse_callback_options(options) "{{{
         \ }
 
   if get(options, 'sub_tag')
-    call add(callbacks.after_sub, function('s:sub_tag_pair'))
+    call add(callbacks.after_sub, function('cycle#callback#sub_tag#sub'))
   endif
 
   if get(options, 'sub_pair')
@@ -630,7 +564,7 @@ function! s:parse_callback_options(options) "{{{
   endif
 
   if get(options, 'restrict_cursor')
-    call add(callbacks.after_sub, function('s:restrict_cursor'))
+    call add(callbacks.after_sub, function('cycle#callback#restrict_cursor#do'))
   endif
 
   return callbacks
