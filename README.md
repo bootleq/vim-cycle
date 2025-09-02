@@ -32,6 +32,10 @@ vmap <silent> <Leader>a <Plug>CyclePrev
 nmap <silent> <LocalLeader>ga <Plug>CycleSelect
 vmap <silent> <LocalLeader>ga <Plug>CycleSelect
 
+let g:cycle_filetype_links = {
+      \   'ghmarkdown': 'markdown',
+      \ }
+
 let g:cycle_default_groups = [
       \   [['true', 'false']],
       \   [['yes', 'no']],
@@ -81,6 +85,12 @@ let g:cycle_default_groups_for_plaintex = [
 let g:cycle_default_groups_for_ruby = [
       \   [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{regex: ['\1: ', ':\1 => '], name: 'ruby hash style'}],
       \   [['"\(\k\+\%([?!]\)\=\)"', '''\(\k\+\%([?!]\)\=\)''', ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!'], #{regex: ['''\1''', ':\1', '"\1"\2']}]
+      \ ]
+
+" For fileType markdown only
+let g:cycle_default_groups_for_markdown = [
+      \   [['^\(\s*\)- \[ \] ', '^\(\s*\)- \[x\] '],
+      \    #{regex: ['\1- [x] ', '\1- [ ] '], name: 'markdown_task_item'}],
       \ ]
 
 " For HTML, but here just blindly add to global groups

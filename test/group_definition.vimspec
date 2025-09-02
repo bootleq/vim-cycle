@@ -53,5 +53,28 @@ Describe Group definition
       execute 'normal \a'
       Assert Equals(getline(1), 'local h ~= 1 and 2 or 7')
     End
+
+    It link_filetypes: link multiple filetypes
+      call cycle#test#clear_all_groups()
+      let g:cycle_default_groups_for_lua = [[['foo', 'bar']]]
+      let g:cycle_filetype_links = {
+            \   'text': 'asm',
+            \   'xxx': 'lua',
+            \ }
+      call cycle#test#reinitialize_groups()
+
+      let line = 'foo'
+      call setline(1, line)
+
+      setlocal filetype=text
+      Assert Equals(&filetype, 'text')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'foo', 'Expect unchaged, filetype mismatch')
+
+      setlocal filetype=xxx
+      Assert Equals(&filetype, 'xxx')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'bar')
+    End
   End
 End
