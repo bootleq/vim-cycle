@@ -53,7 +53,7 @@ let g:cycle_default_groups = [
       \     'Friday', 'Saturday'], ['hard_case', {'name': 'Days'}]],
       \   [['":"', "':'"], 'sub_pairs'],
       \   [['(:)', '（:）', '「:」', '『:』'], 'sub_pairs'],
-      \   [['民國', '令和', '平成', '昭和', '大正', '明治', 'พ.ศ.', 'CE'], #{matcher: 'year', changer: 'year'}],
+      \   [['民國', '令和', '平成', '昭和', '大正', '明治', 'พ.ศ.', 'CE'], 'year'],
       \ ]
 
 " For fileType "lua" only
