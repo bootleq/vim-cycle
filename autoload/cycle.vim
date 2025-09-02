@@ -551,7 +551,9 @@ endfunction "}}}
 function! cycle#reset_ft_groups() "{{{
   unlet! b:cycle_ft_groups
 
-  let groups = get(g:, 'cycle_default_groups_for_' . &filetype)
+  let ft = &filetype
+  let canonical_ft = get(get(g:, 'cycle_filetype_links', {}), ft, ft)
+  let groups = get(g:, 'cycle_default_groups_for_' . canonical_ft)
   if !empty(groups)
     for group in groups
       call s:add_group_to('ft', group)

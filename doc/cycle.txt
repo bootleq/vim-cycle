@@ -98,6 +98,18 @@ g:cycle_default_groups_for_{filetype} ~
     let g:cycle_default_groups_for_ruby = []
 < is for filetype "ruby".
 
+                                                      *g:cycle_filetype_links*
+g:cycle_filetype_links    (default: none) ~
+
+  With filetype-specific groups, you can define this to "link" a filetype to
+  let it picking other filetype's effective groups.
+
+  For example you might want to use markdown groups for type "ghmarkdown". >
+    let g:cycle_filetype_links = {
+          \   'ghmarkdown': 'markdown',
+          \   'typescriptreact': 'javascript',
+          \ }
+<
                                                          *g:cycle_no_mappings*
 g:cycle_no_mappings       (default: 0) ~
 
@@ -618,6 +630,10 @@ Global groups:
 
 Filetype specified groups:
 >
+    let g:cycle_filetype_links = {
+          \   'ghmarkdown': 'markdown',
+          \ }
+
     " ruby only
     let g:cycle_default_groups_for_ruby = [
           \   [['accessible', 'protected']],
