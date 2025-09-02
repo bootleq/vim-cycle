@@ -197,13 +197,6 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
       else
         let new_index = (index + a:direction * a:count) % len(group.items)
         call add(matches, s:build_match(ctext, group, new_index))
-
-        if type(get(group.options, 'ambi_pair')) == type([])
-          if index(group.options['ambi_pair'], ctext.text) > -1
-            let founds = get(search_ctx, 'ambi_pair_found', [])
-            call add(founds, ctext.text)
-          endif
-        endif
       endif
 
       let group._phase_matched = 1
@@ -462,10 +455,10 @@ function! s:add_group(scope, group_attrs) "{{{
     if !empty(ambi_items)
       let options.ambi_pair = ambi_items
     endif
-    " Note that the `end_with` must go before `begin_with`, `ambi_pair` relies
-    " on this order to make orphaned behave as the begin part.
-    call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {'end_with': end_items})])
+    " Note that the "end_items" (has `begin_with`) must go first, `ambi_pair`
+    " relies on this order to make orphaned behave as the begin part.
     call s:add_group(a:scope, [end_items, extend(deepcopy(options), {'begin_with': begin_items})])
+    call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {'end_with': end_items})])
     return
   endif
 

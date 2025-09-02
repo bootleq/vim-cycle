@@ -2,7 +2,7 @@
 "
 " Currently the ambi_pair items have some assumptions:
 " 1. can only contain 1 character
-" 2. end_with items were searched BEFORE begin_with items
+" 2. end_items (has `begin_with`) were searched BEFORE begin_items items
 
 let s:vim_text_obj_chars = ['"', "'", '`']
 

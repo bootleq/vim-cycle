@@ -166,6 +166,19 @@ Describe Sub pairs
         Assert Equals(getline(1), '1 foo "bar \" "   " baz')
       End
 
+      It subs orphaned item even the opposite not found
+        call cursor(3, 1)
+        call search('"')
+        execute 'normal \a'
+        Assert Equals(getline(3), '3 orphaned ` land')
+        execute 'normal \a'
+        Assert Equals(getline(3), '3 orphaned | land')
+        execute 'normal \a'
+        Assert Equals(getline(3), '3 orphaned “ land')
+        execute 'normal \a'
+        Assert Equals(getline(3), "3 orphaned ' land")
+      End
+
       It keeps previous visual area untouched
         call cursor(2, 5) " at 2nd line, last 'o' of 'foo'
         execute "normal! vj$\<Esc>"
