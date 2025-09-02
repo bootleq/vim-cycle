@@ -166,6 +166,40 @@ Describe Sub pairs
         Assert Equals(getline(1), '1 foo "bar \" "   " baz')
       End
 
+      It keeps previous visual area untouched
+        call cursor(2, 5) " at 2nd line, last 'o' of 'foo'
+        execute "normal! vj$\<Esc>"
+
+        call cursor(1, 1)
+        call search('"bar')
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo `bar \" `   " baz')
+
+        normal! gv"ay
+        Assert Equals(getreg('a', 1, 1), ['o “中文”', '3 orphaned " land'])
+      End
+
+      It stays in visual mode if it was
+        let line = 'foo "bar \" " baz'
+
+        call setline(1, line)
+        call search('"bar') " from begin
+        normal! v1lh
+        Assert Equals(mode(), 'v')
+        execute 'normal \a'
+        Assert Equals(getline(1), 'foo `bar \" ` baz')
+        Assert Equals(mode(), 'v')
+        execute "normal! \<Esc>"
+
+        call setline(1, line)
+        call search('" baz') " from end
+        normal! v1lh
+        Assert Equals(mode(), 'v')
+        execute 'normal \a'
+        Assert Equals(getline(1), 'foo `bar \" ` baz')
+        Assert Equals(mode(), 'v')
+      End
+
       It with multibyte fragment inside
         call cursor(2, 1)
         call search('”')

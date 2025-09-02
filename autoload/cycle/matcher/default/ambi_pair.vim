@@ -72,8 +72,12 @@ function! s:tester_vim_text_objs(text, options) abort " {{{
 
   let saved_pos = getpos('.')
   let [line, col] = saved_pos[1:2]
+  let gv_area = [getpos("'<"), getpos("'>")]
+
   try
-    " TODO: if start in v mode?
+    if mode() =~? '^v'
+      execute "normal! \<Esc>"
+    endif
     execute 'normal! vi' . a:text
 
     let new_col = col('.')
@@ -88,8 +92,13 @@ function! s:tester_vim_text_objs(text, options) abort " {{{
       endif
     endif
   finally
-    execute "normal! \<Esc>"
+    if mode() =~? '^v'
+      execute "normal! \<Esc>"
+    endif
+
     call setpos('.', saved_pos)
+    call setpos("'<", gv_area[0])
+    call setpos("'>", gv_area[1])
   endtry
 
   return [valid, pair_pos]
