@@ -5,12 +5,13 @@ Describe Sub pairs
           \   [["「:」", "【『:』】"], 'sub_pairs'],
           \   [[ '[', '<' ], 'sub_pair', {'end_with': [ ']', '>' ]}],
           \   [[ ']', '>' ], 'sub_pair', {'begin_with': [ '[', '<' ]}],
+          \   [["':'", '":"', '`:`', '|:|', "“:”"], 'sub_pairs'],
           \ ])
     new
   End
 
   After each
-    bwipeout!
+  bwipeout!
   End
 
   It respects "sub_pair" and "end_with"
@@ -121,6 +122,125 @@ Describe Sub pairs
       Assert Equals(getline(1), "1 I don't always 」！「")
       Assert Equals(getline(3), "3 it「ends」weekend")
       Assert Equals(col('.'), searchpos('don', 'cnW')[1])
+    End
+  End
+
+  Context sub_pairs with identical pairs
+    Context by vi" series text objects / or search mimics it (|)
+      Before each
+        let lines =<< trim END
+          1 foo "bar \" "   " baz
+          2 foo “中文”
+          3 orphaned " land
+        END
+        call setline(1, lines)
+      End
+
+      It from begin, sub end
+        call search('"bar')
+
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo `bar \" `   " baz')
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo |bar \" |   " baz')
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo “bar \" ”   " baz')
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo ''bar \" ''   " baz')
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo "bar \" "   " baz')
+      End
+
+      It from end, sub begin
+        call search('bar \\" "', 'eW')
+
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo `bar \" `   " baz')
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo |bar \" |   " baz')
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo “bar \" ”   " baz')
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo ''bar \" ''   " baz')
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo "bar \" "   " baz')
+      End
+
+      It subs orphaned item even the opposite not found
+        call cursor(3, 1)
+        call search('"')
+        execute 'normal \a'
+        Assert Equals(getline(3), '3 orphaned ` land')
+        execute 'normal \a'
+        Assert Equals(getline(3), '3 orphaned | land')
+        execute 'normal \a'
+        Assert Equals(getline(3), '3 orphaned “ land')
+        execute 'normal \a'
+        Assert Equals(getline(3), "3 orphaned ' land")
+      End
+
+      It keeps previous visual area untouched
+        call cursor(2, 5) " at 2nd line, last 'o' of 'foo'
+        execute "normal! vj$\<Esc>"
+
+        call cursor(1, 1)
+        call search('"bar')
+        execute 'normal \a'
+        Assert Equals(getline(1), '1 foo `bar \" `   " baz')
+
+        normal! gv"ay
+        Assert Equals(getreg('a', 1, 1), ['o “中文”', '3 orphaned " land'])
+      End
+
+      It stays in visual mode if it was
+        let line = 'foo "bar \" " baz'
+
+        call setline(1, line)
+        call search('"bar') " from begin
+        normal! v1lh
+        Assert Equals(mode(), 'v')
+        execute 'normal \a'
+        Assert Equals(getline(1), 'foo `bar \" ` baz')
+        Assert Equals(mode(), 'v')
+        execute "normal! \<Esc>"
+
+        call setline(1, line)
+        call search('" baz') " from end
+        normal! v1lh
+        Assert Equals(mode(), 'v')
+        execute 'normal \a'
+        Assert Equals(getline(1), 'foo `bar \" ` baz')
+        Assert Equals(mode(), 'v')
+      End
+
+      It with multibyte fragment inside
+        call cursor(2, 1)
+        call search('”')
+
+        execute 'normal \a'
+        Assert Equals(getline(2), "2 foo '中文'")
+      End
+    End
+
+    Context by treesitter range
+      Before each
+        let lines =<< trim END
+          local should_ask = function(_, bufname)
+            print("foo bar\" \\\"
+
+            2000 ")
+          end
+        END
+        set filetype=lua
+        call setline(1, lines)
+      End
+
+      It from begin
+        if exists('*v:lua.vim.treesitter.get_parser')
+          let parser = luaeval("type(vim.treesitter.get_parser(vim.api.nvim_get_current_buf(), 'lua', {error = false})) == 'table'")
+        endif
+        " FIXME: this test is incomplete
+      End
     End
   End
 End

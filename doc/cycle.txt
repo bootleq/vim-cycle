@@ -299,8 +299,26 @@ By default no options are set.
 < Internally, this group will be translated into two groups, just identical
   with original 'sub_pair' version.
 
+  Identical Pairs:
+
+  It is possible to set `sub_pairs` with the same character at both sides. For
+  example `":"`. This will try different methods to find the position of
+  another side and doesn't always work (per situation).
+
+  Current finding methods are:
+
+  1. treesitter range (if available)
+  2. Vim's builtin vi' vi" vi` text objects |iquote|
+  3. a search function mimics vi' series, used for other characters
+
+  And have below behaviors or limitations:
+
+  - Identical pair can only contain 1 character.
+  - If can't find another side, still cycle as it is the beginning side.
+
 "before_sub"        (List) ~
 "after_sub"         (List) ~
+"ambi_pair"         (List) ~
 "restrict_cursor"   (Number) ~
 
   Internal usage only, don't set them.

@@ -1,27 +1,26 @@
 " Constants: {{{
 
-let s:OPTIONS = {
-      \ 'name': 'name',
-      \ 'match_case': 'match_case',
-      \ 'match_word': 'match_word',
-      \ 'hard_case': 'hard_case',
-      \ 'restrict_cursor': 'restrict_cursor',
-      \ 'sub_tag': 'sub_tag',
-      \ 'sub_pair': 'sub_pair',
-      \ 'sub_pairs': 'sub_pairs',
-      \ 'end_with': 'end_with',
-      \ 'begin_with': 'begin_with',
-      \ 'matcher': 'matcher',
-      \ 'changer': 'changer',
-      \ 'regex': 'regex',
-      \ 'year': 'year',
-      \ 'cond': 'cond',
-      \ }
-
-let s:REGEX_OPTIONS = {
-      \ 'to': 'to',
-      \ 'subp': 'subp',
-      \ }
+" Group options:
+"   name
+"   match_case
+"   match_word
+"   hard_case
+"   restrict_cursor
+"   sub_tag
+"   sub_pair
+"   sub_pairs
+"   ambi_pair
+"   end_with
+"   begin_with
+"   matcher
+"   changer
+"   regex
+"   year
+"   cond
+"
+" Sub options for 'regex':
+"   to
+"   subp
 
 let s:tick = 0
 
@@ -107,7 +106,7 @@ function! cycle#select(class_name) "{{{
   let options = []
   for match in matches
     call add(options, {
-          \   "group_name": get(match.group.options, s:OPTIONS.name, ''),
+          \   "group_name": get(match.group.options, 'name', ''),
           \   "text":       match.pairs.after.text
           \ })
   endfor
@@ -168,15 +167,16 @@ endfunction "}}}
 
 function! s:phased_search(class_name, groups, direction, count) "{{{
   let matches = []
+  let search_ctx = {}
 
   for group in a:groups
     if get(group, '_phase_matched', 0)
       continue
     endif
 
-    if has_key(group.options, s:OPTIONS.cond)
-      if type(group.options[s:OPTIONS.cond]) == v:t_func
-        if !group.options[s:OPTIONS.cond](group, s:tick)
+    if has_key(group.options, 'cond')
+      if type(group.options['cond']) == v:t_func
+        if !group.options['cond'](group, s:tick)
           continue
         endif
       else
@@ -189,7 +189,7 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
       break
     endif
 
-    let [index, ctext] = s:group_search(group, a:class_name)
+    let [index, ctext] = s:group_search(group, a:class_name, search_ctx)
     if index >= 0
       if a:count == '*'
         " Grab all group items for CycleSelect
@@ -207,8 +207,19 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
 endfunction "}}}
 
 
-function! s:substitute(before, after, class_name, items, options) "{{{
-  let callbacks = s:parse_callback_options(a:options)
+" Change buffer with accepted cycle data.
+"
+" Params:
+"   - before:     Ctext
+"   - after:      Ctext
+"   - class_name: TextClass
+"   - items:      list<string>  - Mainly to delegate items to callbacks, real
+"                                 change may occurs there.
+"   - options:    dict
+"
+" Returns: 0
+function! cycle#substitute(before, after, class_name, items, options) "{{{
+  let callbacks = s:add_callbacks(a:options)
   let callback_params = {
         \   'before': a:before,
         \   'after':  a:after,
@@ -249,7 +260,7 @@ function! s:conflict(ctx) "{{{
   let options = []
   for match in matches
     call add(options, {
-          \   "group_name": get(match.group.options, s:OPTIONS.name, ''),
+          \   "group_name": get(match.group.options, 'name', ''),
           \   "text":       match.pairs.after.text
           \ })
   endfor
@@ -295,12 +306,12 @@ function! s:accept_match(match, ctx) "{{{
     return
   endif
 
-  call s:substitute(
+  call cycle#substitute(
         \   m.pairs.before,
         \   m.pairs.after,
         \   a:ctx.class_name,
         \   m.group.items,
-        \   extend(deepcopy(m.group.options), {(s:OPTIONS.restrict_cursor): 1}),
+        \   extend(deepcopy(m.group.options), {'restrict_cursor': 1}),
         \ )
 endfunction "}}}
 
@@ -329,6 +340,30 @@ function! s:fallback(range, direction, count) "{{{
   if !empty(a:range)
     call cursor(line("'<"), pos.col)
   endif
+endfunction "}}}
+
+
+function! s:add_callbacks(options) "{{{
+  let options = a:options
+  let callbacks = {
+        \   'before_sub': [],
+        \   'after_sub': [],
+        \ }
+
+  if get(options, 'sub_tag')
+    call add(callbacks.after_sub, function('cycle#callback#sub_tag#sub'))
+  endif
+
+  if get(options, 'sub_pair')
+    call add(callbacks.before_sub, function('cycle#callback#sub_pair#find'))
+    call add(callbacks.after_sub, function('cycle#callback#sub_pair#sub'))
+  endif
+
+  if get(options, 'restrict_cursor')
+    call add(callbacks.after_sub, function('cycle#callback#restrict_cursor#do'))
+  endif
+
+  return callbacks
 endfunction "}}}
 
 " }}} Main Functions
@@ -360,17 +395,18 @@ endfunction "}}}
 " Params:
 "   - group:      Group
 "   - class_name: TextClass
+"   - search_ctx: dict - arbitrary search info shared during group_search
 " Returns:
 "   list<matched_col: number, ctext: Ctext>
-function! s:group_search(group, class_name) "{{{
-  let matcher = get(a:group.options, s:OPTIONS.matcher, 0)
+function! s:group_search(group, class_name, search_ctx) "{{{
+  let matcher = get(a:group.options, 'matcher', 0)
 
   if type(matcher) != type(0)
     let ctx = {'group': a:group, 'class_name': a:class_name}
     return cycle#matcher#dispatch(matcher, 'test', ctx)
   endif
 
-  let result = call('cycle#matcher#default#test', [a:group, a:class_name])
+  let result = call('cycle#matcher#default#test', [a:group, a:class_name, a:search_ctx])
   return result
 endfunction "}}}
 
@@ -399,32 +435,44 @@ function! s:add_group(scope, group_attrs) "{{{
     unlet param
   endfor
 
-  if has_key(options, s:OPTIONS.sub_pairs)
+  if has_key(options, 'sub_pairs')
     let separator = type(options.sub_pairs) == type(0) ? ':' : options.sub_pairs
-    let [begin_items, end_items] = [[], []]
+    let [begin_items, end_items, ambi_items] = [[], [], []]
     for item in items
       let [begin_item, end_item] = split(item, separator)
+      if begin_item == end_item
+        if len(begin_item) == 1
+          call add(ambi_items, begin_item)
+        else
+          echohl WarningMsg | echomsg "Cycle: `sub_pairs` can't handle pairs with the same text" | echohl None
+        endif
+      endif
       call add(begin_items, begin_item)
       call add(end_items, end_item)
     endfor
     unlet options.sub_pairs
     let options.sub_pair = 1
-    call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {(s:OPTIONS.end_with): end_items})])
-    call s:add_group(a:scope, [end_items, extend(deepcopy(options), {(s:OPTIONS.begin_with): begin_items})])
+    if !empty(ambi_items)
+      let options.ambi_pair = ambi_items
+    endif
+    " Note that the "end_items" (has `begin_with`) must go first, `ambi_pair`
+    " relies on this order to make orphaned behave as the begin part.
+    call s:add_group(a:scope, [end_items, extend(deepcopy(options), {'begin_with': begin_items})])
+    call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {'end_with': end_items})])
     return
   endif
 
-  if has_key(options, s:OPTIONS.year)
-    unlet options[s:OPTIONS.year]
+  if has_key(options, 'year')
+    unlet options['year']
     call extend(options, {'matcher': 'year', 'changer': 'year'}, 'keep')
   endif
 
-  if has_key(options, s:OPTIONS.regex)
+  if has_key(options, 'regex')
     " Expand from:  #{regex: [foo, bar]}
     "          to:  #{matcher: 'regex', changer: 'regex', regex: {'to: [foo, bar]'}}
     " Expand from:  #{regex: #{to: [foo, bar], subp: [fo, ba]}}
     "          to:  #{matcher: 'regex', changer: 'regex', regex: {'to: [foo, bar]', subp: [fo, ba]}}
-    let regex_opts = get(options, s:OPTIONS.regex, {})
+    let regex_opts = get(options, 'regex', {})
     if type(regex_opts) == type([])
       let to = regex_opts
       let regex_opts = {'to': to}
@@ -514,234 +562,6 @@ endfunction "}}}
 " }}} Group Operations
 
 
-" Optional Callbacks: {{{
-
-function! s:sub_tag_pair(params) "{{{
-  let before = a:params.before
-  let after = a:params.after
-  let options = a:params.options
-  let timeout = 600
-  let pattern_till_tag_end = '\_[^>]*>'
-  let ic_flag = get(options, s:OPTIONS.match_case) ? '\C' : '\c'
-  let pos = cycle#util#getpos()
-
-  " To check if position is inside < and >, might across lines
-  let pattern_is_within_tag = '\v\</?\m\%' . before.line . 'l\%' . before.col . 'c' . pattern_till_tag_end . '\C'
-
-  if search(pattern_is_within_tag, 'n')
-    let in_closing_tag = search('/\m\%' . before.line . 'l\%' . before.col . 'c\C', 'n')  " search if a '/' exists before position
-    let opposite = searchpairpos(
-          \   '<' . cycle#util#escape_pattern(before.text) . pattern_till_tag_end,
-          \   '',
-          \   '</' . cycle#util#escape_pattern(before.text) . '\s*>'
-          \        . (in_closing_tag ? '\zs' : '') . ic_flag,
-          \   'nW' . (in_closing_tag ? 'b' : ''),
-          \   '',
-          \   '',
-          \   timeout,
-          \ )
-
-    if opposite != [0, 0]
-      let ctext = {
-            \   "text": before.text,
-            \   "line": opposite[0],
-            \   "col": opposite[1] + 1 + !in_closing_tag,
-            \ }
-
-      call s:substitute(
-            \   ctext,
-            \   after,
-            \   '-',
-            \   [],
-            \   s:cascade_options_for_callback(options),
-            \ )
-
-      if in_closing_tag && ctext.line == after.line
-        let offset = strlen(after.text) - strlen(before.text)
-        let before.col += offset
-        let after.col += offset
-      endif
-    endif
-  endif
-endfunction "}}}
-
-
-" Find target pair for "sub_pair".
-" For example when sub {{ foo }}  ->  (( foo ))
-"           cursor at: ^
-" We have:
-" - trigger: {{   ->   ((
-" - pair:    }}   ->   ))
-" - pair_at: end
-function! s:find_pair(params) abort " {{{
-  let trigger_before = a:params.before
-  let trigger_after = a:params.after
-  let options = a:params.options
-  let sub_offset = 0
-  let timeout = 600
-  let ic_flag = get(options, s:OPTIONS.match_case) ? '\C' : '\c'
-
-  if type(get(options, s:OPTIONS.end_with)) == type([])
-    let trigger_at_begin = 1
-  elseif type(get(options, s:OPTIONS.begin_with)) == type([])
-    let trigger_at_begin = 0
-  else
-    echohl WarningMsg | echo printf('Incomplete sub_pair for %s, missing "begin" or "end" with.', trigger_before.text) | echohl None
-    return
-  endif
-
-  let pair_at = trigger_at_begin ? 'end' : 'begin'
-
-  let pair_before = deepcopy(trigger_before)
-  let pair_before.text = get(
-        \   options[pair_at . '_with'],
-        \   index(a:params.items, trigger_before.text, 0, ic_flag ==# '\c'),
-        \ )
-
-  let pair_after = {}
-  let pair_after.text = get(
-        \   options[pair_at . '_with'],
-        \   index(a:params.items, trigger_after.text, 0, ic_flag ==# '\c'),
-        \ )
-
-  let pair_pos = searchpairpos(
-        \   cycle#util#escape_pattern(trigger_at_begin ? trigger_before.text : pair_before.text),
-        \   '',
-        \   cycle#util#escape_pattern(trigger_at_begin ? pair_before.text : trigger_before.text)
-        \        . (trigger_at_begin ? '' : '\zs') . ic_flag,
-        \   'nW' . (trigger_at_begin ? '' : 'b'),
-        \   '',
-        \   '',
-        \   timeout,
-        \ )
-
-  if pair_pos == [0, 0]
-    echohl WarningMsg | echo printf("Can't find opposite %s for sub_pair.", pair_before.text) | echohl None
-  else
-    let pair_before.line = pair_pos[0]
-    let pair_before.col = pair_pos[1]
-    call extend(pair_after, pair_before, 'keep')
-
-    if trigger_before.line == pair_before.line && trigger_before.line == pair_after.line
-      if trigger_at_begin
-        let sub_offset =
-              \ trigger_after.col + len(trigger_after.text) -
-              \ (trigger_before.col + len(trigger_before.text))
-      else
-        let sub_offset =
-              \ pair_after.col + len(pair_after.text) -
-              \ (pair_before.col + len(pair_before.text))
-      endif
-    endif
-
-    let ctx = {
-          \   'pair_before': pair_before,
-          \   'pair_after': pair_after,
-          \   'pair_at': pair_at,
-          \   'sub_offset': sub_offset,
-          \ }
-    call extend(a:params.context, ctx)
-  endif
-endfunction " }}}
-
-
-function! s:sub_pair(params) "{{{
-  let ctx = get(a:params, 'context', {})
-  let pair_before = get(ctx, 'pair_before', {})
-  let pair_after = get(ctx, 'pair_after', {})
-  let pair_at = get(ctx, 'pair_at', '')
-  let sub_offset = get(ctx, 'sub_offset', 0)
-
-  if empty(pair_before) || empty(pair_after) || empty(pair_at)
-    return
-  endif
-
-  let before = a:params.before
-  let after = a:params.after
-
-  if sub_offset
-    if pair_at == 'end'
-      let pair_before.col += sub_offset
-      let pair_after.col += sub_offset
-    else
-      let before.col += sub_offset
-      let after.col += sub_offset
-    endif
-  endif
-
-  call s:substitute(
-        \   pair_before,
-        \   pair_after,
-        \   '-',
-        \   a:params.items,
-        \   s:cascade_options_for_callback(a:params.options),
-        \ )
-
-  if sub_offset
-    let a:params.context.sub_offset = 0
-  endif
-endfunction "}}}
-
-
-function! s:restrict_cursor(params) "{{{
-  let before = a:params.before
-  let after = a:params.after
-  let pos = cycle#util#getpos()
-  let end_col = before.col + strlen(after.text) - 1
-
-  if a:params.class_name == 'v' || (after.text =~ '\W' && g:cycle_auto_visual)
-    call cursor(before.line, before.col)
-    normal! v
-    call cursor(after.line, end_col)
-  elseif after.line > before.line
-    call cursor(after.line, end_col)
-  else
-    if end_col < pos.col
-      call cursor(after.line, end_col)
-    elseif pos.col < after.col
-      call cursor(after.line, after.col)
-    endif
-  endif
-endfunction "}}}
-
-
-function! s:parse_callback_options(options) "{{{
-  let options = a:options
-  let callbacks = {
-        \   'before_sub': [],
-        \   'after_sub': [],
-        \ }
-
-
-  if get(options, s:OPTIONS.sub_tag)
-    call add(callbacks.after_sub, function('s:sub_tag_pair'))
-  endif
-
-  if get(options, s:OPTIONS.sub_pair)
-    call add(callbacks.before_sub, function('s:find_pair'))
-    call add(callbacks.after_sub, function('s:sub_pair'))
-  endif
-
-  if get(options, s:OPTIONS.restrict_cursor)
-    call add(callbacks.after_sub, function('s:restrict_cursor'))
-  endif
-
-  return callbacks
-endfunction "}}}
-
-
-function! s:cascade_options_for_callback(options, ...) "{{{
-  let extras = a:0 ? a:1 : {}
-  let filtered =  filter(
-        \   deepcopy(a:options),
-        \   "index([s:OPTIONS.match_case, s:OPTIONS.hard_case], v:key) >= 0"
-        \ )
-  return extend(filtered, extras)
-endfunction "}}}
-
-" }}} Optional Callbacks
-
-
 " Utils: {{{
 
 " Build a Match by matched group item, take responsibility to transform ctext
@@ -756,7 +576,7 @@ endfunction "}}}
 function! s:build_match(ctext, group, item_idx) "{{{
   let ctext = deepcopy(a:ctext)
   let new_text = cycle#text#new_ctext('')
-  let changer = get(a:group.options, s:OPTIONS.changer, 0)
+  let changer = get(a:group.options, 'changer', 0)
 
   if type(changer) != type(0)
     let ctx = {'ctext': deepcopy(ctext), 'group': deepcopy(a:group), 'index': a:item_idx}
@@ -789,7 +609,7 @@ endfunction "}}}
 "   list<Match>
 function! s:build_matches(ctext, group, item_idx) "{{{
   let matches = []
-  let changer = get(a:group.options, s:OPTIONS.changer, 0)
+  let changer = get(a:group.options, 'changer', 0)
 
   if type(changer) != type(0)
     let ctx = {'ctext': deepcopy(a:ctext), 'group': deepcopy(a:group), 'index': a:item_idx}

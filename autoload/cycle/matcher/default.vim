@@ -1,9 +1,10 @@
 " Params:
 "   - group:      Group
 "   - class_name: TextClass
+"   - ctx:        dict - arbitrary search info shared during group_search
 " Returns:
 "   list<matched_col: number, ctext: Ctext>
-function! cycle#matcher#default#test(group, class_name) abort "{{{
+function! cycle#matcher#default#test(group, class_name, ctx) abort "{{{
   let options = a:group.options
   let pos = cycle#util#getpos()
   let index = -1
@@ -39,9 +40,25 @@ function! cycle#matcher#default#test(group, class_name) abort "{{{
     endif
 
     if text_index >= 0
+      let text = strpart(getline('.'), text_index, len(item))
+
+      let ambi_pair = get(options, 'ambi_pair')
+      if !empty(ambi_pair) && index(ambi_pair, text) > -1
+        " For begin pair, if there was no end pair found, accept it as orphan.
+        let accept_orphan = !empty(get(options, 'end_with')) && index(get(a:ctx, 'ambi_pair_found', []), text) < 0
+
+        if cycle#matcher#default#ambi_pair#test(text, options)
+          let founds = get(a:ctx, 'ambi_pair_found', [])
+          let founds = uniq(founds + [text])
+          call extend(a:ctx, {'ambi_pair_found': founds}, 'force')
+        elseif !accept_orphan
+          continue
+        endif
+      endif
+
       let index = index(a:group.items, item)
       let ctext = {
-            \   'text': strpart(getline('.'), text_index, len(item)),
+            \   'text': text,
             \   'line': line('.'),
             \   'col': text_index + 1,
             \ }

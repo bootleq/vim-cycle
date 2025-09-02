@@ -9,8 +9,9 @@ Cycle text within predefined candidates.
   - `"` =&gt; `'` &nbsp; can handle non-keywords
   - 可`是` =&gt; 可`否` &nbsp; multibyte is fine
   - `Rails Metal` =&gt; `Thrash` =&gt; `Technical Death` &nbsp; handle multi-words by visual selection, or smart auto search
-  - `<em>`important`</em>` =&gt; `<strong>`important`</strong>` &nbsp; tag pairs cycle together
+  - `<em>`important`</em>` =&gt; `<strong>`important`</strong>` &nbsp; tag pairs cycle together (even across lines)
   - `「`quoted`」` =&gt; `『`quoted`』` &nbsp; special pairs cycle together
+  - `"`‗`"` =&gt; `|`‗`|` =&gt; `“`‗`”` &nbsp; the two sides can be identical (must has only 1 char currently)
   - `{ :one => 'two' }` =&gt; `{ one: 'two' }` &nbsp; now supports pattern replace like [switch.vim][]
   - `民國 40` =&gt; `昭和 26` =&gt; `พ.ศ. 2495` =&gt; `1951` &nbsp; cycle calendar era systems with "year" option
 
@@ -37,7 +38,6 @@ let g:cycle_default_groups = [
       \   [['on', 'off'], 'match_word'],
       \   [['+', '-']],
       \   [['>', '<']],
-      \   [['"', "'"]],
       \   [['==', '!='], { 'cond': function('s:not_lua_context') }],
       \   [['0', '1']],
       \   [['and', 'or']],
@@ -51,6 +51,7 @@ let g:cycle_default_groups = [
       \   [['ancestor', 'descendant']],
       \   [['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
       \     'Friday', 'Saturday'], ['hard_case', {'name': 'Days'}]],
+      \   [['":"', "':'"], 'sub_pairs'],
       \   [['(:)', '（:）', '「:」', '『:』'], 'sub_pairs'],
       \   [['民國', '令和', '平成', '昭和', '大正', '明治', 'พ.ศ.', 'CE'], #{matcher: 'year', changer: 'year'}],
       \ ]
