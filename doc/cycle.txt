@@ -344,7 +344,7 @@ By default no options are set.
 "matcher"           string | Dict (default: none) ~
 
   Take different strategy to match group items.
-  Available options: `"regex" "year"`
+  Available options:
 
   regex   Each group item is not an literal string, but a Vim regexp
           |pattern|. An item is matched when the cursor is within the match.
@@ -368,7 +368,7 @@ By default no options are set.
 "changer"           string | Dict (default: none) ~
 
   Take different strategy to change matched item.
-  Available options: `"regex"`
+  Available options:
 
   regex   Do not replace item by directly cycle to "next" item, but find a
           corresponding {sub} (of |substitute()|) from regex:"to" option, use

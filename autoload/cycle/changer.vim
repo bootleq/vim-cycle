@@ -16,13 +16,8 @@ function! s:dispatch_change(changer, ctx) " {{{
   let args = [ctext, group, index]
 
   if changer_type == type('')
-    if index(['regex', 'year'], changer) >= 0
-      let result = call('cycle#changer#' . changer . '#change', args)
-      return result
-    else
-      call s:invalid_option('change', group)
-      return ctext
-    endif
+    let result = call('cycle#changer#' . changer . '#change', args)
+    return result
   elseif changer_type == type({})
     let Fn = get(changer, 'change')
     if index([v:t_func, v:t_string], type(Fn)) >= 0
@@ -49,12 +44,8 @@ function! s:dispatch_collect_selections(changer, ctx) " {{{
   let args = [ctext, group, index]
 
   if changer_type == type('')
-    if index(['regex', 'year'], changer) >= 0
-      let result = call('cycle#changer#' . changer . '#collect_selections', args)
-      return result
-    else
-      call s:invalid_option('collect_selections', group)
-    endif
+    let result = call('cycle#changer#' . changer . '#collect_selections', args)
+    return result
   elseif changer_type == type({})
     let Fn = get(changer, 'collect_selections')
     if index([v:t_func, v:t_string], type(Fn)) >= 0

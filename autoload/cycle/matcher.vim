@@ -15,13 +15,8 @@ function! s:dispatch_test(matcher, ctx) " {{{
   let args = [deepcopy(group), class_name]
 
   if matcher_type == type('')
-    if index(['regex', 'year'], matcher) >= 0
-      let result = call('cycle#matcher#' . matcher . '#test', args)
-      return result
-    else
-      call s:invalid_test_option(group)
-      return [index, ctext]
-    endif
+    let result = call('cycle#matcher#' . matcher . '#test', args)
+    return result
   elseif matcher_type == type({})
     let Fn = get(matcher, 'test')
     if index([v:t_func, v:t_string], type(Fn)) >= 0
