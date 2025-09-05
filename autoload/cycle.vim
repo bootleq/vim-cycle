@@ -65,8 +65,11 @@ let s:tick = 0
 
 " Main Functions: {{{
 
-function! cycle#new(class_name, direction, count) "{{{
-  let matches = cycle#search(a:class_name, {'direction': a:direction, 'count': a:count})
+function! cycle#new(class_name, direction, count, ...) "{{{
+  let groups = a:0 && has_key(a:1, 'groups')
+        \ ? a:1['groups']
+        \ : s:groups()
+  let matches = cycle#search(a:class_name, {'direction': a:direction, 'count': a:count, 'groups': groups})
 
   if empty(matches)
     return s:fallback(
@@ -80,6 +83,7 @@ function! cycle#new(class_name, direction, count) "{{{
         \   "class_name": a:class_name,
         \   "direction":  a:direction,
         \   "count":      a:count,
+        \   "groups":     groups,
         \ }
 
   if len(matches) > 1 && g:cycle_max_conflict > 1
@@ -96,8 +100,11 @@ function! cycle#new(class_name, direction, count) "{{{
 endfunction "}}}
 
 
-function! cycle#select(class_name) "{{{
-  let matches = cycle#search(a:class_name, {'count': '*'})
+function! cycle#select(class_name, ...) "{{{
+  let groups = a:0 && has_key(a:1, 'groups')
+        \ ? a:1['groups']
+        \ : s:groups()
+  let matches = cycle#search(a:class_name, {'count': '*', 'groups': groups})
 
   if empty(matches)
     echohl WarningMsg | echo "No match, aborted." | echohl None
@@ -125,7 +132,7 @@ function! cycle#search(class_name, ...) "{{{
   let s:tick += 1
 
   let options = a:0 ? a:1 : {}
-  let groups = deepcopy(s:groups())
+  let groups = deepcopy(get(options, 'groups'))
   let direction = get(options, 'direction', 1)
   let l:count = get(options, 'count', 1)
   let matches = []

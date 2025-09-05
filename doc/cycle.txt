@@ -70,6 +70,22 @@ You can define key mappings in |Normal| and |Visual| modes: >
   nmap <silent> <Leader>ga <Plug>CycleSelect
   vmap <silent> <Leader>ga <Plug>CycleSelect
 
+
+Cycle([{class}, {dir}, {count}, {opts}])                             *Cycle()*
+
+  You can use this function to trigger a cycle.
+  {class} can be "w" or "v", used to tell starting from a word, or visual mode.
+  {dir} is the cycle direction.
+  {count} is the jump offset.
+  {opts} is a dictionary which can contains:
+    "groups"  Use custom groups instead of the groups maintained by this
+              plugin internally.
+
+CycleSelect([{class}, {opts}])                                 *CycleSelect()*
+
+  You can use this function to trigger a cycle selection.
+  See |Cycle()| about arguments.
+
 ==============================================================================
 CONFIGURATION                                            *cycle-configuration*
 
