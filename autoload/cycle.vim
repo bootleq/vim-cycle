@@ -412,7 +412,13 @@ function! s:group_search(group, class_name, search_ctx) "{{{
 endfunction "}}}
 
 
-function! s:add_group(scope, group_attrs) "{{{
+" Translate human readable group config into low-level internal format.
+" For example user usually set a group like [[items], 'some_options']
+" This function turns it into #{items: ..., options: ...}
+"
+" Returns:
+"   group_or_list: dict | list<dict>    - single group_attrs could produce a list of groups
+function! cycle#parse_group(group_attrs) "{{{
   let items = copy(a:group_attrs[0])
   let options = {}
 
@@ -458,9 +464,10 @@ function! s:add_group(scope, group_attrs) "{{{
     endif
     " Note that the "end_items" (has `begin_with`) must go first, `ambi_pair`
     " relies on this order to make orphaned behave as the begin part.
-    call s:add_group(a:scope, [end_items, extend(deepcopy(options), {'begin_with': begin_items})])
-    call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {'end_with': end_items})])
-    return
+    let end_group_attrs = [end_items, extend(deepcopy(options), {'begin_with': begin_items})]
+    let begin_group_attrs = [begin_items, extend(deepcopy(options), {'end_with': end_items})]
+    return [cycle#parse_group(end_group_attrs),
+          \ cycle#parse_group(begin_group_attrs)]
   endif
 
   " Alias options
@@ -490,12 +497,24 @@ function! s:add_group(scope, group_attrs) "{{{
         \ 'items': items,
         \ 'options': options,
         \ }
+  return group
+endfunction "}}}
 
+
+function! s:add_group(scope, group_attrs) "{{{
+  let group_or_list = cycle#parse_group(a:group_attrs)
   let name = a:scope == 'ft' ? 'b:cycle_ft_groups' : a:scope . ':cycle_groups'
+
   if !exists(name)
-    let {name} = [group]
+    let {name} = []
+  endif
+
+  if type(group_or_list) == type([])
+    for group in group_or_list
+      call add({name}, group)
+    endfor
   else
-    call add({name}, group)
+    call add({name}, group_or_list)
   endif
 endfunction "}}}
 

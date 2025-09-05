@@ -229,6 +229,11 @@ To add a group, use |cycle#add_group()| with any of below forms >
   call cycle#add_group(['Yes', 'No'], 'match_case', {'hard_case': 1})
   call cycle#add_group([['Yes', 'No'], 'match_case'])
 <
+                                                         *cycle#parse_group()*
+To translate a group from `add_group()` form (usually more human-friendly) to
+internal dictionary form. You can use `cycle#parse_group()` function. Note it
+might returns a list of groups because of shorthand group option expanding.
+
                                                          *cycle#add_b_group()*
 Use cycle#add_b_group() to add a group into b: scoped. |b:cycle_groups|
 
