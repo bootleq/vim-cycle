@@ -200,6 +200,25 @@ g:cycle_naming_config     (default: none) ~
   {pattern} and optional dictionary {options}, the options can contain a "sub"
   key to specify a {sub} for internal |substitute()|.
 
+                                                         *g:cycle_year_config*
+g:cycle_year_config       (default: none) ~
+
+  A dictionary to customize the setting of "year" matcher / changer (see
+  |cycle-group-options| section). When absent, below defaults applied: >
+  let g:cycle_year_config = {
+        \   '民國': {'range': [1,  200], 'begin': 1912},
+        \   '令和': {'range': [1,  200], 'begin': 2019},
+        \   '平成': {'range': [1,   31], 'begin': 1989, 'end': 2019},
+        \   '昭和': {'range': [1,   64], 'begin': 1926, 'end': 1989},
+        \   '大正': {'range': [1,   15], 'begin': 1912, 'end': 1926},
+        \   '明治': {'range': [1,   45], 'begin': 1868, 'end': 1912},
+        \   'พ.ศ.': {'range': [1, 2700], 'begin': -543},
+        \   'CE':   {},
+        \ }
+< where all non-CE systems must have a "begin" year relative to CE 1st. If the
+  "end" is known then "end" should also given. The "range" defines a boundary
+  so the search doesn't need to consider longer string like "10000".
+
 ------------------------------------------------------------------------------
 Define groups                                            *cycle-define-groups*
 
