@@ -13,6 +13,8 @@ Cycle text within predefined candidates.
   - `「`quoted`」` =&gt; `『`quoted`』` &nbsp; special pairs cycle together
   - `"`‗`"` =&gt; `|`‗`|` =&gt; `“`‗`”` &nbsp; the two sides can be identical (must has only 1 char currently)
   - `{ :one => 'two' }` =&gt; `{ one: 'two' }` &nbsp; now supports pattern replace like [switch.vim][]
+  - `foo-bar-baz` =&gt; `FOO_BAR_BAZ` =&gt; `fooBarBaz` naming convention
+  - `covid-19-mk2` =&gt; `covid_19Mk2` =&gt; `Covid_19Mk2` alternative number handling
   - `民國 40` =&gt; `昭和 26` =&gt; `พ.ศ. 2495` =&gt; `1951` &nbsp; cycle calendar era systems with "year" option
 
 
@@ -107,6 +109,23 @@ let g:cycle_default_groups += [
       \     'August', 'September', 'October', 'November', 'December']],
       \   [['portrait', 'landscape']],
       \ ]
+
+
+" Set another mapping for certain groups
+let s:tx_groups = [
+      \   [['snake_case', 'kebab-case', 'camelCase_1', 'PascalCase_1', 'SCREAMING_SNAKE_CASE'], 'naming'],
+      \ ]
+function! s:cycle_tx_groups() abort " {{{
+  let groups = s:tx_groups
+  " ... can do more dynamic handling to make your groups
+  let parsed = map(deepcopy(groups), {i, g -> cycle#parse_group(g)})  " must trans to internal format
+  let parsed = flatten(parsed)
+  return #{groups: parsed}
+endfunction " }}}
+nnoremap <silent> <LocalLeader>x <Cmd>call Cycle('w', 1, v:count1, <SID>cycle_tx_groups())<CR>
+vnoremap <silent> <LocalLeader>x <Cmd>call Cycle('v', 1, v:count1, <SID>cycle_tx_groups())<CR>
+nnoremap <silent> <LocalLeader>gA <Cmd>call CycleSelect('w', <SID>cycle_tx_groups())<CR>
+vnoremap <silent> <LocalLeader>gA <Cmd>call CycleSelect('v', <SID>cycle_tx_groups())<CR>
 ```
 
 

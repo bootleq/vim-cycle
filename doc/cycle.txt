@@ -740,6 +740,32 @@ Filetype specified groups:
           \    name: 'Markdown task checkbox'}],
           \ ]
 <
+Set another set of groups, trigger by different mappings:
+>
+    let s:tx_groups = [
+          \   [['snake_case', 'kebab-case', 'camelCase_1', 'PascalCase_1',
+          \     'SCREAMING_SNAKE_CASE'], 'naming'],
+          \ ]
+
+    function! s:cycle_tx_groups() abort " {{{
+      let groups = s:tx_groups
+      " ... can do more dynamic handling to make your groups
+
+      " Must translate to internal format
+      let parsed = map(deepcopy(groups), {i, g -> cycle#parse_group(g)})
+      let parsed = flatten(parsed)
+      return #{groups: parsed}
+    endfunction " }}}
+
+    nnoremap <silent> <LocalLeader>x
+          \ <Cmd>call Cycle('w', 1, v:count1, <SID>cycle_tx_groups())<CR>
+    vnoremap <silent> <LocalLeader>x
+          \ <Cmd>call Cycle('v', 1, v:count1, <SID>cycle_tx_groups())<CR>
+    nnoremap <silent> <LocalLeader>gA
+          \ <Cmd>call CycleSelect('w', <SID>cycle_tx_groups())<CR>
+    vnoremap <silent> <LocalLeader>gA
+          \ <Cmd>call CycleSelect('v', <SID>cycle_tx_groups())<CR>
+<
 ==============================================================================
 LIMITATIONS                                                *cycle-limitations*
 
