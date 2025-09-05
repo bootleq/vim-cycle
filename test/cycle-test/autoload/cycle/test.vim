@@ -25,6 +25,14 @@ function! cycle#test#reinitialize_groups() "{{{
 endfunction "}}}
 
 
+function! cycle#test#reset_script_vars() "{{{
+  let s:scope = themis#helper('scope')
+
+  let changer_naming = s:scope.funcs('autoload/cycle/changer/naming.vim')
+  call changer_naming.reset_transformers()
+endfunction "}}}
+
+
 function! cycle#test#select_ui(options, ctx) "{{{
   let candidates = []
   for option in a:options

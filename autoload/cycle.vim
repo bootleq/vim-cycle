@@ -15,6 +15,7 @@
 "   matcher
 "   changer
 "   regex
+"   naming
 "   year
 "   cond
 "
@@ -31,7 +32,7 @@ let s:tick = 0
 "
 " Group: {
 "   items: list
-"   options: dict
+"   options?: dict
 " }
 "
 "
@@ -64,8 +65,11 @@ let s:tick = 0
 
 " Main Functions: {{{
 
-function! cycle#new(class_name, direction, count) "{{{
-  let matches = cycle#search(a:class_name, {'direction': a:direction, 'count': a:count})
+function! cycle#new(class_name, direction, count, ...) "{{{
+  let groups = a:0 && has_key(a:1, 'groups')
+        \ ? a:1['groups']
+        \ : s:groups()
+  let matches = cycle#search(a:class_name, {'direction': a:direction, 'count': a:count, 'groups': groups})
 
   if empty(matches)
     return s:fallback(
@@ -79,6 +83,7 @@ function! cycle#new(class_name, direction, count) "{{{
         \   "class_name": a:class_name,
         \   "direction":  a:direction,
         \   "count":      a:count,
+        \   "groups":     groups,
         \ }
 
   if len(matches) > 1 && g:cycle_max_conflict > 1
@@ -95,8 +100,11 @@ function! cycle#new(class_name, direction, count) "{{{
 endfunction "}}}
 
 
-function! cycle#select(class_name) "{{{
-  let matches = cycle#search(a:class_name, {'count': '*'})
+function! cycle#select(class_name, ...) "{{{
+  let groups = a:0 && has_key(a:1, 'groups')
+        \ ? a:1['groups']
+        \ : s:groups()
+  let matches = cycle#search(a:class_name, {'count': '*', 'groups': groups})
 
   if empty(matches)
     echohl WarningMsg | echo "No match, aborted." | echohl None
@@ -124,7 +132,7 @@ function! cycle#search(class_name, ...) "{{{
   let s:tick += 1
 
   let options = a:0 ? a:1 : {}
-  let groups = deepcopy(s:groups())
+  let groups = deepcopy(get(options, 'groups'))
   let direction = get(options, 'direction', 1)
   let l:count = get(options, 'count', 1)
   let matches = []
@@ -174,9 +182,11 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
       continue
     endif
 
-    if has_key(group.options, 'cond')
-      if type(group.options['cond']) == v:t_func
-        if !group.options['cond'](group, s:tick)
+    let options = get(group, 'options', {})
+
+    if has_key(options, 'cond')
+      if type(options['cond']) == v:t_func
+        if !options['cond'](group, s:tick)
           continue
         endif
       else
@@ -301,17 +311,19 @@ endfunction "}}}
 
 function! s:accept_match(match, ctx) "{{{
   let m = a:match
-  if m.pairs.before == m.pairs.after
+  if m.pairs.before ==# m.pairs.after
     echohl WarningMsg | echo "Cycle to nothing, aborted." | echohl None
     return
   endif
+
+  let options = get(m.group, 'options', {})
 
   call cycle#substitute(
         \   m.pairs.before,
         \   m.pairs.after,
         \   a:ctx.class_name,
         \   m.group.items,
-        \   extend(deepcopy(m.group.options), {'restrict_cursor': 1}),
+        \   extend(deepcopy(options), {'restrict_cursor': 1}),
         \ )
 endfunction "}}}
 
@@ -399,7 +411,8 @@ endfunction "}}}
 " Returns:
 "   list<matched_col: number, ctext: Ctext>
 function! s:group_search(group, class_name, search_ctx) "{{{
-  let matcher = get(a:group.options, 'matcher', 0)
+  let options = get(a:group, 'options', {})
+  let matcher = get(options, 'matcher', 0)
 
   if type(matcher) != type(0)
     let ctx = {'group': a:group, 'class_name': a:class_name}
@@ -411,7 +424,13 @@ function! s:group_search(group, class_name, search_ctx) "{{{
 endfunction "}}}
 
 
-function! s:add_group(scope, group_attrs) "{{{
+" Translate human readable group config into low-level internal format.
+" For example user usually set a group like [[items], 'some_options']
+" This function turns it into #{items: ..., options: ...}
+"
+" Returns:
+"   group_or_list: dict | list<dict>    - single group_attrs could produce a list of groups
+function! cycle#parse_group(group_attrs) "{{{
   let items = copy(a:group_attrs[0])
   let options = {}
 
@@ -457,15 +476,20 @@ function! s:add_group(scope, group_attrs) "{{{
     endif
     " Note that the "end_items" (has `begin_with`) must go first, `ambi_pair`
     " relies on this order to make orphaned behave as the begin part.
-    call s:add_group(a:scope, [end_items, extend(deepcopy(options), {'begin_with': begin_items})])
-    call s:add_group(a:scope, [begin_items, extend(deepcopy(options), {'end_with': end_items})])
-    return
+    let end_group_attrs = [end_items, extend(deepcopy(options), {'begin_with': begin_items})]
+    let begin_group_attrs = [begin_items, extend(deepcopy(options), {'end_with': end_items})]
+    return [cycle#parse_group(end_group_attrs),
+          \ cycle#parse_group(begin_group_attrs)]
   endif
 
-  if has_key(options, 'year')
-    unlet options['year']
-    call extend(options, {'matcher': 'year', 'changer': 'year'}, 'keep')
-  endif
+  " Alias options
+  for short in ['year', 'naming']
+    if has_key(options, short)
+      unlet options[short]
+      call extend(options, {'matcher': short, 'changer': short}, 'keep')
+    endif
+  endfor
+  unlet short
 
   if has_key(options, 'regex')
     " Expand from:  #{regex: [foo, bar]}
@@ -485,12 +509,24 @@ function! s:add_group(scope, group_attrs) "{{{
         \ 'items': items,
         \ 'options': options,
         \ }
+  return group
+endfunction "}}}
 
+
+function! s:add_group(scope, group_attrs) "{{{
+  let group_or_list = cycle#parse_group(a:group_attrs)
   let name = a:scope == 'ft' ? 'b:cycle_ft_groups' : a:scope . ':cycle_groups'
+
   if !exists(name)
-    let {name} = [group]
+    let {name} = []
+  endif
+
+  if type(group_or_list) == type([])
+    for group in group_or_list
+      call add({name}, group)
+    endfor
   else
-    call add({name}, group)
+    call add({name}, group_or_list)
   endif
 endfunction "}}}
 
@@ -578,7 +614,8 @@ endfunction "}}}
 function! s:build_match(ctext, group, item_idx) "{{{
   let ctext = deepcopy(a:ctext)
   let new_text = cycle#text#new_ctext('')
-  let changer = get(a:group.options, 'changer', 0)
+  let options = get(a:group, 'options', {})
+  let changer = get(options, 'changer', 0)
 
   if type(changer) != type(0)
     let ctx = {'ctext': deepcopy(ctext), 'group': deepcopy(a:group), 'index': a:item_idx}
@@ -611,7 +648,8 @@ endfunction "}}}
 "   list<Match>
 function! s:build_matches(ctext, group, item_idx) "{{{
   let matches = []
-  let changer = get(a:group.options, 'changer', 0)
+  let options = get(a:group, 'options', {})
+  let changer = get(options, 'changer', 0)
 
   if type(changer) != type(0)
     let ctx = {'ctext': deepcopy(a:ctext), 'group': deepcopy(a:group), 'index': a:item_idx}

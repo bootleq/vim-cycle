@@ -5,7 +5,7 @@
 " Returns:
 "   list<matched_col: number, ctext: Ctext>
 function! cycle#matcher#default#test(group, class_name, ctx) abort "{{{
-  let options = a:group.options
+  let options = get(a:group, 'options', {})
   let pos = cycle#util#getpos()
   let index = -1
   let ctext = cycle#text#new_ctext(a:class_name)

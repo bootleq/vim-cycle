@@ -7,11 +7,12 @@
 function! cycle#changer#default#change(ctext, group, next_index) "{{{
   let item = a:group.items[a:next_index]
   let new_text = deepcopy(a:ctext)
+  let options = get(a:group, 'options', {})
 
   let new_text.text = s:text_transform(
         \   a:ctext.text,
         \   item,
-        \   a:group.options,
+        \   options,
         \ )
 
   return new_text

@@ -77,4 +77,28 @@ Describe Group definition
       Assert Equals(getline(1), 'bar')
     End
   End
+
+  Context ad-hoc groups
+    It cycle#parse_group()
+      let group = cycle#parse_group([['Yes', 'No']])
+      Assert Equals(group, #{items: ['Yes', 'No'], options: {}})
+
+      let group = cycle#parse_group([['Yes', 'No'], 'match_case'])
+      Assert Equals(group, #{items: ['Yes', 'No'], options: #{match_case: 1}})
+
+      let groups = cycle#parse_group([['a:b', 'c:d'], 'sub_pairs'])
+      Assert IsList(groups)
+      Assert Equals(groups[0], #{items: ['b', 'd'], options: #{sub_pair: 1, begin_with: ['a', 'c']}})
+      Assert Equals(groups[1], #{items: ['a', 'c'], options: #{sub_pair: 1, end_with: ['b', 'd']}})
+    End
+
+    It takes one-time groups
+      call setline(1, 'beep beep')
+      call Cycle('w', 1, 1)
+      Assert Equals(getline(1), 'beep beep')
+
+      call Cycle('w', 1, 1, #{ groups: [#{items: ['beep', 'poo']}] })
+      Assert Equals(getline(1), 'poo beep')
+    End
+  End
 End

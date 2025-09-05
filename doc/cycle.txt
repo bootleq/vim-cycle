@@ -70,6 +70,22 @@ You can define key mappings in |Normal| and |Visual| modes: >
   nmap <silent> <Leader>ga <Plug>CycleSelect
   vmap <silent> <Leader>ga <Plug>CycleSelect
 
+
+Cycle([{class}, {dir}, {count}, {opts}])                             *Cycle()*
+
+  You can use this function to trigger a cycle.
+  {class} can be "w" or "v", used to tell starting from a word, or visual mode.
+  {dir} is the cycle direction.
+  {count} is the jump offset.
+  {opts} is a dictionary which can contains:
+    "groups"  Use custom groups instead of the groups maintained by this
+              plugin internally.
+
+CycleSelect([{class}, {opts}])                                 *CycleSelect()*
+
+  You can use this function to trigger a cycle selection.
+  See |Cycle()| about arguments.
+
 ==============================================================================
 CONFIGURATION                                            *cycle-configuration*
 
@@ -166,6 +182,24 @@ g:cycle_auto_visual       (default: 0) ~
   (for example, it contains whitespace, see 'iskeyword'), you might want to
   select the new text with visual mode. Set this option to 1 to enable it.
 
+                                                       *g:cycle_naming_config*
+g:cycle_naming_config     (default: none) ~
+
+  A dictionary to customize the setting of "naming" matcher / changer (see
+  |cycle-group-options| section). When absent, below defaults applied: >
+  let g:cycle_naming_config = {
+      \   'snake_case':           ['\v\l%(\l|\d)*%(_%(\l|\d)+)+'],
+      \   'camelCase':            ['\v\l%(\l|\d)*%(\u%(\l|\d)*)+'],
+      \   'camelCase_1':          ['\v\l%(\l|\d)*%(%(\u|_\d)%(\l|\d)*)+'],
+      \   'kebab-case':           ['\v%(\l|\d)+%(-%(\l|\d)+)+'],
+      \   'PascalCase':           ['\v%(\u+%(\l|\d)+)%(%(\u|\d)+%(\l|\d)+)*'],
+      \   'PascalCase_1':         ['\v%(\u+%(\l|\d)+)%(%(\u|_\d)+%(\l|\d)+)*'],
+      \   'SCREAMING_SNAKE_CASE': ['\v\u+%(_%(\u|\d)+)*'],
+      \ }
+< where the key is a "name" of convention, and value is a list of string
+  {pattern} and optional dictionary {options}, the options can contain a "sub"
+  key to specify a {sub} for internal |substitute()|.
+
 ------------------------------------------------------------------------------
 Define groups                                            *cycle-define-groups*
 
@@ -211,6 +245,11 @@ To add a group, use |cycle#add_group()| with any of below forms >
   call cycle#add_group(['Yes', 'No'], 'match_case', {'hard_case': 1})
   call cycle#add_group([['Yes', 'No'], 'match_case'])
 <
+                                                         *cycle#parse_group()*
+To translate a group from `add_group()` form (usually more human-friendly) to
+internal dictionary form. You can use `cycle#parse_group()` function. Note it
+might returns a list of groups because of shorthand group option expanding.
+
                                                          *cycle#add_b_group()*
 Use cycle#add_b_group() to add a group into b: scoped. |b:cycle_groups|
 
@@ -344,12 +383,23 @@ By default no options are set.
 "matcher"           string | Dict (default: none) ~
 
   Take different strategy to match group items.
-  Available options: `"regex" "year"`
+  Available options:
 
   regex   Each group item is not an literal string, but a Vim regexp
           |pattern|. An item is matched when the cursor is within the match.
           Shoule be used with related options, see |cycle-group-option-regex|
           for detail.
+
+  naming  Each group item is a "name" of a naming convention. If the text
+          under cursor matches the convention, transform it to next style.
+          Current supported items: >
+          snake_case, camelCase, camelCase_1, kebab-case,
+          PascalCase, PascalCase_1, SCREAMING_SNAKE_CASE
+<
+          The `_1` suffixed variants were used to "keep" segments consist with
+          only numbers, avoid them from being absorbed during transform. For
+          example change `COVID_19` to `Covid19` is non-reversible, while with
+          `camelCase_1` it changes to `Covid_19` where the number is splitted.
 
   year    Match CE (Common Era) year like `2024` or year notation in other
           calendar era systems like `民國 103` . Each group item is not an
@@ -368,12 +418,14 @@ By default no options are set.
 "changer"           string | Dict (default: none) ~
 
   Take different strategy to change matched item.
-  Available options: `"regex"`
+  Available options:
 
   regex   Do not replace item by directly cycle to "next" item, but find a
           corresponding {sub} (of |substitute()|) from regex:"to" option, use
           it to substitute the matched portion. Shoule be used with related
           options, see |cycle-group-option-regex| for detail.
+
+  naming  Convert text by applying next naming convention.
 
   year    Convert matched year to next calendar era system.
           If a calculated year is invalid (e.g., over the range of known
@@ -464,6 +516,11 @@ By default no options are set.
   `switch_custom_definitions` list to cycle groups. However remember to check
   the order of items, because Vim |Dictionary| doesn't have specific ordering,
   incorrect order can breaks CycleSelect option generation.
+
+"naming"            Number (default: none) ~
+
+  This is merely a shorthand for "naming" matcher/changer. It expands to: >
+    #{matcher: 'naming', changer: 'naming'}
 
 "year"              Number (default: none) ~
 
@@ -682,6 +739,32 @@ Filetype specified groups:
           \    #{regex: ['\1- [x] ', '\1- [ ] '],
           \    name: 'Markdown task checkbox'}],
           \ ]
+<
+Set another set of groups, trigger by different mappings:
+>
+    let s:tx_groups = [
+          \   [['snake_case', 'kebab-case', 'camelCase_1', 'PascalCase_1',
+          \     'SCREAMING_SNAKE_CASE'], 'naming'],
+          \ ]
+
+    function! s:cycle_tx_groups() abort " {{{
+      let groups = s:tx_groups
+      " ... can do more dynamic handling to make your groups
+
+      " Must translate to internal format
+      let parsed = map(deepcopy(groups), {i, g -> cycle#parse_group(g)})
+      let parsed = flatten(parsed)
+      return #{groups: parsed}
+    endfunction " }}}
+
+    nnoremap <silent> <LocalLeader>x
+          \ <Cmd>call Cycle('w', 1, v:count1, <SID>cycle_tx_groups())<CR>
+    vnoremap <silent> <LocalLeader>x
+          \ <Cmd>call Cycle('v', 1, v:count1, <SID>cycle_tx_groups())<CR>
+    nnoremap <silent> <LocalLeader>gA
+          \ <Cmd>call CycleSelect('w', <SID>cycle_tx_groups())<CR>
+    vnoremap <silent> <LocalLeader>gA
+          \ <Cmd>call CycleSelect('v', <SID>cycle_tx_groups())<CR>
 <
 ==============================================================================
 LIMITATIONS                                                *cycle-limitations*
