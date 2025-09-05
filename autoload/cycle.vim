@@ -32,7 +32,7 @@ let s:tick = 0
 "
 " Group: {
 "   items: list
-"   options: dict
+"   options?: dict
 " }
 "
 "
@@ -182,9 +182,11 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
       continue
     endif
 
-    if has_key(group.options, 'cond')
-      if type(group.options['cond']) == v:t_func
-        if !group.options['cond'](group, s:tick)
+    let options = get(group, 'options', {})
+
+    if has_key(options, 'cond')
+      if type(options['cond']) == v:t_func
+        if !options['cond'](group, s:tick)
           continue
         endif
       else
@@ -314,12 +316,14 @@ function! s:accept_match(match, ctx) "{{{
     return
   endif
 
+  let options = get(m.group, 'options', {})
+
   call cycle#substitute(
         \   m.pairs.before,
         \   m.pairs.after,
         \   a:ctx.class_name,
         \   m.group.items,
-        \   extend(deepcopy(m.group.options), {'restrict_cursor': 1}),
+        \   extend(deepcopy(options), {'restrict_cursor': 1}),
         \ )
 endfunction "}}}
 
@@ -407,7 +411,8 @@ endfunction "}}}
 " Returns:
 "   list<matched_col: number, ctext: Ctext>
 function! s:group_search(group, class_name, search_ctx) "{{{
-  let matcher = get(a:group.options, 'matcher', 0)
+  let options = get(a:group, 'options', {})
+  let matcher = get(options, 'matcher', 0)
 
   if type(matcher) != type(0)
     let ctx = {'group': a:group, 'class_name': a:class_name}
@@ -609,7 +614,8 @@ endfunction "}}}
 function! s:build_match(ctext, group, item_idx) "{{{
   let ctext = deepcopy(a:ctext)
   let new_text = cycle#text#new_ctext('')
-  let changer = get(a:group.options, 'changer', 0)
+  let options = get(a:group, 'options', {})
+  let changer = get(options, 'changer', 0)
 
   if type(changer) != type(0)
     let ctx = {'ctext': deepcopy(ctext), 'group': deepcopy(a:group), 'index': a:item_idx}
@@ -642,7 +648,8 @@ endfunction "}}}
 "   list<Match>
 function! s:build_matches(ctext, group, item_idx) "{{{
   let matches = []
-  let changer = get(a:group.options, 'changer', 0)
+  let options = get(a:group, 'options', {})
+  let changer = get(options, 'changer', 0)
 
   if type(changer) != type(0)
     let ctx = {'ctext': deepcopy(a:ctext), 'group': deepcopy(a:group), 'index': a:item_idx}

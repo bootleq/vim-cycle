@@ -97,7 +97,7 @@ Describe Group definition
       call Cycle('w', 1, 1)
       Assert Equals(getline(1), 'beep beep')
 
-      call Cycle('w', 1, 1, #{ groups: [#{items: ['beep', 'poo'], options: {}}] })
+      call Cycle('w', 1, 1, #{ groups: [#{items: ['beep', 'poo']}] })
       Assert Equals(getline(1), 'poo beep')
     End
   End
