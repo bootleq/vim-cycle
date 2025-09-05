@@ -496,6 +496,11 @@ By default no options are set.
   the order of items, because Vim |Dictionary| doesn't have specific ordering,
   incorrect order can breaks CycleSelect option generation.
 
+"naming"            Number (default: none) ~
+
+  This is merely a shorthand for "naming" matcher/changer. It expands to: >
+    #{matcher: 'naming', changer: 'naming'}
+
 "year"              Number (default: none) ~
 
   This is merely a shorthand for "year" matcher/changer. It expands to: >

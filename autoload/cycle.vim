@@ -15,6 +15,7 @@
 "   matcher
 "   changer
 "   regex
+"   naming
 "   year
 "   cond
 "
@@ -462,10 +463,14 @@ function! s:add_group(scope, group_attrs) "{{{
     return
   endif
 
-  if has_key(options, 'year')
-    unlet options['year']
-    call extend(options, {'matcher': 'year', 'changer': 'year'}, 'keep')
-  endif
+  " Alias options
+  for short in ['year', 'naming']
+    if has_key(options, short)
+      unlet options[short]
+      call extend(options, {'matcher': short, 'changer': short}, 'keep')
+    endif
+  endfor
+  unlet short
 
   if has_key(options, 'regex')
     " Expand from:  #{regex: [foo, bar]}
