@@ -166,6 +166,24 @@ g:cycle_auto_visual       (default: 0) ~
   (for example, it contains whitespace, see 'iskeyword'), you might want to
   select the new text with visual mode. Set this option to 1 to enable it.
 
+                                                       *g:cycle_naming_config*
+g:cycle_naming_config     (default: none) ~
+
+  A dictionary to customize the setting of "naming" matcher / changer (see
+  |cycle-group-options| section). When absent, below defaults applied: >
+  let g:cycle_naming_config = {
+      \   'snake_case':           ['\v\l%(\l|\d)*%(_%(\l|\d)+)+'],
+      \   'camelCase':            ['\v\l%(\l|\d)*%(\u%(\l|\d)*)+'],
+      \   'camelCase_1':          ['\v\l%(\l|\d)*%(%(\u|_\d)%(\l|\d)*)+'],
+      \   'kebab-case':           ['\v%(\l|\d)+%(-%(\l|\d)+)+'],
+      \   'PascalCase':           ['\v%(\u+%(\l|\d)+)%(%(\u|\d)+%(\l|\d)+)*'],
+      \   'PascalCase_1':         ['\v%(\u+%(\l|\d)+)%(%(\u|_\d)+%(\l|\d)+)*'],
+      \   'SCREAMING_SNAKE_CASE': ['\v\u+%(_%(\u|\d)+)*'],
+      \ }
+< where the key is a "name" of convention, and value is a list of string
+  {pattern} and optional dictionary {options}, the options can contain a "sub"
+  key to specify a {sub} for internal |substitute()|.
+
 ------------------------------------------------------------------------------
 Define groups                                            *cycle-define-groups*
 
@@ -351,6 +369,17 @@ By default no options are set.
           Shoule be used with related options, see |cycle-group-option-regex|
           for detail.
 
+  naming  Each group item is a "name" of a naming convention. If the text
+          under cursor matches the convention, transform it to next style.
+          Current supported items: >
+          snake_case, camelCase, camelCase_1, kebab-case,
+          PascalCase, PascalCase_1, SCREAMING_SNAKE_CASE
+<
+          The `_1` suffixed variants were used to "keep" segments consist with
+          only numbers, avoid them from being absorbed during transform. For
+          example change `COVID_19` to `Covid19` is non-reversible, while with
+          `camelCase_1` it changes to `Covid_19` where the number is splitted.
+
   year    Match CE (Common Era) year like `2024` or year notation in other
           calendar era systems like `民國 103` . Each group item is not an
           literal string but a era system. Current support items:
@@ -374,6 +403,8 @@ By default no options are set.
           corresponding {sub} (of |substitute()|) from regex:"to" option, use
           it to substitute the matched portion. Shoule be used with related
           options, see |cycle-group-option-regex| for detail.
+
+  naming  Convert text by applying next naming convention.
 
   year    Convert matched year to next calendar era system.
           If a calculated year is invalid (e.g., over the range of known
