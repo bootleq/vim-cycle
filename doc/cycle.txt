@@ -24,8 +24,8 @@ CONTENTS                                                      *cycle-contents*
 ==============================================================================
 INTRODUCTION                                              *cycle-introduction*
 
-*cycle* takes text near cursor, replace it with predefined alternates. Save
-your time from changing relative words like true/false, Yes/No, and so on.
+*cycle* takes text near the cursor, replaces it with predefined alternatives.
+Save your time when changing related words like true/false, Yes/No, and so on.
 
 ==============================================================================
 USAGE                                                            *cycle-usage*
@@ -35,15 +35,15 @@ USAGE                                                            *cycle-usage*
 Define key mappings for |<Plug>CycleNext| in |Normal| and |Visual| modes: >
   nmap <silent> <Leader>a <Plug>CycleNext
   vmap <silent> <Leader>a <Plug>CycleNext
-< to replace text-under-cursor or visual-selected-text with their alternates.
-(This plugin defines <Leader>a as default)
+< to replace the text-under-cursor or visual-selected-text. (This plugin
+defines <Leader>a as default mapping)
 
-You can add [count] to pick candidate at further index, instead of next ONE.
+You can add [count] to pick a candidate at further index instead of next ONE.
 You can map |<Plug>CyclePrev| (Prev, not Next) to cycle in reverse direction.
 
 For example, with items ["One", "Two", "Three"]
-and your custom mapping is <C-A> for CycleNext, <C-X> for CyclePrev,
-where the cursor is under "One", then
+and your custom mappings are <C-A> for CycleNext, <C-X> for CyclePrev,
+where the cursor is under "One", then:
 
     keys you type     result in ~
     -------------     --------- ~
@@ -53,9 +53,9 @@ where the cursor is under "One", then
       4<C-X>            Three
 
 This plugin has a very small set of preset groups (says, yes/no is a group).
-It's recommended to define groups by yourself, see |cycle-define-groups|.
+It's recommended to define groups yourself, see |cycle-define-groups|.
 
-There are some special features beside ordinary text replacing, which are
+There are some special features besides ordinary text replacement, which are
 controlled by group options, see |cycle-group-options|.
 
 You can use |.| to repeat last cycle if you have one of the following "repeat"
@@ -74,12 +74,12 @@ You can define key mappings in |Normal| and |Visual| modes: >
 Cycle([{class}, {dir}, {count}, {opts}])                             *Cycle()*
 
   You can use this function to trigger a cycle.
-  {class} can be "w" or "v", used to tell starting from a word, or visual mode.
+  {class} can be "w" or "v", which tells starting from a word, or visual mode.
   {dir} is the cycle direction.
-  {count} is the jump offset.
-  {opts} is a dictionary which can contains:
-    "groups"  Use custom groups instead of the groups maintained by this
-              plugin internally.
+  {count} is the cycle offset.
+  {opts} is a dictionary which can contain:
+    "groups"  Use specific groups instead of the groups added in ordinary way
+              and internally maintained by this plugin.
 
 CycleSelect([{class}, {opts}])                                 *CycleSelect()*
 
@@ -100,27 +100,27 @@ g:loaded_cycle            (default: none) ~
                                                       *g:cycle_default_groups*
 g:cycle_default_groups    (default: none) ~
 
-  This is a List for setting custom default groups. If exists, no groups will
-  be set by plugin itself. See |cycle-define-groups-practice|.
+  This is a List for setting custom default groups. If set, no groups will be
+  set by the plugin itself. See |cycle-define-groups-practice|.
 
                                        *g:cycle_default_groups_for_{filetype}*
 g:cycle_default_groups_for_{filetype} ~
                           (default: none) ~
 
-  Like |g:cycle_default_groups| but this List will be loaded when 'filetype'
-  changes, thus only available for targeted filetype.
+  Like |g:cycle_default_groups| but this List is loaded when 'filetype'
+  changes, thus only available for the targeted filetype.
 
-  The {filetype} part should be replaced with real type string, e.g.: >
+  The {filetype} part should be replaced with an actual type string, e.g.: >
     let g:cycle_default_groups_for_ruby = []
 < is for filetype "ruby".
 
                                                       *g:cycle_filetype_links*
 g:cycle_filetype_links    (default: none) ~
 
-  With filetype-specific groups, you can define this to "link" a filetype to
-  let it picking other filetype's effective groups.
+  With filetype-specific groups, you can define this variable to "link" a
+  filetype, to allow it picking another filetype's effective groups.
 
-  For example you might want to use markdown groups for type "ghmarkdown". >
+  For example, you might want to use markdown groups for type "ghmarkdown". >
     let g:cycle_filetype_links = {
           \   'ghmarkdown': 'markdown',
           \   'typescriptreact': 'javascript',
@@ -141,17 +141,17 @@ g:cycle_no_mappings       (default: 0) ~
 g:cycle_max_conflict      (default: 1) ~
 
   When there are more than 1 alternates (in different groups) for current
-  text, you are prompted to select which is the wanted one.
+  text, you are prompted to select which is the desired one.
 
   This feature is only enabled when this value is greater than 1.
 
-  The default value is 1, means no conflicts will be handled. This improve
-  some performance since no extra search is needed after first found.
+  The default value is 1, which means no conflicts will be handled. This
+  improves performance since no extra search is needed after first found.
   And it's recommended to use buffer-scoped groups to prevent conflicts, see
   |cycle-define-groups-practice|.
 
-  When the number of conflicts is more than this setting, no prompt will be
-  shown, cycle aborts with a message instead.
+  When the number of conflicts exceeds this setting, no prompt will be shown,
+  the cycle aborts with a message instead.
 
                                                            *g:cycle_select_ui*
 g:cycle_select_ui      (default: "") ~
@@ -166,9 +166,9 @@ g:cycle_select_ui      (default: "") ~
 
       confirm       Use Vim's |confirm()|, type 1 character to select.
 
-  or leave it empty, will try available methods in above order.
+  or leave it empty; will try available methods in the above order.
 
-  If given method is not supported, will fallback to next one.
+  If the given method is not supported, will fallback to next one.
 
                                                          *g:cycle_conflict_ui*
 g:cycle_conflict_ui      (default: "confirm") ~
@@ -185,7 +185,7 @@ g:cycle_auto_visual       (default: 0) ~
                                                        *g:cycle_naming_config*
 g:cycle_naming_config     (default: none) ~
 
-  A dictionary to customize the setting of "naming" matcher / changer (see
+  A dictionary to customize the settings of "naming" matcher / changer (see
   |cycle-group-options| section). When absent, below defaults applied: >
   let g:cycle_naming_config = {
       \   'snake_case':           ['\v\l%(\l|\d)*%(_%(\l|\d)+)+'],
@@ -199,6 +199,25 @@ g:cycle_naming_config     (default: none) ~
 < where the key is a "name" of convention, and value is a list of string
   {pattern} and optional dictionary {options}, the options can contain a "sub"
   key to specify a {sub} for internal |substitute()|.
+
+                                                         *g:cycle_year_config*
+g:cycle_year_config       (default: none) ~
+
+  A dictionary to customize the setting of "year" matcher / changer (see
+  |cycle-group-options| section). When absent, below defaults applied: >
+  let g:cycle_year_config = {
+        \   '民國': {'range': [1,  200], 'begin': 1912},
+        \   '令和': {'range': [1,  200], 'begin': 2019},
+        \   '平成': {'range': [1,   31], 'begin': 1989, 'end': 2019},
+        \   '昭和': {'range': [1,   64], 'begin': 1926, 'end': 1989},
+        \   '大正': {'range': [1,   15], 'begin': 1912, 'end': 1926},
+        \   '明治': {'range': [1,   45], 'begin': 1868, 'end': 1912},
+        \   'พ.ศ.': {'range': [1, 2700], 'begin': -543},
+        \   'CE':   {},
+        \ }
+< where all non-CE systems must have a "begin" year relative to CE 1st. If the
+  "end" is known then "end" should also be given. The "range" defines a
+  boundary so the search doesn't need to consider longer string like "10000".
 
 ------------------------------------------------------------------------------
 Define groups                                            *cycle-define-groups*
@@ -217,10 +236,10 @@ The structure looks like:
     },                              |   =>
   ],                                |
 <
-when there exists |b:cycle_groups|, it takes higher priority than the global
-one. |g:var| |b:var|
+when |b:cycle_groups| exists, it takes higher priority than the global one.
+|g:var| |b:var|
 
-You should not define cycle_groups directly. Use |cycle#add_group()| is the
+You should not define cycle_groups directly. Using |cycle#add_group()| is the
 preferred way.
 
                                                         *cycle-default-groups*
@@ -230,11 +249,11 @@ Without any configuration, the default preset groups are: >
         \   [['yes', 'no']],
         \   [['on', 'off']],
         \ ])
-< note this will be ignored if any |g:cycle_default_groups| configured.
+< note this will be ignored if any |g:cycle_default_groups| are configured.
 
                                                            *cycle#add_group()*
 A group consists with "items" and optional "options".
-To add a group, use |cycle#add_group()| with any of below forms >
+To add a group, use |cycle#add_group()| with any of below forms: >
   cycle#add_group(items)
   cycle#add_group(items, options)
   cycle#add_group(items, option, ..., option_can_be_dictionary_or_string)
@@ -247,15 +266,15 @@ To add a group, use |cycle#add_group()| with any of below forms >
 <
                                                          *cycle#parse_group()*
 To translate a group from `add_group()` form (usually more human-friendly) to
-internal dictionary form. You can use `cycle#parse_group()` function. Note it
-might returns a list of groups because of shorthand group option expanding.
+its internal dictionary form. You can use `cycle#parse_group()` function. Note
+it might return a list of groups because of shorthand group option expansion.
 
                                                          *cycle#add_b_group()*
 Use cycle#add_b_group() to add a group into b: scoped. |b:cycle_groups|
 
                                                           *cycle#add_groups()*
                                                         *cycle#add_b_groups()*
-To add multiple groups at the same time, there are shortcut version of adding
+To add multiple groups at the same time, there are shortcut versions of adding
 functions. You have to wrap items and options as a List, for example: >
   call cycle#add_groups([
         \   [['true', 'false']],
@@ -289,9 +308,9 @@ See |cycle-config-examples|.
 ------------------------------------------------------------------------------
 Group options                                            *cycle-group-options*
 
-A group option is a Dictionary with key-value pair. While for convenience,
-in |cycle#add_group()| and similar functions, you can set it as a string (by
-its key), the option's default value will be used.
+A group option is a Dictionary with a key-value pair. While for convenience,
+in |cycle#add_group()| and similar functions, you can set it as a string
+(using its key), and the option's default value will be used.
 
 By default no options are set.
 
@@ -308,8 +327,8 @@ By default no options are set.
 
 "hard_case"         Number (default: 0) ~
 
-  By default, case in original text will be copied to resulting text. Thus
-  "friDAY" will become "satURDay".
+  By default, the case in the original text will be copied to the resulting
+  text. Thus "friDAY" will become "satURDay".
   Set this option other than 0 to keep resulting text with the same case as
   they were defined.
 
@@ -331,7 +350,7 @@ By default no options are set.
     call cycle#add_group(
           \   [ '{', '<' ], 'sub_pair', {'end_with': [ '}', '>' ]}
           \ )
-< It's recommended to use "sub_pairs" other than this option.
+< It's recommended to use "sub_pairs" rather than this option.
 
 "end_with"          List (default: none) ~
 "begin_with"        List (default: none) ~
@@ -347,14 +366,14 @@ By default no options are set.
     call cycle#add_group(
           \   [ '{:}', '<:>' ], 'sub_pairs'
           \ )
-< Internally, this group will be translated into two groups, just identical
-  with original 'sub_pair' version.
+< Internally, this group will be translated into two groups, just identical to
+  the original 'sub_pair' version.
 
   Identical Pairs:
 
-  It is possible to set `sub_pairs` with the same character at both sides. For
+  It is possible to set `sub_pairs` with the same character on both sides. For
   example `":"`. This will try different methods to find the position of
-  another side and doesn't always work (per situation).
+  another side and doesn't always work (depending on the situation).
 
   Current finding methods are:
 
@@ -365,7 +384,7 @@ By default no options are set.
   And have below behaviors or limitations:
 
   - Identical pair can only contain 1 character.
-  - If can't find another side, still cycle as it is the beginning side.
+  - If can't find another side, will still cycle as it is the beginning side.
 
 "before_sub"        (List) ~
 "after_sub"         (List) ~
@@ -376,7 +395,7 @@ By default no options are set.
 
 "match_word"        Number (default: none) ~
 
-  Restrict group items to be matched within word-boundary, see 'iskeyword'.
+  Restrict group items to be matched within a word boundary, see 'iskeyword'.
   For example, on/off only matches "on" but not "Mon".
   Set this option other than 0 to enforce word-bounded search.
 
@@ -388,24 +407,24 @@ By default no options are set.
   regex   Each group item is not an literal string, but a Vim regexp
           |pattern|. An item is matched when the cursor is within the match.
           Shoule be used with related options, see |cycle-group-option-regex|
-          for detail.
+          for details.
 
   naming  Each group item is a "name" of a naming convention. If the text
-          under cursor matches the convention, transform it to next style.
-          Current supported items: >
+          under the cursor matches the convention, transform it to the next
+          style. Current supported items: >
           snake_case, camelCase, camelCase_1, kebab-case,
           PascalCase, PascalCase_1, SCREAMING_SNAKE_CASE
 <
           The `_1` suffixed variants were used to "keep" segments consist with
           only numbers, avoid them from being absorbed during transform. For
-          example change `COVID_19` to `Covid19` is non-reversible, while with
-          `camelCase_1` it changes to `Covid_19` where the number is splitted.
+          example `COVID_19` -> `Covid19` is non-reversible, while with
+          `camelCase_1`, it changes to `Covid_19` where the number is split.
 
-  year    Match CE (Common Era) year like `2024` or year notation in other
+  year    Match CE (Common Era) years like `2024` or year notation in other
           calendar era systems like `民國 103` . Each group item is not an
-          literal string but a era system. Current support items:
+          literal string but an era system. Current support items: >
           民國, 令和, 平成, 昭和, 大正, 明治, พ.ศ., CE
-          'CE' must be put on last to avoid overshadow others.
+<         'CE' must be put at the last position to avoid overshadow others.
 
   {dict}  You can provide custom "test" function for matcher. Set this option
           to a dict with `test` key pointer to the function name or Funcref.
@@ -428,8 +447,8 @@ By default no options are set.
   naming  Convert text by applying next naming convention.
 
   year    Convert matched year to next calendar era system.
-          If a calculated year is invalid (e.g., over the range of known
-          historical era), discard the result and try next item.
+          If a calculated year is invalid (e.g., outside the range of a known
+          historical era), discard the result and try the next item.
 
   {dict}  You can provide custom `#change` functions for changer. Set this
           option to a dict with `change` key pointer to the function name or
@@ -445,7 +464,7 @@ By default no options are set.
 "regex"             (Dict) (default: none) ~
 
   This provides detailed info for working together with "matcher" and
-  "changer" were set to "regex" strategy. Example usage: >
+  "changer" when type are set to the "regex" strategy. Example usage: >
 
     [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{regex: ['\1: ', ':\1 => ']}]
 
@@ -459,7 +478,7 @@ By default no options are set.
       \   }
       \ }]
 <
-  this mimics the way switch.vim works.
+  This mimics the way switch.vim works.
   https://github.com/AndrewRadev/switch.vim
   In fact above rules were derived from one of switch.vim's builtin: >
     \   'ruby_hash_style': {
@@ -474,17 +493,17 @@ By default no options are set.
 
   - "to"             (List | Dict) (default: none) ~
 
-    Defines how an matched pattern should be substituted. It should have the
-    same size of group items, and each pattern is used for the item at the
-    same index (not for "next" item as you might expect like usual cycle).
+    Defines how a matched pattern should be substituted. It should have the
+    same number of group items, and each pattern is used for the item at the
+    same index (not for the "next" item as you might expect in a usual cycle).
 
     For example, items: `['x\(\d\)x', 'o\(\d\)o']`  can have settings like
                     to: `['o\1o',     'x\1x']`
         to change item: `x4x` => `o4o`
 
-    Can also be set as |Dict| like switch.vim's "nested dict definition", the
-    matched text will be global substituted with {pattern} and {sub} comes
-    from the dict's key and value. For example: >
+    Can also be set as a |Dict| like switch.vim's "nested dict definition",
+    the matched text will be globally substituted with {pattern} and {sub}
+    comes from the dict's key and value. For example: >
       [['\<[a-z0-9]\+_\k\+\>'],
         #{regex: {
           'to': { '_\(.\)': '\U\1' },
@@ -502,20 +521,20 @@ By default no options are set.
                                                *cycle-group-option-regex-subp*
   - "subp"           (List) (default: none) ~
 
-    Provides loosen "sub patterns" for "matched" text. Refer to the Limitation
+    Provides looser "sub patterns" for "matched" text. Refer to the Limitation
     section of "to" as reason. For example: >
       [['\(ex-\)\@<=\(\k\+\)'],
         #{regex: {
           'to': ['OK'],
           'subp': ['\(\k\+\)'],
         }]
-<   can successfully cycle "ex-friend" to "OK". Without "subp" it can't.
+<   can successfully cycle "ex-friend" to "OK". Without "subp" it doesn't.
 
                                      *cycle#group_converter#regex_dict_list()*
   Hint: you can use `cycle#group_converter#regex_dict_list()` to convert
-  `switch_custom_definitions` list to cycle groups. However remember to check
-  the order of items, because Vim |Dictionary| doesn't have specific ordering,
-  incorrect order can breaks CycleSelect option generation.
+  `switch_custom_definitions` list to cycle groups. However, remember to check
+  the order of items, because Vim |Dictionary| doesn't have a specific
+  ordering, incorrect order can break CycleSelect option generation.
 
 "naming"            Number (default: none) ~
 
@@ -533,7 +552,7 @@ By default no options are set.
   The function receives 2 arguments:
     - group: the group dictionary.
     - tick: an internal number (starts from 0) which increases every time
-            doing search. Can be used to memorise function result (cache).
+            doing search. Can be used to memorize function results (cache).
   This function runs "before" each group item's matching.
   Example: >
     " Do not cycle [ ==, != ] when not in lua language (lua uses ~=)
@@ -572,9 +591,9 @@ Sometimes the target text is not identical to |<cword>|, for example a group
 item "Hello World" with the cursor being put at the space between words.
 
 This plugin will try to guess what you want in several phases. For example it
-checks current multibyte char at cursor, then |<cword>|, then line search.
+checks current multibyte char at cursor, then |<cword>|, then a line search.
 
-To cycle on exactly known area, please visual-select the text first.
+To cycle on an exactly known area, please visual-select the text first.
 
 ------------------------------------------------------------------------------
 Fallback mapping                                      *cycle-fallback-mapping*
@@ -730,7 +749,7 @@ Filetype specified groups:
           \   ],
           \   'sub_pairs', 'hard_case', 'match_case'
           \ ]
-          " Note (:) must be put at the end. The search runs in sequence,
+          " Note (:) must be put at the end. The search runs in sequence;
           " an earlier ( match can short-circuit the following items.
 
     " markdown only
@@ -781,7 +800,7 @@ CREDITS                                                        *cycle-credits*
 
 - Andrew Radev ~
   Author of switch.vim https://github.com/AndrewRadev/switch.vim
-  The "regex" strategy's crucial first search('bcW') detection is learnt from
+  The "regex" strategy's crucial first search('bcW') detection is learned from
   switch.vim.
 
 ==============================================================================

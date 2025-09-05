@@ -85,8 +85,12 @@ let g:cycle_default_groups_for_plaintex = [
 " 1. cycles:  :bar =>    bar:
 " 2. cycles: "foo" 'foo' :foo
 let g:cycle_default_groups_for_ruby = [
-      \   [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{regex: ['\1: ', ':\1 => '], name: 'ruby hash style'}],
-      \   [['"\(\k\+\%([?!]\)\=\)"', '''\(\k\+\%([?!]\)\=\)''', ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!'], #{regex: ['''\1''', ':\1', '"\1"\2']}]
+      \   [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '],
+      \    #{regex: ['\1: ', ':\1 => '], name: 'ruby hash style'}],
+      \   [['"\(\k\+\%([?!]\)\=\)"',
+      \     '''\(\k\+\%([?!]\)\=\)''',
+      \     ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!'
+      \    ], #{regex: ['''\1''', ':\1', '"\1"\2']}]
       \ ]
 
 " For fileType markdown only
@@ -104,7 +108,8 @@ let g:cycle_default_groups += [
 
 let g:cycle_default_groups += [
       \   [['日', '一', '二', '三', '四', '五', '六']],
-      \   [['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']],
+      \   [['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
+      \     'Aug', 'Sep', 'Oct', 'Nov', 'Dec']],
       \   [['January', 'February', 'March', 'April', 'May', 'June', 'July',
       \     'August', 'September', 'October', 'November', 'December']],
       \   [['portrait', 'landscape']],
@@ -113,12 +118,15 @@ let g:cycle_default_groups += [
 
 " Set another mapping for certain groups
 let s:tx_groups = [
-      \   [['snake_case', 'kebab-case', 'camelCase_1', 'PascalCase_1', 'SCREAMING_SNAKE_CASE'], 'naming'],
+      \   [['snake_case', 'kebab-case', 'camelCase_1',
+      \     'PascalCase_1', 'SCREAMING_SNAKE_CASE'], 'naming'],
       \ ]
 function! s:cycle_tx_groups() abort " {{{
   let groups = s:tx_groups
   " ... can do more dynamic handling to make your groups
-  let parsed = map(deepcopy(groups), {i, g -> cycle#parse_group(g)})  " must trans to internal format
+
+  " must translate to internal format
+  let parsed = map(deepcopy(groups), {i, g -> cycle#parse_group(g)})
   let parsed = flatten(parsed)
   return #{groups: parsed}
 endfunction " }}}

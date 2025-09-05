@@ -3,9 +3,25 @@ CHANGES
 
 ## 1.?.? (2025-??-??)
 
-* Add `regex` group option, cycle more complicated patterns like switch.vim (https://github.com/AndrewRadev/switch.vim)
+* Add `regex` group option, can cycle more complicated patterns like switch.vim (https://github.com/AndrewRadev/switch.vim)
 
-* `regex` is actually a shorthand of 3 added options: `matcher`, `changer` and `replacer`.
+* New group options: `matcher` and `changer`. In fact "regex" feature is made up by these mechanisms together.
+
+* Add `year` group option, cycle between calendar era systems.
+
+* Add `naming` group option, cycle between naming conventions.
+
+* `sub_pairs` now supports using an identical character on both begin and end sides.
+
+* `Cycle()` and `CycleSelect()` functions now accept extra groups argument,
+  allow to use ad-hoc groups instead of ordinary added groups. This is useful
+  to setup different mappings for another set of groups.
+
+* Add `cycle_filetype_links` option; to define certain filetypes to share other types' groups.
+
+* Change the phased search for multibyte character, fix a problem when cword is equal to cchar.
+
+* Optional callbacks were moved to autoload functions.
 
 ## 1.0.0 (2025-08-27)
 

@@ -8,16 +8,18 @@
 "   ['民國', 'พ.ศ.', 'CE']
 " Note the 'CE' must be put as last item to avoid overshadow others.
 
-let g:cycle_year_config = {
-      \   '民國': {'range': [1,  200], 'begin': 1912},
-      \   '令和': {'range': [1,  200], 'begin': 2019},
-      \   '平成': {'range': [1,   31], 'begin': 1989, 'end': 2019},
-      \   '昭和': {'range': [1,   64], 'begin': 1926, 'end': 1989},
-      \   '大正': {'range': [1,   15], 'begin': 1912, 'end': 1926},
-      \   '明治': {'range': [1,   45], 'begin': 1868, 'end': 1912},
-      \   'พ.ศ.': {'range': [1, 2700], 'begin': -543},
-      \   'CE':   {},
-      \ }
+if !exists('g:cycle_year_config')
+  let g:cycle_year_config = {
+        \   '民國': {'range': [1,  200], 'begin': 1912},
+        \   '令和': {'range': [1,  200], 'begin': 2019},
+        \   '平成': {'range': [1,   31], 'begin': 1989, 'end': 2019},
+        \   '昭和': {'range': [1,   64], 'begin': 1926, 'end': 1989},
+        \   '大正': {'range': [1,   15], 'begin': 1912, 'end': 1926},
+        \   '明治': {'range': [1,   45], 'begin': 1868, 'end': 1912},
+        \   'พ.ศ.': {'range': [1, 2700], 'begin': -543},
+        \   'CE':   {},
+        \ }
+endif
 
 " See `s:group_search()` in autoload/cycle.vim
 " Params:
