@@ -63,7 +63,19 @@ function! cycle#matcher#naming#test(group, class_name) abort "{{{
       let pattern = '\%' . v_begin . 'c' . pattern . '\m\%' . v_end . 'c'
     endif
 
-    let [line, col, text] = cycle#matcher#regex#test_pattern(pattern)
+    " Define vars will be affected by 'iskeyword' first
+    let [line, col, text] = [0, 0, {}]
+    let new_cword = ''
+
+    let saved_isk = &l:iskeyword
+    try
+      let &l:isk = '@,48-57,-,_'
+      let [line, col, text] = cycle#matcher#regex#test_pattern(pattern)
+      let new_cword = cycle#text#new_cword()
+    finally
+      let &l:isk = saved_isk
+    endtry
+
     if col > 0
       let index = index(a:group.items, item)
       let ctext = {
@@ -73,7 +85,7 @@ function! cycle#matcher#naming#test(group, class_name) abort "{{{
             \ }
       if a:class_name == 'v' && ctext != cycle#text#new_cvisual()
         continue
-      elseif a:class_name == 'w' && ctext != cycle#text#new_cword()
+      elseif a:class_name == 'w' && ctext != new_cword
         continue
       endif
       return [index, ctext]

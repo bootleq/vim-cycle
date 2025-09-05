@@ -6,6 +6,7 @@ Describe Naming Convention Matcher/Changer
   After each
     bwipeout!
     let g:cycle_max_conflict = 1
+    set iskeyword&
   End
 
   Context cycles convention types
@@ -126,6 +127,16 @@ Describe Naming Convention Matcher/Changer
       normal! fBvfZ
       execute 'normal \a'
       Assert Equals(getline(1), 'FOO_BarBaz_HOGE')
+    End
+
+    It ignores 'iskeyword' option
+      let saved_isk = &l:iskeyword
+      set iskeyword+=#
+      call setline(1, 'lock#KeyWord')
+      call search('Wo')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'lock#key_word')
+      Assert Equals(&l:iskeyword, saved_isk . ',#')
     End
 
     It select UI, normal
