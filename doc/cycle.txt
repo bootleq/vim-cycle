@@ -795,9 +795,9 @@ Set another set of groups, trigger by different mappings:
           \ <Cmd>call Cycle('w', 1, v:count1, <SID>cycle_tx_groups())<CR>
     vnoremap <silent> <LocalLeader>x
           \ <Cmd>call Cycle('v', 1, v:count1, <SID>cycle_tx_groups())<CR>
-    nnoremap <silent> <LocalLeader>gA
+    nnoremap <silent> <LocalLeader>gx
           \ <Cmd>call CycleSelect('w', <SID>cycle_tx_groups())<CR>
-    vnoremap <silent> <LocalLeader>gA
+    vnoremap <silent> <LocalLeader>gx
           \ <Cmd>call CycleSelect('v', <SID>cycle_tx_groups())<CR>
 <
 ==============================================================================
