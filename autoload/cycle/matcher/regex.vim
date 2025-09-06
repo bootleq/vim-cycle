@@ -36,6 +36,8 @@ endfunction "}}}
 function! cycle#matcher#regex#test_pattern(pattern) "{{{
   let saved_pos = getpos('.')
   let [line, col] = getpos('.')[1:2]
+  let gv_area = [getpos("'<"), getpos("'>")]
+
   let pattern = a:pattern
   let text = ''
   let not_found = [0, -1, '']
@@ -51,7 +53,7 @@ function! cycle#matcher#regex#test_pattern(pattern) "{{{
       silent normal! ma
       let match_end = search(pattern, 'cWe', line)
       if match_end > 0
-        silent normal! v`a"ay
+        keepjumps silent normal! v`a"ay
         let text = @a
 
         if match_start + strlen(text) <= col
@@ -62,6 +64,8 @@ function! cycle#matcher#regex#test_pattern(pattern) "{{{
   finally
     call cycle#util#restore_reg('a')
     call setpos('.', saved_pos)
+    call setpos("'<", gv_area[0])
+    call setpos("'>", gv_area[1])
   endtry
 
   if match_start
