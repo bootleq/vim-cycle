@@ -93,7 +93,7 @@ let g:cycle_default_groups_for_ruby = [
       \    ], #{regex: ['''\1''', ':\1', '"\1"\2']}]
       \ ]
 
-" For fileType markdown only
+" For fileType "markdown" only
 let g:cycle_default_groups_for_markdown = [
       \   [['^\(\s*\)- \[ \] ', '^\(\s*\)- \[x\] '],
       \    #{regex: ['\1- [x] ', '\1- [ ] '], name: 'markdown_task_item'}],
@@ -132,8 +132,8 @@ function! s:cycle_tx_groups() abort " {{{
 endfunction " }}}
 nnoremap <silent> <LocalLeader>x <Cmd>call Cycle('w', 1, v:count1, <SID>cycle_tx_groups())<CR>
 vnoremap <silent> <LocalLeader>x <Cmd>call Cycle('v', 1, v:count1, <SID>cycle_tx_groups())<CR>
-nnoremap <silent> <LocalLeader>gA <Cmd>call CycleSelect('w', <SID>cycle_tx_groups())<CR>
-vnoremap <silent> <LocalLeader>gA <Cmd>call CycleSelect('v', <SID>cycle_tx_groups())<CR>
+nnoremap <silent> <LocalLeader>gx <Cmd>call CycleSelect('w', <SID>cycle_tx_groups())<CR>
+vnoremap <silent> <LocalLeader>gx <Cmd>call CycleSelect('v', <SID>cycle_tx_groups())<CR>
 ```
 
 

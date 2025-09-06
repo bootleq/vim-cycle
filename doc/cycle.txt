@@ -399,6 +399,9 @@ By default no options are set.
   For example, on/off only matches "on" but not "Mon".
   Set this option other than 0 to enforce word-bounded search.
 
+  This option has no effect in "regex" matcher.
+  In "naming" matcher, the 'iskeyword' option is always set to "@,48-57,-,_".
+
 "matcher"           string | Dict (default: none) ~
 
   Take different strategy to match group items.
@@ -792,9 +795,9 @@ Set another set of groups, trigger by different mappings:
           \ <Cmd>call Cycle('w', 1, v:count1, <SID>cycle_tx_groups())<CR>
     vnoremap <silent> <LocalLeader>x
           \ <Cmd>call Cycle('v', 1, v:count1, <SID>cycle_tx_groups())<CR>
-    nnoremap <silent> <LocalLeader>gA
+    nnoremap <silent> <LocalLeader>gx
           \ <Cmd>call CycleSelect('w', <SID>cycle_tx_groups())<CR>
-    vnoremap <silent> <LocalLeader>gA
+    vnoremap <silent> <LocalLeader>gx
           \ <Cmd>call CycleSelect('v', <SID>cycle_tx_groups())<CR>
 <
 ==============================================================================
