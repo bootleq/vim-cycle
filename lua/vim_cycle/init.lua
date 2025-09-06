@@ -1,4 +1,5 @@
 local M = {}
+local hint_pad_size = 4
 
 local make_select_options = function(options)
   local max_length = math.max(
@@ -8,7 +9,21 @@ local make_select_options = function(options)
       end, options)
     )
   )
-  local format_str = string.format("%%-%dS", max_length)
+
+  local max_hint_length = math.max(
+    unpack(
+      vim.tbl_map(function(opt)
+        return string.len(opt.hint)
+      end, options)
+    )
+  )
+
+  local hint_pad = ''
+  if max_hint_length > 0 then
+    hint_pad = string.rep(' ', hint_pad_size)
+  end
+
+  local format_str = string.format("%%-%dS" .. hint_pad .. " %%-%dS", max_length, max_hint_length)
 
   local select_options = {
     prompt = 'Cycle to:',
@@ -20,7 +35,7 @@ local make_select_options = function(options)
         group = ''
       end
 
-      return vim.fn.printf(format_str, opt.text) .. group
+      return vim.fn.printf(format_str, opt.text, opt.hint) .. group
     end,
   }
 

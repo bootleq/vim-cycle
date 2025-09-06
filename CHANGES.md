@@ -11,6 +11,8 @@ CHANGES
 
 * Add `naming` group option, cycle between naming conventions.
 
+* Add `hints` group option, display a static hint for each item in select or conflict UI.
+
 * `sub_pairs` now supports using an identical character on both begin and end sides.
 
 * `Cycle()` and `CycleSelect()` functions now accept extra groups argument,

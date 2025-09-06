@@ -584,6 +584,18 @@ By default no options are set.
       \   [['==', '!='], { 'cond': function('s:not_lua_context') }],
       \ ]
 <
+"hints"             List (default: none) ~
+
+  UI hint for each item.
+  Will be displayed in |CycleSelect()| or a conflict prompt. The list contains
+  string values, each corresponding to a group item. >
+      \   [['snake_case', 'SCREAMING_SNAKE_CASE'],
+      \     {'hints': ['snake_case', 'MACRO_CASE'}]}],
+< results in select UI like: >
+      Cycle to:
+        A) => foo_bar_baz      snake_case
+        B) => FOO_BAR_BAZ      MACRO_CASE
+<
 ------------------------------------------------------------------------------
 Phased Search                                            *cycle-phased-search*
 
