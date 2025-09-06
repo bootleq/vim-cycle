@@ -120,6 +120,37 @@ Describe Regex Matcher/Changer
       Assert Equals(getline(1), 'ooo "bar" xxx')
       Assert Equals(col('.'), 7)
     End
+
+    It keeps previous jumps and visual area untouched
+      call cycle#test#reset_default_groups([
+            \   [['fo\+', 'dummy'],
+            \    #{regex: ['ccc', 'eee']}],
+            \ ])
+
+      let lines =<< trim END
+        1 fooooo  fuel
+        2
+        3 pooo fighter
+      END
+      call setline(1, lines)
+
+      " Jump to line3, and visual select 'fighter'
+      normal! 3gg
+      execute "normal! ffve\<Esc>"
+
+      " Start cycle on 'fuel'
+      normal! gg$b
+      execute 'normal \a'
+      Assert Equals(getline(1), lines[0], 'No match, unchanged')
+      Assert Equals(col('.'), 11, 'Expect unchanged')
+
+      normal! ``
+      Assert Equals(line('.'), 3)
+      Assert Equals(col('.'), 14)
+
+      normal! gv"ay
+      Assert Equals(getreg('a', 1, 1), ['fighter'])
+    End
   End
 
   Context nested dict definition
