@@ -8,7 +8,7 @@ local make_select_options = function(options)
       end, options)
     )
   )
-  local format_str = string.format("%%-%ds", max_length)
+  local format_str = string.format("%%-%dS", max_length)
 
   local select_options = {
     prompt = 'Cycle to:',
@@ -20,7 +20,7 @@ local make_select_options = function(options)
         group = ''
       end
 
-      return string.format(format_str, opt.text) .. group
+      return vim.fn.printf(format_str, opt.text) .. group
     end,
   }
 
