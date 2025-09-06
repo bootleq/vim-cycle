@@ -131,24 +131,35 @@ endfunction "}}}
 function! s:find_by_searchpairpos(trigger_before, pair_before, pair_at, options) abort " {{{
   let ic_flag = get(a:options, 'match_case') ? '\C' : '\c'
   let timeout = 600
+  let pair_pos = [0, 0]
+  let saved_pos = getpos('.')[1:2]
 
   if a:pair_at == 'end'
-    let pair_pos = searchpairpos(
+    let start_pos = [a:trigger_before.line, a:trigger_before.col + len(a:trigger_before.text)]
+    let search_args = [
           \   cycle#util#escape_pattern(a:trigger_before.text),
           \   '',
           \   cycle#util#escape_pattern(a:pair_before.text) . ic_flag,
-          \   'nW',
+          \   'ncW',
           \   '', 0, timeout
-          \ )
+          \ ]
   else
-    let pair_pos = searchpairpos(
+    let start_pos = [a:trigger_before.line, a:trigger_before.col]
+    let search_args = [
           \   cycle#util#escape_pattern(a:pair_before.text),
           \   '',
           \   cycle#util#escape_pattern(a:trigger_before.text) . '\zs' . ic_flag,
-          \   'bnW',
+          \   'bW',
           \   '', 0, timeout
-          \ )
+          \ ]
   endif
+
+  call cursor(start_pos)
+  try
+    let pair_pos = call('searchpairpos', search_args)
+  finally
+    call cursor(saved_pos)
+  endtry
 
   return pair_pos
 endfunction " }}}

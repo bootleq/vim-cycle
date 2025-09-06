@@ -11,7 +11,7 @@ Describe Sub pairs
   End
 
   After each
-  bwipeout!
+    bwipeout!
   End
 
   It respects "sub_pair" and "end_with"
@@ -240,6 +240,23 @@ Describe Sub pairs
           let parser = luaeval("type(vim.treesitter.get_parser(vim.api.nvim_get_current_buf(), 'lua', {error = false})) == 'table'")
         endif
         " FIXME: this test is incomplete
+      End
+    End
+
+    Context practical cases
+      It JSX string attribute wrap
+        call cycle#test#reset_default_groups([
+              \   [['=":"', '={`:`}'], 'sub_pairs'],
+              \ ])
+        let line1 = '<label className="inline-flex items-center">'
+        let line2 = '<label className={`inline-flex items-center`}>'
+                   " 123456789 123456789 123456789 123456789
+                   "                 ^
+        call setline(1, line1)
+        call search('="')
+        execute 'normal \a'
+        Assert Equals(getline(1), line2)
+        Assert Equals(col('.'), 17)
       End
     End
   End
