@@ -1,5 +1,6 @@
 let s:funcs = {}
 let s:loaders = {}
+let s:hint_pad = 4
 
 
 " Select UI Loaders: {{{
@@ -64,13 +65,17 @@ function! s:open_inputlist(options) "{{{
   let index = 0
   let candidates = []
   let max_length = max(map(copy(a:options), 'strlen(v:val.text)'))
+  let max_hint_len = max(map(copy(a:options), 'strlen(v:val.hint)'))
+  let hint_pad = max_hint_len > 0 ? s:hint_pad : 0
   for option in a:options
     let group = get(option, 'group_name', '')
     let line = printf(
-          \   '%2S => %-*S %S',
+          \   '%2S => %-*S ' . repeat(' ', hint_pad) . ' %-*S %S',
           \   index + 1,
           \   max_length,
           \   option.text,
+          \   max_hint_len,
+          \   option.hint,
           \   len(group) ? printf(' (%s)', group) : ''
           \ )
     call add(candidates, line)
@@ -98,14 +103,19 @@ function! s:open_confirm(options) "{{{
   let captions = []
   let candidates = []
   let max_length = max(map(copy(a:options), 'strlen(v:val.text)'))
+  let max_hint_len = max(map(copy(a:options), 'strlen(v:val.hint)'))
+  let hint_pad = max_hint_len > 0 ? s:hint_pad : 0
+
   for option in a:options
     let caption = nr2char(char2nr('A') + index)
     let group = get(option, 'group_name', '')
     let line = printf(
-          \   ' %2S) => %-*S %S',
+          \   ' %2S) => %-*S ' . repeat(' ', hint_pad) . ' %-*S %S',
           \   caption,
           \   max_length,
           \   option.text,
+          \   max_hint_len,
+          \   option.hint,
           \   len(group) ? printf(' (%s)', group) : ''
           \ )
     call add(candidates, line)

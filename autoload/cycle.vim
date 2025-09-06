@@ -18,6 +18,7 @@
 "   naming
 "   year
 "   cond
+"   hints
 "
 " Sub options for 'regex':
 "   to
@@ -113,9 +114,12 @@ function! cycle#select(class_name, ...) "{{{
 
   let options = []
   for match in matches
+    let hints = get(match.group.options, 'hints', [])
+    let hint = empty(hints) ? '' : get(hints, match.index)
     call add(options, {
           \   "group_name": get(match.group.options, 'name', ''),
-          \   "text":       match.pairs.after.text
+          \   "text":       match.pairs.after.text,
+          \   "hint":       hint,
           \ })
   endfor
 
@@ -269,9 +273,12 @@ function! s:conflict(ctx) "{{{
 
   let options = []
   for match in matches
+    let hints = get(match.group.options, 'hints', [])
+    let hint = empty(hints) ? '' : get(hints, match.index)
     call add(options, {
           \   "group_name": get(match.group.options, 'name', ''),
-          \   "text":       match.pairs.after.text
+          \   "text":       match.pairs.after.text,
+          \   "hint":       hint,
           \ })
   endfor
 
