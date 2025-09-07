@@ -26,6 +26,7 @@ local make_select_options = function(options)
   local format_str = string.format("%%-%dS" .. hint_pad .. " %%-%dS", max_length, max_hint_length)
 
   local select_options = {
+    kind = 'vim-cycle',
     prompt = 'Cycle to:',
     format_item = function(opt)
       local group
