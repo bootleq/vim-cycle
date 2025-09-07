@@ -34,16 +34,6 @@ M.setup = function(opts)
   config = vim.tbl_deep_extend('force', defaults, opts or {})
 end
 
-function max_len(items, prop)
-  local max_len = math.max(
-    unpack(
-      vim.tbl_map(function(opt)
-        return strings.strdisplaywidth(opt[prop])
-      end, items)
-    ))
-  return max_len
-end
-
 function picker(type, items, ctx)
   local opts = config
 
@@ -57,18 +47,24 @@ function picker(type, items, ctx)
     callback = ctx.sid .. 'on_resolve_conflict'
   end
 
-  local max_text_len = max_len(items, 'text')
-  local max_hint_len = max_len(items, 'hint')
-  local max_group_len = max_len(items, 'group_name')
-
-  content_width = max_text_len + max_hint_len + max_group_len + (max_hint_len > 0 and hint_pad_size or 0) + (max_group_len > 0 and 2 or 0)
+  local widths = {
+    text = 0,
+    hint = 0,
+    group_name = 0,
+  }
+  for idx, item in ipairs(items) do
+    widths.text = math.max(widths.text , strings.strdisplaywidth(item.text))
+    widths.hint = math.max(widths.hint, strings.strdisplaywidth(item.hint))
+    widths.group_name = math.max(widths.group_name, strings.strdisplaywidth(item.group_name))
+  end
+  content_width = widths.text + widths.hint + widths.group_name + (widths.hint > 0 and hint_pad_size or 0) + (widths.group_name > 0 and 2 or 0)
 
   local displayer = entry_display.create {
     separator = ' ',
     items = {
-      { width = max_text_len },
-      { width = max_hint_len > 0 and hint_pad_size or 1 },
-      { width = max_hint_len },
+      { width = widths.text },
+      { width = widths.hint > 0 and hint_pad_size or 1 },
+      { width = widths.hint },
       { remaining = true },
     },
   }
