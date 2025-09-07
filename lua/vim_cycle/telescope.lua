@@ -10,6 +10,7 @@ local entry_display = require 'telescope.pickers.entry_display'
 
 local hint_pad_size = 2
 local content_width = 0
+local items_size = 0
 local picker_padding = 6
 
 local M = {}
@@ -21,10 +22,17 @@ local flex_width = function(self, max_columns, max_lines)
   return width
 end
 
+local flex_height = function(self, max_columns, max_lines)
+  local height = items_size + picker_padding
+  height = math.max(height, 10)
+  height = math.min(height, math.floor(max_lines * 0.9))
+  return height
+end
+
 local defaults = themes.get_cursor{
   layout_config = {
     width = flex_width,
-    height = { 0.5, min = 5, max = 24},
+    height = flex_height,
   },
 }
 
@@ -58,6 +66,7 @@ function picker(type, items, ctx)
     widths.group_name = math.max(widths.group_name, strings.strdisplaywidth(item.group_name))
   end
   content_width = widths.text + widths.hint + widths.group_name + (widths.hint > 0 and hint_pad_size or 0) + (widths.group_name > 0 and 2 or 0)
+  items_size = #items
 
   local displayer = entry_display.create {
     separator = ' ',
