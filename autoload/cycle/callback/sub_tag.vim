@@ -19,7 +19,7 @@ function! cycle#callback#sub_tag#sub(params) "{{{
           \        . (in_closing_tag ? '\zs' : '') . ic_flag,
           \   'nW' . (in_closing_tag ? 'b' : ''),
           \   '',
-          \   '',
+          \   0,
           \   timeout,
           \ )
 
