@@ -5,6 +5,18 @@ let s:hint_pad = 4
 
 " Select UI Loaders: {{{
 
+function! s:loaders.telescope() abort " {{{
+  if has('nvim') && exists(':Telescope') == 2
+    function! s:TelescopeSelect(...) abort
+      return luaeval('require("vim_cycle.telescope").select(unpack(_A))', a:000)
+    endfunction
+    let s:funcs['telescope'] = function('s:TelescopeSelect')
+  else
+    let s:funcs['telescope'] = 'unavailable'
+  endif
+endfunction " }}}
+
+
 function! s:loaders.ui_select() abort " {{{
   if has('nvim') && luaeval('vim.ui.select')->type() == v:t_func
     function! s:LuaSelect(...) abort
@@ -45,7 +57,7 @@ function! cycle#select#ui(options, ctx) abort " {{{
     return s:funcs[pref](a:options, a:ctx)
   endif
 
-  let prefs = sort(['ui.select', 'inputlist', 'confirm', '_test'], {a, b -> b == pref})
+  let prefs = sort(['telescope', 'ui.select', 'inputlist', 'confirm', '_test'], {a, b -> b == pref})
 
   for key in prefs
     if !has_key(s:funcs, key)
