@@ -3,7 +3,7 @@ function! cycle#callback#sub_tag#sub(params) "{{{
   let after = a:params.after
   let options = a:params.options
   let timeout = 600
-  let pattern_till_tag_end = '\_[^>]*>'
+  let pattern_till_tag_end = '\_[^>]*\%(\/\)\@<!>'
   let ic_flag = get(options, 'match_case') ? '\C' : '\c'
   let pos = cycle#util#getpos()
 
