@@ -389,6 +389,7 @@ By default no options are set.
 "before_sub"        (List) ~
 "after_sub"         (List) ~
 "ambi_pair"         (List) ~
+"pair_id"           (Number) ~
 "restrict_cursor"   (Number) ~
 
   Internal usage only, don't set them.
