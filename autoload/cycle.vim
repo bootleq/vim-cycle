@@ -10,6 +10,7 @@
 "   sub_pair
 "   sub_pairs
 "   ambi_pair
+"   pair_id
 "   end_with
 "   begin_with
 "   matcher
@@ -25,6 +26,7 @@
 "   subp
 
 let s:tick = 0
+let s:pair_id = 0
 
 " }}} Constants
 
@@ -140,6 +142,7 @@ function! cycle#search(class_name, ...) "{{{
   let direction = get(options, 'direction', 1)
   let l:count = get(options, 'count', 1)
   let matches = []
+  let search_ctx = {}
   let cword = cycle#text#new_cword()
   let cchar = cycle#text#new_cchar()
 
@@ -166,7 +169,7 @@ function! cycle#search(class_name, ...) "{{{
       endif
     endif
 
-    let phase_matches = s:phased_search(phase, groups, direction, l:count)
+    let phase_matches = s:phased_search(phase, groups, direction, l:count, search_ctx)
 
     if !empty(phase_matches)
       call extend(matches, phase_matches)
@@ -177,9 +180,8 @@ function! cycle#search(class_name, ...) "{{{
 endfunction "}}}
 
 
-function! s:phased_search(class_name, groups, direction, count) "{{{
+function! s:phased_search(class_name, groups, direction, count, search_ctx) "{{{
   let matches = []
-  let search_ctx = {}
 
   for group in a:groups
     if get(group, '_phase_matched', 0)
@@ -203,7 +205,7 @@ function! s:phased_search(class_name, groups, direction, count) "{{{
       break
     endif
 
-    let [index, ctext] = s:group_search(group, a:class_name, search_ctx)
+    let [index, ctext] = s:group_search(group, a:class_name, a:search_ctx)
     if index >= 0
       if a:count == '*'
         " Grab all group items for CycleSelect
@@ -483,8 +485,9 @@ function! cycle#parse_group(group_attrs) "{{{
     endif
     " Note that the "end_items" (has `begin_with`) must go first, `ambi_pair`
     " relies on this order to make orphaned behave as the begin part.
-    let end_group_attrs = [end_items, extend(deepcopy(options), {'begin_with': begin_items})]
-    let begin_group_attrs = [begin_items, extend(deepcopy(options), {'end_with': end_items})]
+    let s:pair_id += 1
+    let end_group_attrs = [end_items, extend(deepcopy(options), {'begin_with': begin_items, 'pair_id': s:pair_id})]
+    let begin_group_attrs = [begin_items, extend(deepcopy(options), {'end_with': end_items, 'pair_id': s:pair_id})]
     return [cycle#parse_group(end_group_attrs),
           \ cycle#parse_group(begin_group_attrs)]
   endif

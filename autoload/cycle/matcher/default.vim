@@ -10,6 +10,14 @@ function! cycle#matcher#default#test(group, class_name, ctx) abort "{{{
   let index = -1
   let ctext = cycle#text#new_ctext(a:class_name)
 
+  " Skip a sub_pair group if its opposite group has already found
+  if get(options, 'sub_pair', 0)
+    let found_pairs = get(a:ctx, 'found_pairs', [])
+    if index(found_pairs, get(options, 'pair_id')) > -1
+      return [index, ctext]
+    endif
+  endif
+
   for item in a:group.items
     if get(options, 'match_word') && a:class_name != 'w'
       continue
@@ -44,14 +52,16 @@ function! cycle#matcher#default#test(group, class_name, ctx) abort "{{{
 
       let ambi_pair = get(options, 'ambi_pair')
       if !empty(ambi_pair) && index(ambi_pair, text) > -1
-        " For begin pair, if there was no end pair found, accept it as orphan.
-        let accept_orphan = !empty(get(options, 'end_with')) && index(get(a:ctx, 'ambi_pair_found', []), text) < 0
+        " For begin pair, if there was no end pair found, we can accept it as orphan.
+        " This relies on the assumption that "end_items" were defined first.
+        let accept_orphan = !empty(get(options, 'end_with'))
 
         if cycle#matcher#default#ambi_pair#test(text, options)
-          let founds = get(a:ctx, 'ambi_pair_found', [])
-          let founds = uniq(founds + [text])
-          call extend(a:ctx, {'ambi_pair_found': founds}, 'force')
+          let founds = get(a:ctx, 'found_pairs', [])
+          let founds = uniq(founds + [get(options, 'pair_id', -1)])
+          call extend(a:ctx, {'found_pairs': founds}, 'force')
         elseif !accept_orphan
+          " Still accept it
           continue
         endif
       endif

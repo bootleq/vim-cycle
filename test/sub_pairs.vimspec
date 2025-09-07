@@ -174,14 +174,11 @@ Describe Sub pairs
 
       It from end, sub begin (potentially conflict in '' phase)
         let line = '" foo "'
-        call setline(1, '" foo "')
+        call setline(1, line)
         normal! $
 
         execute 'normal \a'
-        Assert Equals(getline(1), line, 'no change')
-        Assert Exists('g:cycle_test_conflict.items')
-        Assert Equals(g:cycle_test_conflict.items, ['`', '`'])
-        " FIXME: this is not desired behavior
+        Assert Equals(getline(1), '` foo `')
       End
 
       It subs orphaned item even the opposite not found

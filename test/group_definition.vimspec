@@ -87,9 +87,24 @@ Describe Group definition
       Assert Equals(group, #{items: ['Yes', 'No'], options: #{match_case: 1}})
 
       let groups = cycle#parse_group([['a:b', 'c:d'], 'sub_pairs'])
+      let [g1, g2] = groups
+
       Assert IsList(groups)
-      Assert Equals(groups[0], #{items: ['b', 'd'], options: #{sub_pair: 1, begin_with: ['a', 'c']}})
-      Assert Equals(groups[1], #{items: ['a', 'c'], options: #{sub_pair: 1, end_with: ['b', 'd']}})
+      Assert Includes(g1, ['items', 'options'])
+      Assert Includes(g2, ['items', 'options'])
+      Assert Equals(g1['options']['sub_pair'], 1)
+      Assert Equals(g2['options']['sub_pair'], 1)
+
+      Assert Includes(g1['options'], ['sub_pair', 'pair_id', 'begin_with'])
+      Assert Includes(g2['options'], ['sub_pair', 'pair_id', 'end_with'])
+
+      Assert Equals(g1['items'], ['b', 'd'])
+      Assert Equals(g1['options']['begin_with'], ['a', 'c'])
+
+      Assert Equals(g2['items'], ['a', 'c'])
+      Assert Equals(g2['options']['end_with'], ['b', 'd'])
+
+      Assert Equals(g1['options']['pair_id'], g2['options']['pair_id'])
     End
 
     It takes one-time groups
