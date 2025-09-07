@@ -11,7 +11,12 @@ Describe Sub pairs
   End
 
   After each
+    unlet! g:cycle_test_conflict
     bwipeout!
+  End
+
+  After all
+    let g:cycle_max_conflict = 1
   End
 
   It respects "sub_pair" and "end_with"
@@ -134,6 +139,7 @@ Describe Sub pairs
           3 orphaned " land
         END
         call setline(1, lines)
+        let g:cycle_max_conflict = 100
       End
 
       It from begin, sub end
@@ -151,7 +157,7 @@ Describe Sub pairs
         Assert Equals(getline(1), '1 foo "bar \" "   " baz')
       End
 
-      It from end, sub begin
+      It from end, sub begin (no conflict in '' phase)
         call search('bar \\" "', 'eW')
 
         execute 'normal \a'
@@ -164,6 +170,18 @@ Describe Sub pairs
         Assert Equals(getline(1), '1 foo ''bar \" ''   " baz')
         execute 'normal \a'
         Assert Equals(getline(1), '1 foo "bar \" "   " baz')
+      End
+
+      It from end, sub begin (potentially conflict in '' phase)
+        let line = '" foo "'
+        call setline(1, '" foo "')
+        normal! $
+
+        execute 'normal \a'
+        Assert Equals(getline(1), line, 'no change')
+        Assert Exists('g:cycle_test_conflict.items')
+        Assert Equals(g:cycle_test_conflict.items, ['`', '`'])
+        " FIXME: this is not desired behavior
       End
 
       It subs orphaned item even the opposite not found
