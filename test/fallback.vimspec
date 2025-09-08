@@ -1,0 +1,27 @@
+Describe Fallback
+  Before each
+    new
+  End
+
+  After each
+    if len(mapcheck('<Plug>CycleFallbackNext')) > 0
+      unmap <Plug>CycleFallbackNext
+    endif
+    bwipeout!
+  End
+
+  It does nothing by default
+    call setline(1, '200')
+    execute 'normal \a'
+    Assert Equals(getline(1), '200')
+  End
+
+  It triggers fallback mapping in Normal mode
+    noremap <silent> <Plug>CycleFallbackNext <C-A>
+
+    call setline(1, '200')
+    execute 'normal \a'
+
+    Assert Equals(getline(1), '201')
+  End
+End

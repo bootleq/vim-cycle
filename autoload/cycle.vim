@@ -75,11 +75,14 @@ function! cycle#new(class_name, direction, count, ...) "{{{
   let matches = cycle#search(a:class_name, {'direction': a:direction, 'count': a:count, 'groups': groups})
 
   if empty(matches)
-    return s:fallback(
-          \   a:class_name == 'v' ? "'<,'>" : '',
-          \   a:direction,
-          \   a:count
-          \ )
+    if len(mapcheck('<Plug>CycleFallback')) > 0
+      call s:fallback(
+            \   a:class_name == 'v' ? "'<,'>" : '',
+            \   a:direction,
+            \   a:count
+            \ )
+    endif
+    return
   endif
 
   let ctx = {
