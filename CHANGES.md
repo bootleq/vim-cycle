@@ -19,6 +19,8 @@ CHANGES
   allow to use ad-hoc groups instead of ordinary added groups. This is useful
   to setup different mappings for another set of groups.
 
+* Add another selection UI type `telescope` which opens a telescope.nvim picker.
+
 * Add `cycle_filetype_links` option; to define certain filetypes to share other types' groups.
 
 * Change the phased search for multibyte character, fix a problem when cword is equal to cchar.

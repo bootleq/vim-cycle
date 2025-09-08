@@ -160,6 +160,8 @@ g:cycle_select_ui      (default: "") ~
 
   Can be set to one of the following:
 
+      telescope     Use |telesope.nvim| picker.
+
       ui.select     Use nvim's |vim.ui.select()|.
 
       inputlist     Use Vim's |inputlist()|, input number and Enter to select.
