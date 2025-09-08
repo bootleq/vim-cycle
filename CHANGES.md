@@ -23,6 +23,8 @@ CHANGES
 
 * Add `cycle_filetype_links` option; to define certain filetypes to share other types' groups.
 
+* Add events (User autocmd), to be listened by user.
+
 * Change the phased search for multibyte character, fix a problem when cword is equal to cchar.
 
 * Optional callbacks were moved to autoload functions.

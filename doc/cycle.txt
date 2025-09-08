@@ -18,6 +18,7 @@ CONTENTS                                                      *cycle-contents*
       Phased search  ....................... |cycle-phased-search|
       Fallback mapping  .................... |cycle-fallback-mapping|
       Examples  ............................ |cycle-examples|
+    Events  ................................ |cycle-events|
     Limitations  ........................... |cycle-limitations|
     Credits  ............................... |cycle-credits|
 
@@ -802,6 +803,30 @@ Set another set of groups, trigger by different mappings:
           \ <Cmd>call CycleSelect('w', <SID>cycle_tx_groups())<CR>
     vnoremap <silent> <LocalLeader>gx
           \ <Cmd>call CycleSelect('v', <SID>cycle_tx_groups())<CR>
+<
+==============================================================================
+Events                                                          *cycle-events*
+
+There are serveral |User| autocommands can be listened during cycle lifecycle.
+
+                                                          *vim-cycle#complete*
+                                                         *vim-cycle#not-found*
+                                                         *vim-cycle#no-change*
+                                                          *vim-cycle#conflict*
+complete    After a cycle substitute completed.
+
+not-found   If the main actions (CycleNext, CycleSelect) can't find any match.
+
+no-change   If a match is found, but has no change after applied changer.
+
+conflict    When a conflict UI is triggered.
+
+Usage example: >
+
+    augroup my_vimrc
+      autocmd!
+      autocmd User vim-cycle#not-found call sound_playevent('bell')
+    augroup END
 <
 ==============================================================================
 LIMITATIONS                                                *cycle-limitations*

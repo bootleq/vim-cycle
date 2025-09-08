@@ -75,11 +75,16 @@ function! cycle#new(class_name, direction, count, ...) "{{{
   let matches = cycle#search(a:class_name, {'direction': a:direction, 'count': a:count, 'groups': groups})
 
   if empty(matches)
-    return s:fallback(
-          \   a:class_name == 'v' ? "'<,'>" : '',
-          \   a:direction,
-          \   a:count
-          \ )
+    if len(mapcheck('<Plug>CycleFallback')) > 0
+      call s:fallback(
+            \   a:class_name == 'v' ? "'<,'>" : '',
+            \   a:direction,
+            \   a:count
+            \ )
+    else
+      doautocmd <nomodeline> User vim-cycle#not-found
+    endif
+    return
   endif
 
   let ctx = {
@@ -110,6 +115,7 @@ function! cycle#select(class_name, ...) "{{{
   let matches = cycle#search(a:class_name, {'count': '*', 'groups': groups})
 
   if empty(matches)
+    doautocmd <nomodeline> User vim-cycle#not-found
     echohl WarningMsg | echo "No match, aborted." | echohl None
     return
   endif
@@ -262,6 +268,8 @@ function! cycle#substitute(before, after, class_name, items, options) "{{{
   for Fn in callbacks.after_sub
     call call(Fn, [callback_params])
   endfor
+
+  doautocmd <nomodeline> User vim-cycle#complete
 endfunction  "}}}
 
 
@@ -284,6 +292,7 @@ function! s:conflict(ctx) "{{{
           \ })
   endfor
 
+  doautocmd <nomodeline> User vim-cycle#conflict
   return cycle#conflict#ui(options, a:ctx)
 endfunction "}}}
 
@@ -321,6 +330,7 @@ endfunction "}}}
 function! s:accept_match(match, ctx) "{{{
   let m = a:match
   if m.pairs.before ==# m.pairs.after
+    doautocmd <nomodeline> User vim-cycle#no-change
     echohl WarningMsg | echo "Cycle to nothing, aborted." | echohl None
     return
   endif
