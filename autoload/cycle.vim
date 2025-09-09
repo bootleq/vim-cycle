@@ -82,7 +82,7 @@ function! cycle#new(class_name, direction, count, ...) "{{{
             \   a:count
             \ )
     else
-      doautocmd <nomodeline> User vim-cycle#not-found
+      call s:fire_event('not-found')
     endif
     return
   endif
@@ -115,7 +115,7 @@ function! cycle#select(class_name, ...) "{{{
   let matches = cycle#search(a:class_name, {'count': '*', 'groups': groups})
 
   if empty(matches)
-    doautocmd <nomodeline> User vim-cycle#not-found
+    call s:fire_event('not-found')
     echohl WarningMsg | echo "No match, aborted." | echohl None
     return
   endif
@@ -269,7 +269,7 @@ function! cycle#substitute(before, after, class_name, items, options) "{{{
     call call(Fn, [callback_params])
   endfor
 
-  doautocmd <nomodeline> User vim-cycle#complete
+  call s:fire_event('complete')
 endfunction  "}}}
 
 
@@ -292,7 +292,7 @@ function! s:conflict(ctx) "{{{
           \ })
   endfor
 
-  doautocmd <nomodeline> User vim-cycle#conflict
+  call s:fire_event('conflict')
   return cycle#conflict#ui(options, a:ctx)
 endfunction "}}}
 
@@ -330,7 +330,7 @@ endfunction "}}}
 function! s:accept_match(match, ctx) "{{{
   let m = a:match
   if m.pairs.before ==# m.pairs.after
-    doautocmd <nomodeline> User vim-cycle#no-change
+    call s:fire_event('no-change')
     echohl WarningMsg | echo "Cycle to nothing, aborted." | echohl None
     return
   endif
@@ -681,6 +681,14 @@ function! s:build_matches(ctext, group, item_idx) "{{{
   return matches
 endfunction "}}}
 
+
+function! s:fire_event(event) abort " {{{
+  " vim-cycle#complete and so on
+  let event = 'vim-cycle#' . a:event
+  if exists('#User#' . event)
+    execute 'doautocmd <nomodeline> User ' . event
+  endif
+endfunction " }}}
 
 function! s:sid_prefix() "{{{
   return matchstr(expand('<sfile>'), '<SNR>\d\+_')
