@@ -812,12 +812,15 @@ There are serveral |User| autocommands can be listened during cycle lifecycle.
                                                           *vim-cycle#complete*
                                                          *vim-cycle#not-found*
                                                          *vim-cycle#no-change*
+                                                            *vim-cycle#select*
                                                           *vim-cycle#conflict*
 complete    After a cycle substitute completed.
 
 not-found   If the main actions (CycleNext, CycleSelect) can't find any match.
 
 no-change   If a match is found, but has no change after applied changer.
+
+select      When a select UI is triggered.
 
 conflict    When a conflict UI is triggered.
 

@@ -131,6 +131,7 @@ function! cycle#select(class_name, ...) "{{{
           \ })
   endfor
 
+  call s:fire_event('select')
   let ctx = {
         \   "class_name": a:class_name,
         \   "matches":    matches,
