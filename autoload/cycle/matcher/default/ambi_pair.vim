@@ -139,7 +139,7 @@ endfunction " }}}
 
 
 " 'line_search'
-" Try search paris in current line
+" Try search pairs in current line
 " Simulate the logic of vi' text objects, while support other characters.
 function! s:tester_line_search(text, options) abort " {{{
   let valid = 0
@@ -151,7 +151,14 @@ function! s:tester_line_search(text, options) abort " {{{
 
   let line_text = getline('.')
   let [line, col] = getpos('.')[1:2]
-  let pattern = printf('%s\%%([^%s\\]\|\\.\)*%s', a:text, a:text, a:text)
+
+  " Make the pattern to match sides, with care of escaping sequences.
+  " For example a " will produce pattern "\%([^"\\]\|\\.\)*"
+  " The \%() group first covers [^"\\] - the non-escaping,
+  " then covers \\. - any escaped sequences like \" \n \x...
+  let esc_text = cycle#util#escape_pattern(a:text)
+  let pattern = call('printf', ['%s\%%([^%s\\]\|\\.\)*%s'] + repeat([esc_text], 3))
+
   let start_idx = 0
 
   while start_idx < len(line_text)

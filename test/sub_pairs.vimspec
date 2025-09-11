@@ -130,7 +130,7 @@ Describe Sub pairs
     End
   End
 
-  Context sub_pairs with identical pairs
+  Context sub_pairs with identical pairs (ambi_pair)
     Context by vi" series text objects / or search mimics it (|)
       Before each
         let lines =<< trim END
@@ -192,6 +192,22 @@ Describe Sub pairs
         Assert Equals(getline(3), '3 orphaned “ land')
         execute 'normal \a'
         Assert Equals(getline(3), "3 orphaned ' land")
+      End
+
+      It finds pair with search pattern properly escaped
+        call cycle#test#reset_default_groups([
+              \   [['*:*', "^:^", "“:”"], 'sub_pairs'],
+              \ ])
+        call setline(1, '*foo\*bar*')
+
+        execute 'normal \a'
+        Assert Equals(getline(1), '^foo\*bar^')
+
+        execute 'normal \a'
+        Assert Equals(getline(1), '“foo\*bar”')
+
+        execute 'normal \a'
+        Assert Equals(getline(1), '*foo\*bar*')
       End
 
       It keeps previous visual area untouched
