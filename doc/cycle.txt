@@ -638,8 +638,8 @@ Configuration examples:                                 *cycle-config-examples*
 General options:
 >
     let g:cycle_no_mappings = 1
-    let g:cycle_max_conflict = 1
-    let g:cycle_select_ui = 'ui.select'
+    let g:cycle_max_conflict = 14
+    let g:cycle_select_ui = 'telescope'
     let g:cycle_conflict_ui = 'confirm'
 <
 
@@ -664,8 +664,7 @@ Global groups:
           \   [['on', 'off'], 'match_word'],
           \   [['+', '-']],
           \   [['>', '<']],
-          \   [['"', "'"]],
-          \   [['==', '!=']],
+          \   [['==', '!='], { 'cond': function('s:not_lua_context') }],
           \   [['0', '1']],
           \   [['and', 'or']],
           \   [["in", "out"]],
@@ -727,12 +726,19 @@ Filetype specified groups:
 >
     let g:cycle_filetype_links = {
           \   'ghmarkdown': 'markdown',
+          \   'typescriptreact': 'jsx',
           \ }
 
     " ruby only
     let g:cycle_default_groups_for_ruby = [
           \   [['accessible', 'protected']],
           \   [['stylesheet_link_tag ', 'javascript_include_tag ']],
+          \ ]
+
+    " jsx only
+    let g:cycle_default_groups_for_jsx = [
+          \   [['\v\="(.+)"', '\v\=''(.+)''', '\v\=\{`\$@!(.+)`}'], #{regex: ['=''\1''', '={`\1`}', '="\1"']}],
+          \   [['={`${\(.\+\)}`}', '={`\@!\(.\+\)}'], #{regex: ['={\1}', '={`${\1}`}']}],
           \ ]
 
     " " demo how to convert 'switch.vim' definition:

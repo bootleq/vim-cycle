@@ -41,7 +41,7 @@ Configuration Example
 ```vim
 let g:cycle_no_mappings = 1
 let g:cycle_max_conflict = 14
-let g:cycle_select_ui = 'ui.select'
+let g:cycle_select_ui = 'telescope'
 let g:cycle_conflict_ui = 'confirm'
 
 nmap <silent> <LocalLeader>a <Plug>CycleNext
@@ -53,6 +53,7 @@ vmap <silent> <LocalLeader>ga <Plug>CycleSelect
 
 let g:cycle_filetype_links = {
       \   'ghmarkdown': 'markdown',
+      \   'typescriptreact': 'jsx',
       \ }
 
 let g:cycle_default_groups = [
@@ -108,6 +109,12 @@ let g:cycle_default_groups_for_ruby = [
       \     '''\(\k\+\%([?!]\)\=\)''',
       \     ':\(\k\+\%([?!]\)\=\)\@>\%(\s*=>\)\@!'
       \    ], #{regex: ['''\1''', ':\1', '"\1"\2']}]
+      \ ]
+
+" For "jsx" only (not real filetype, but linked from typescriptreact)
+let g:cycle_default_groups_for_jsx = [
+      \   [['\v\="(.+)"', '\v\=''(.+)''', '\v\=\{`\$@!(.+)`}'], #{regex: ['=''\1''', '={`\1`}', '="\1"']}],
+      \   [['={`${\(.\+\)}`}', '={`\@!\(.\+\)}'], #{regex: ['={\1}', '={`${\1}`}']}],
       \ ]
 
 " For fileType "markdown" only
