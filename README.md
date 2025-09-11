@@ -11,7 +11,7 @@ Cycle text within predefined candidates.
   - `Rails Metal` =&gt; `Thrash` =&gt; `Technical Death` &nbsp; handle multi-words by visual selection, or smart auto search
   - `<em>`important`</em>` =&gt; `<strong>`important`</strong>` &nbsp; tag pairs cycle together (even across lines)
   - `「`quoted`」` =&gt; `『`quoted`』` &nbsp; special pairs cycle together
-  - `"`‗`"` =&gt; `|`‗`|` =&gt; `“`‗`”` &nbsp; the two sides can be identical (must has only 1 char currently)
+  - `"`‗`"` =&gt; `^`‗`^` =&gt; `“`‗`”` &nbsp; the two sides can be identical (must has only 1 char currently)
   - `{ :one => 'two' }` =&gt; `{ one: 'two' }` &nbsp; now supports pattern replace like [switch.vim][]
   - `foo-bar-baz` =&gt; `FOO_BAR_BAZ` =&gt; `fooBarBaz` naming convention
   - `covid-19-mk2` =&gt; `covid_19Mk2` =&gt; `Covid_19Mk2` alternative number handling
