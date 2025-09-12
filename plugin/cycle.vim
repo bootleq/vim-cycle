@@ -55,20 +55,28 @@ if !g:cycle_no_mappings
   silent! vmap <silent> <unique> <Leader>a <Plug>CycleNext
 endif
 
-function! Cycle(class_name, direction, count)
+function! Cycle(...)
+  let class_name = a:0 ? a:1 : 'w'
+  let direction = a:0 > 1 ? a:2 : 1
+  let l:count = a:0 > 2 ? a:3 : 1
+  let opts = a:0 > 3 ? a:4 : {}
+
   if !s:groups_initialzed
     call s:initialize_groups()
   endif
 
-  call cycle#new(a:class_name, a:direction, a:count)
+  call cycle#new(class_name, direction, l:count, opts)
 endfunction
 
-function! CycleSelect(class_name)
+function! CycleSelect(...)
+  let class_name = a:0 ? a:1 : 'w'
+  let opts = a:0 > 1 ? a:2 : {}
+
   if !s:groups_initialzed
     call s:initialize_groups()
   endif
 
-  call cycle#select(a:class_name)
+  call cycle#select(class_name, opts)
 endfunction
 
 augroup cycle

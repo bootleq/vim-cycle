@@ -1,0 +1,214 @@
+Describe Naming Convention Matcher/Changer
+  Before each
+    new
+  End
+
+  After each
+    bwipeout!
+    let g:cycle_max_conflict = 1
+    set iskeyword&
+  End
+
+  Context cycles convention types
+    Before each
+      unlet! g:cycle_test_select
+      unlet! g:cycle_test_conflict
+      call cycle#test#reset_default_groups([
+            \   [['snake_case', 'camelCase', 'kebab-case', 'SCREAMING_SNAKE_CASE', 'PascalCase'],
+            \    #{matcher: 'naming', changer: 'naming'}],
+            \ ])
+    End
+
+    It basic form
+      let line = 'foo-bar-baz'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), 'FOO_BAR_BAZ')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'FooBarBaz')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'foo_bar_baz')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'fooBarBaz')
+      execute 'normal \a'
+      Assert Equals(getline(1), line)
+    End
+
+    It continuous uppercase
+      call setline(1, 'CORS') " SCREAMING_SNAKE -> Pascal
+      execute 'normal \a'
+      Assert Equals(getline(1), 'Cors')
+
+      call setline(1, 'ETag') " Pascal -> snake
+      execute 'normal \a'
+      Assert Equals(getline(1), 'etag')
+
+      call setline(1, 'XMLHttpRequest') " Pascal -> snake (same as above)
+      execute 'normal \a'
+      Assert Equals(getline(1), 'xmlhttp_request')
+    End
+
+    Context number digits
+      It might lose number-only words
+        let line = 'covid-19-mk2-y2k5'
+        call setline(1, line)
+
+        execute 'normal \a'
+        Assert Equals(getline(1), 'COVID_19_MK2_Y2K5')
+
+        execute 'normal \a'
+        Assert Equals(getline(1), 'Covid19Mk2Y2k5')
+        " Note '_19' has been merged into covid, wording changed
+
+        execute 'normal \a'
+        Assert Equals(getline(1), 'covid19_mk2_y2k5')
+
+        execute 'normal \a'
+        Assert Equals(getline(1), 'covid19Mk2Y2k5')
+
+        execute 'normal \a'
+        " Apparently can't cycle back
+        Assert NotEquals(getline(1), line)
+        Assert Equals(getline(1), 'covid19-mk2-y2k5')
+
+        execute 'normal \a'
+        Assert Equals(getline(1), 'COVID19_MK2_Y2K5')
+      End
+
+      It keeps number-only words if wanted
+        call cycle#test#reset_default_groups([
+              \   [['snake_case', 'camelCase_1', 'kebab-case', 'SCREAMING_SNAKE_CASE', 'PascalCase_1'],
+              \    #{matcher: 'naming', changer: 'naming'}],
+              \ ])
+
+        let line = 'covid-19-mk2-y2k5'
+        call setline(1, line)
+
+        execute 'normal \a'
+        Assert Equals(getline(1), 'COVID_19_MK2_Y2K5')
+
+        execute 'normal \a'
+        Assert Equals(getline(1), 'Covid_19Mk2Y2k5')
+        " Note '_19' has `_` preserved
+
+        execute 'normal \a'
+        Assert Equals(getline(1), 'covid_19_mk2_y2k5')
+
+        execute 'normal \a'
+        Assert Equals(getline(1), 'covid_19Mk2Y2k5')
+
+        execute 'normal \a'
+        Assert Equals(getline(1), line)
+      End
+    End
+
+    It ambiguous / nonstandard
+      call cycle#test#reset_default_groups([
+            \   [['snake_case', 'camelCase_1', 'kebab-case', 'SCREAMING_SNAKE_CASE', 'PascalCase_1'],
+            \    #{matcher: 'naming', changer: 'naming', match_word: 1}],
+            \ ])
+
+      call setline(1, 'Windows10_1709')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'windows10_1709')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'windows10_1709')
+      " Sadly, no further cycle available
+
+      " Currently not supported
+      " call setline(1, 'X-SSL-Cipher')
+      " call setline(1, 'Content-MD5')
+      " call setline(1, 'HTTP2-Settings')
+    End
+
+    It respects visual selection region
+      call setline(1, 'FOO_BAR_BAZ_HOGE')
+      normal! fBvfZ
+      execute 'normal \a'
+      Assert Equals(getline(1), 'FOO_BarBaz_HOGE')
+    End
+
+    It ignores 'iskeyword' option
+      let saved_isk = &l:iskeyword
+      set iskeyword+=#
+      call setline(1, 'lock#KeyWord')
+      call search('Wo')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'lock#key_word')
+      Assert Equals(&l:iskeyword, saved_isk . ',#')
+    End
+
+    It select UI, normal
+      call setline(1, 'FooBarBaz')
+
+      execute 'normal \s'
+      Assert Exists('g:cycle_test_select.items')
+      Assert Equals(g:cycle_test_select.items, ['foo_bar_baz', 'fooBarBaz', 'foo-bar-baz', 'FOO_BAR_BAZ'])
+    End
+
+    It conflict UI
+      let g:cycle_max_conflict = 100
+      call cycle#test#reset_default_groups([
+            \   [['camelCase', 'KameHameHa']],
+            \   [['kebab-case', 'PascalCase'],
+            \    #{matcher: 'naming', changer: 'naming'}],
+            \ ])
+
+      let line = 'KameHameHa'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Exists('g:cycle_test_conflict.items')
+      Assert Equals(g:cycle_test_conflict.items, ['CameLcasE', 'kame-hame-ha'])
+    End
+  End
+
+  Context customize with g:cycle_naming_config
+    Before all
+      function! MySub(w) abort " {{{
+        let ret = toupper(a:w) . '!!'
+        return ret
+      endfunction " }}}
+
+      call cycle#test#reset_default_groups([
+            \   [['snake_case', 'camelCase'],
+            \    #{matcher: 'naming', changer: 'naming'}],
+            \ ])
+    End
+
+    Before each
+      call cycle#test#reset_script_vars()
+    End
+
+    After all
+      delfunction MySub
+    End
+
+    It overwrite default {sub} with String
+      let g:cycle_naming_config = {
+            \   'snake_case': ['\v\l%(\l|\d)*%(_%(\l|\d)+)+', #{sub: 'MySub'}],
+            \   'camelCase':  ['\v\l%(\l|\d)*%(\u%(\l|\d)*)+'],
+            \ }
+      call setline(1, 'fooBarBaz')
+
+      execute 'normal \a'
+      Assert Equals(getline(1), 'FOOBARBAZ!!')
+    End
+
+    It overwrite default {sub} with Funcref
+      let g:cycle_naming_config = {
+            \   'snake_case': ['\v\l%(\l|\d)*%(_%(\l|\d)+)+', #{sub: function('MySub')}],
+            \   'camelCase':  ['\v\l%(\l|\d)*%(\u%(\l|\d)*)+'],
+            \ }
+      call cycle#test#reset_default_groups([
+            \   [['snake_case', 'camelCase'],
+            \    #{matcher: 'naming', changer: 'naming'}],
+            \ ])
+      call setline(1, 'fooBarBaz')
+
+      execute 'normal \a'
+      Assert Equals(getline(1), 'FOOBARBAZ!!')
+    End
+  End
+End

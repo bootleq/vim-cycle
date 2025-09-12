@@ -1,0 +1,35 @@
+Describe Group Converter
+  It converts switch.vim dict list
+    let switch_definitions =
+          \ [
+          \   {
+          \     '\C\<and\>': 'or',
+          \     '\C\<or\>': 'and',
+          \   },
+          \   {
+          \     '\.to ':     '.not_to ',
+          \     '\.not_to ': '.to ',
+          \     '\.to_not ': '.to ',
+          \   },
+          \ ]
+
+    let groups = cycle#group_converter#regex_dict_list(switch_definitions)
+
+    Assert IsList(groups)
+    Assert Equals(2, len(groups))
+
+    let expected = [
+          \   [
+          \     ['\C\<and\>', '\C\<or\>'],
+          \     { 'regex': ['or', 'and'] }
+          \   ],
+          \   [
+          \     ['\.to ', '\.not_to ', '\.to_not '],
+          \     { 'regex': ['.not_to ', '.to ', '.to '] }
+          \   ],
+          \ ]
+
+    Assert Equals(expected[0], groups[0])
+    Assert Equals(expected[1], groups[1])
+  End
+End

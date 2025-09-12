@@ -1,6 +1,34 @@
 CHANGES
 =======
 
+## 1.?.? (2025-??-??)
+
+* Add `regex` group option, can cycle more complicated patterns like switch.vim (https://github.com/AndrewRadev/switch.vim)
+
+* New group options: `matcher` and `changer`. In fact "regex" feature is made up by these mechanisms together.
+
+* Add `year` group option, cycle between calendar era systems.
+
+* Add `naming` group option, cycle between naming conventions.
+
+* Add `hints` group option, display a static hint for each item in select or conflict UI.
+
+* `sub_pairs` now supports using an identical character on both begin and end sides.
+
+* `Cycle()` and `CycleSelect()` functions now accept extra groups argument,
+  allow to use ad-hoc groups instead of ordinary added groups. This is useful
+  to setup different mappings for another set of groups.
+
+* Add another selection UI type `telescope` which opens a telescope.nvim picker.
+
+* Add `cycle_filetype_links` option; to define certain filetypes to share other types' groups.
+
+* Add events (User autocmd), to be listened by user.
+
+* Change the phased search for multibyte character, fix a problem when cword is equal to cchar.
+
+* Optional callbacks were moved to autoload functions.
+
 ## 1.0.0 (2025-08-27)
 
 * Fix various `sub_pairs` / `sub_tag` cursor offset bugs.

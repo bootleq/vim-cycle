@@ -16,7 +16,10 @@ Describe Group options
           \   [['==', '~='], { 'cond': function('s:cond_func') }],
           \   [['==', '!=']],
           \ ])
-    " for sub_pair / sub_pairs, see test/sub_pairs.vimspec
+    " - For sub_pair / sub_pairs, see test/sub_pairs.vimspec
+    " - For matcher / changer, see corresponding test cases:
+    "   - For regex / replacer, see test/matcher_changer_regex.vimspec
+    "   - year, see test/matcher_changer_year.vimspec
     new
   End
 
@@ -50,31 +53,53 @@ Describe Group options
     Assert Equals(getline(1), 'PlayStation')
   End
 
-  It respects "sub_tag"
-    let lines =<< trim END
-      <strong id='a'><img src="" />It's
-      my<EM> DUTY
-        </eM></strong > <eM>
-    END
-    call setline(1, lines)
+  Context respects "sub_tag"
+    It usual case
+      let lines =<< trim END
+        <strong id='a'><img src="" />It's
+        my<EM> DUTY
+          </eM></strong > <eM>
+      END
+      call setline(1, lines)
 
-    call cursor(1, 4) " In first <strong>, on 'r'
-    execute 'normal \a'
-    let expected =<< trim END
-      <em id='a'><img src="" />It's
-      my<EM> DUTY
-        </eM></em > <eM>
-    END
-    Assert Equals(getline(1, '$'), expected, 'Expect <strong> -> <em>')
+      call cursor(1, 4) " In first <strong>, on 'r'
+      execute 'normal \a'
+      let expected =<< trim END
+        <em id='a'><img src="" />It's
+        my<EM> DUTY
+          </eM></em > <eM>
+      END
+      Assert Equals(getline(1, '$'), expected, 'Expect <strong> -> <em>')
 
-    call cursor(3, 6) " In line 3, first </eM>, on 'M'
-    execute 'normal \a'
-    let expected =<< trim END
-      <em id='a'><img src="" />It's
-      my<sTrong> DUTY
-        </sTrong></em > <eM>
-    END
-    Assert Equals(getline(1, '$'), expected, 'Expect </eM> -> </sTrong>')
+      call cursor(3, 6) " In line 3, first </eM>, on 'M'
+      execute 'normal \a'
+      let expected =<< trim END
+        <em id='a'><img src="" />It's
+        my<sTrong> DUTY
+          </sTrong></em > <eM>
+      END
+      Assert Equals(getline(1, '$'), expected, 'Expect </eM> -> </sTrong>')
+    End
+
+    It skips self-closing tags
+      let lines =<< trim END
+        <em>
+          ◯ <em>nested</em>
+          ✕ <em />
+        </em>
+      END
+      call setline(1, lines)
+
+      call cursor(4, 4) " In last <em>, on 'm'
+      execute 'normal \a'
+      let expected =<< trim END
+        <strong>
+          ◯ <em>nested</em>
+          ✕ <em />
+        </strong>
+      END
+      Assert Equals(getline(1, '$'), expected)
+    End
   End
 
   Describe respects "match_word"

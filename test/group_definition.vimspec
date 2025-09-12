@@ -53,5 +53,67 @@ Describe Group definition
       execute 'normal \a'
       Assert Equals(getline(1), 'local h ~= 1 and 2 or 7')
     End
+
+    It link_filetypes: link multiple filetypes
+      call cycle#test#clear_all_groups()
+      let g:cycle_default_groups_for_lua = [[['foo', 'bar']]]
+      let g:cycle_filetype_links = {
+            \   'text': 'asm',
+            \   'xxx': 'lua',
+            \ }
+      call cycle#test#reinitialize_groups()
+
+      let line = 'foo'
+      call setline(1, line)
+
+      setlocal filetype=text
+      Assert Equals(&filetype, 'text')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'foo', 'Expect unchaged, filetype mismatch')
+
+      setlocal filetype=xxx
+      Assert Equals(&filetype, 'xxx')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'bar')
+    End
+  End
+
+  Context ad-hoc groups
+    It cycle#parse_group()
+      let group = cycle#parse_group([['Yes', 'No']])
+      Assert Equals(group, #{items: ['Yes', 'No'], options: {}})
+
+      let group = cycle#parse_group([['Yes', 'No'], 'match_case'])
+      Assert Equals(group, #{items: ['Yes', 'No'], options: #{match_case: 1}})
+
+      let groups = cycle#parse_group([['a:b', 'c:d'], 'sub_pairs'])
+      let [g1, g2] = groups
+
+      Assert IsList(groups)
+      Assert Includes(g1, ['items', 'options'])
+      Assert Includes(g2, ['items', 'options'])
+      Assert Equals(g1['options']['sub_pair'], 1)
+      Assert Equals(g2['options']['sub_pair'], 1)
+
+      Assert Includes(g1['options'], ['sub_pair', 'pair_id', 'begin_with'])
+      Assert Includes(g2['options'], ['sub_pair', 'pair_id', 'end_with'])
+
+      Assert Equals(g1['items'], ['b', 'd'])
+      Assert Equals(g1['options']['begin_with'], ['a', 'c'])
+
+      Assert Equals(g2['items'], ['a', 'c'])
+      Assert Equals(g2['options']['end_with'], ['b', 'd'])
+
+      Assert Equals(g1['options']['pair_id'], g2['options']['pair_id'])
+    End
+
+    It takes one-time groups
+      call setline(1, 'beep beep')
+      call Cycle('w', 1, 1)
+      Assert Equals(getline(1), 'beep beep')
+
+      call Cycle('w', 1, 1, #{ groups: [#{items: ['beep', 'poo']}] })
+      Assert Equals(getline(1), 'poo beep')
+    End
   End
 End

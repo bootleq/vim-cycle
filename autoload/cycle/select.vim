@@ -1,14 +1,93 @@
+let s:funcs = {}
+let s:loaders = {}
+let s:hint_pad = 4
+
+
+" Select UI Loaders: {{{
+
+function! s:loaders.telescope() abort " {{{
+  if has('nvim') && exists(':Telescope') == 2
+    function! s:TelescopeSelect(...) abort
+      return luaeval('require("vim_cycle.telescope").select(unpack(_A))', a:000)
+    endfunction
+    let s:funcs['telescope'] = function('s:TelescopeSelect')
+  else
+    let s:funcs['telescope'] = 'unavailable'
+  endif
+endfunction " }}}
+
+
+function! s:loaders.ui_select() abort " {{{
+  if has('nvim') && luaeval('vim.ui.select')->type() == v:t_func
+    function! s:LuaSelect(...) abort
+      return luaeval('require("vim_cycle").select(unpack(_A))', a:000)
+    endfunction
+    let s:funcs['ui.select'] = function('s:LuaSelect')
+  else
+    let s:funcs['ui.select'] = 'unavailable'
+  endif
+endfunction " }}}
+
+
+function! s:loaders.inputlist() abort " {{{
+  if exists('*inputlist')
+    let s:funcs['inputlist'] = function('cycle#select#inputlist')
+  else
+    let s:funcs['inputlist'] = 'unavailable'
+  endif
+endfunction " }}}
+
+
+function! s:loaders.confirm() abort " {{{
+  let s:funcs['confirm'] = function('cycle#select#confirm')
+endfunction " }}}
+
+
+function! s:loaders._test() abort " {{{
+  let s:funcs['_test'] = function('cycle#test#select_ui')
+endfunction " }}}
+
+" }}}
+
+
+function! cycle#select#ui(options, ctx) abort " {{{
+  let pref = get(g:, 'cycle_select_ui', '')
+
+  if has_key(s:funcs, pref) && type(s:funcs[pref]) == v:t_func
+    return s:funcs[pref](a:options, a:ctx)
+  endif
+
+  let prefs = sort(['telescope', 'ui.select', 'inputlist', 'confirm', '_test'], {a, b -> b == pref})
+
+  for key in prefs
+    if !has_key(s:funcs, key)
+      call s:loaders[tr(key, '.', '_')]()
+    endif
+
+    if type(s:funcs[key]) == v:t_func
+      return s:funcs[key](a:options, a:ctx)
+    endif
+  endfor
+endfunction " }}}
+
+
+" UI implementations: {{{
+
 function! s:open_inputlist(options) "{{{
   let index = 0
   let candidates = []
   let max_length = max(map(copy(a:options), 'strlen(v:val.text)'))
+  let max_hint_len = max(map(copy(a:options), 'strlen(v:val.hint)'))
+  let hint_pad = max_hint_len > 0 ? s:hint_pad : 0
   for option in a:options
     let group = get(option, 'group_name', '')
     let line = printf(
-          \   '%2S => %-*S %S',
+          \   '%2S => %-*S ' . repeat(' ', hint_pad) . ' %-*S %S',
           \   index + 1,
           \   max_length,
           \   option.text,
+          \   max_hint_len,
+          \   option.hint,
           \   len(group) ? printf(' (%s)', group) : ''
           \ )
     call add(candidates, line)
@@ -36,14 +115,19 @@ function! s:open_confirm(options) "{{{
   let captions = []
   let candidates = []
   let max_length = max(map(copy(a:options), 'strlen(v:val.text)'))
+  let max_hint_len = max(map(copy(a:options), 'strlen(v:val.hint)'))
+  let hint_pad = max_hint_len > 0 ? s:hint_pad : 0
+
   for option in a:options
     let caption = nr2char(char2nr('A') + index)
     let group = get(option, 'group_name', '')
     let line = printf(
-          \   ' %2S) => %-*S %S',
+          \   ' %2S) => %-*S ' . repeat(' ', hint_pad) . ' %-*S %S',
           \   caption,
           \   max_length,
           \   option.text,
+          \   max_hint_len,
+          \   option.hint,
           \   len(group) ? printf(' (%s)', group) : ''
           \ )
     call add(candidates, line)
@@ -64,6 +148,10 @@ function! s:open_confirm(options) "{{{
   return choice
 endfunction "}}}
 
+" }}}
+
+
+" Implementation dispatchers, including conflict UI: {{{
 
 function! cycle#select#inputlist(options, ctx) "{{{
   let choice = s:open_inputlist(a:options)
@@ -87,3 +175,5 @@ function! cycle#select#conflict_confirm(options, ctx) "{{{
   let choice = s:open_confirm(a:options)
   call call(a:ctx.sid .. 'on_resolve_conflict', [choice, a:ctx])
 endfunction "}}}
+
+" }}}

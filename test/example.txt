@@ -1,5 +1,42 @@
 "trUe"  'faLse'
-" '
+
+1 foo "bar \" "   " baz
+2 foo “中文”
+3 orphaned " land
+
+foo_bar_baz
+fooBarBaz
+
+  " foo
+    (bar "  "\" {gg}  42 "
+      )2000 "G"
+
+ooo 'bar xxx
+
+const foo = `${bar}/baz`
+const foo = '${bar}/baz'
+const foo = "${bar}/baz"
+
+foo = {one, two}
+
+foo = { :one => 'two' }
+foo = { one: 'two' }
+
+['one', 'two', 'three']
+%w(one two three)
+
+一foo一一的一
+
+1998
+民國 87 大正5年 昭和 64 foo พ.ศ. 2509 年
+
+- [ ] Task 1
+- [x] Task 1
+
+  <?php "Text" ?>
+
+"foo" "foo\"bar" "foo" "foo\\\"bar" 'foo"
+'foo' 'foo\'bar' 'foo' 'foo\\\'bar' 'foo'
 
 40.1px  40.2%  40.9em
 
@@ -11,7 +48,7 @@
 
 foo PlayStation foo
 foo ◯◯◯◯◯ foo
-foo👀👀foo
+foo 👀👀 foo
 
 \left(a+b\right)
 
@@ -22,7 +59,8 @@ foo👀👀foo
 5         <q cite='QQ'>that <i>相反地</i></q> 他認為
 6       </blockquote>
 7 </blockquote>
-123456789 123456789 123456789 123456789 123456789
+123456789 123456789 "123\\\"45\?"6789" 123456789 123456789
+123456789 123456789 "123\"45\?"6789" 123456789 123456789
 
 
 1 I don't always 」！「

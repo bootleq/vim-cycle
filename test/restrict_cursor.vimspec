@@ -66,6 +66,28 @@ Describe Restrict cursor
       Assert Equals(getreg('""'), 'Rails metaL')
     End
 
+    It with only 1 character selected
+      call cycle#test#reset_default_groups([
+            \   [['A', 'B', '＠']],
+            \ ])
+      call setline(1, 'ooAoo')
+      call search('A')
+      normal! v1lh
+      Assert Equals(mode(), 'v')
+
+      execute 'normal \a'
+      Assert Equals(getline(1), 'ooBoo')
+      Assert Equals(mode(), 'v')
+
+      execute 'normal \a'
+      Assert Equals(getline(1), 'oo＠oo')
+      Assert Equals(mode(), 'v')
+      "
+      execute 'normal \a'
+      Assert Equals(getline(1), 'ooaoo')
+      Assert Equals(mode(), 'v')
+    End
+
     It auto_visual ON, should select the new text
       let g:cycle_auto_visual = 1
 

@@ -1,0 +1,104 @@
+Describe Year Matcher/Changer
+  Before each
+    new
+  End
+
+  After each
+    bwipeout!
+    let g:cycle_max_conflict = 1
+  End
+
+  Context cycles calendar era systems
+    Before each
+      unlet! g:cycle_test_select
+      unlet! g:cycle_test_conflict
+      call cycle#test#reset_default_groups([
+            \   [['民國', '令和', '平成', '昭和', '大正', '明治', 'พ.ศ.', 'CE'], #{matcher: 'year', changer: 'year'}],
+            \ ])
+    End
+
+    It cycles CE / ROC / Japan Era / Thai Buddhist Era
+      let line = 'foo 昭和 40 年'
+      call setline(1, line)
+
+      call search('和')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'foo พ.ศ. 2509 年')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'foo 1965 年')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'foo 民國54 年')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'foo 昭和40 年')
+    End
+
+    It doesn't cycle to invalid year
+      " 明治 1 ~ 45  =  CE 1868 ~ 1912
+      call cycle#test#reset_default_groups([
+            \   [['明治', 'CE'], #{matcher: 'year', changer: 'year'}],
+            \ ])
+      let line = '明治 46'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), '1913')
+      execute 'normal \a'
+      Assert Equals(getline(1), '1913')
+    End
+
+    It matches Thai Buddhist Era year in first column
+      let line = 'พ.ศ. 2527'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), '1983')
+    End
+
+    It takes 'year' shorthand option
+      call cycle#test#reset_default_groups([
+            \   [['民國', 'พ.ศ.', 'CE'], 'year'],
+            \ ])
+
+      let line = '2024'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), '民國113')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'พ.ศ.2568')
+      execute 'normal \a'
+      Assert Equals(getline(1), '2024')
+    End
+
+    It select UI, normal
+      call setline(1, '平成 6 年 12 月 3 日')
+
+      execute 'normal \s'
+      Assert Exists('g:cycle_test_select.items')
+      Assert Equals(g:cycle_test_select.items, ['民國 83', 'พ.ศ. 2538', '1994'])
+    End
+
+    It select UI, no valid result
+      call setline(1, '2650')
+
+      let out = cycle#test#capture('normal \s')
+      Assert NotExists('g:cycle_test_select.items')
+      Assert Equals(out, 'No match, aborted.')
+    End
+
+    It conflict UI
+      let g:cycle_max_conflict = 100
+      call cycle#test#reset_default_groups([
+            \   [['令和', '㋿', 'Reiwa']],
+            \   [['民國', '令和', '平成', '昭和', '大正', '明治', 'พ.ศ.', 'CE'], #{matcher: 'year', changer: 'year'}],
+            \ ])
+
+      let line = '令和 4 年 7 月 8 日'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Exists('g:cycle_test_conflict.items')
+      Assert Equals(g:cycle_test_conflict.items, ['㋿', 'พ.ศ. 2566'])
+    End
+  End
+End

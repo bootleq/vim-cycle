@@ -1,0 +1,267 @@
+Describe Regex Matcher/Changer
+  Before each
+    new
+  End
+
+  After each
+    bwipeout!
+  End
+
+  Context items are patterns, change by {regex: to} for each item
+    It ruby hash style
+      " From switch.vim
+      call cycle#test#reset_default_groups([
+            \   [[':\(\k\+\)\s*=>\s*', '\<\(\k\+\): '], #{matcher: 'regex', changer: 'regex', regex: {'to': ['\1: ', ':\1 => ']}}],
+            \ ])
+      let line1 = "foo = { :one => 'two' }"
+      "            123456789 123456789 123
+      let line2 = "foo = { one: 'two' }"
+      "            123456789 123456789
+      call setline(1, line1)
+
+      call cursor(1, 8) " before :one
+      execute 'normal \a'
+      Assert Equals(getline(1), line1, 'Expect unchaged')
+      Assert Equals(col('.'), 8)
+
+      call cursor(1, 17) " after =>_
+      execute 'normal \a'
+      Assert Equals(getline(1), line1, 'Expect unchaged')
+      Assert Equals(col('.'), 17)
+
+      call cursor(1, 9) " on :
+      execute 'normal \a'
+      Assert Equals(getline(1), line2)
+      Assert Equals(col('.'), 9)
+
+      call setline(1, line1)
+      call cursor(1, 16) " on end of =>_
+      execute 'normal \a'
+      Assert Equals(getline(1), line2)
+      let shorten_col = searchpos('one: ', 'cneW')[1]
+      Assert Equals(col('.'), shorten_col)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), line1)
+      Assert Equals(col('.'), shorten_col)
+    End
+
+    It markdown task item (has pattern with ^)
+      " From switch.vim
+      call cycle#test#reset_default_groups([
+            \   [['^\(\s*\)- \[ \] \(.*\)', '^\(\s*\)- \[x\] \(.*\)'], #{matcher: 'regex', changer: 'regex', regex: {'to': ['\1- [x] \2', '\1- [ ] \2']}}],
+            \ ])
+      let line = '- [ ] foo'
+      call setline(1, line)
+
+      call cursor(1, 8)
+      execute 'normal \a'
+      Assert Equals(getline(1), '- [x] foo')
+      Assert Equals(col('.'), 8)
+      execute 'normal \a'
+      Assert Equals(getline(1), '- [ ] foo')
+      Assert Equals(col('.'), 8)
+    End
+
+    It without submatch in pattern
+      call cycle#test#reset_default_groups([
+            \   [['\C\<True\>', '\C\<False\>'], #{regex: ['False', 'True'], name: 'capital_true_false'}],
+            \ ])
+      let line = 'False'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), 'True')
+    End
+
+    It handles multibyte chars
+      call cycle#test#reset_default_groups([
+            \   [['\v(的)', '\v(得+)'], #{matcher: 'regex', changer: 'regex', regex: {'to': ['得得得', '的']}}],
+            \ ])
+      let line1 = '一foo一一的一'
+      let line2 = '一foo一一得得得一'
+      call setline(1, line1)
+
+      call search('一的')
+      execute 'normal \a'
+      Assert Equals(getline(1), line1, 'Expect unchaged')
+      call search('的')
+      execute 'normal \a'
+      Assert Equals(getline(1), line2)
+      Assert Equals(col('.'), searchpos('得得得', 'cW')[1])
+      execute 'normal \a'
+      Assert Equals(getline(1), line1)
+    End
+
+    It multibyte char with cword identical to cchar
+      call cycle#test#reset_default_groups([
+            \   [['พ.ศ.', 'dummy'], #{matcher: 'regex', changer: 'regex', regex: {'to': ['OK', 'fine']}}],
+            \ ])
+      let line = 'พ.ศ. 2569'
+      call setline(1, line)
+
+      execute 'normal \a'
+      Assert Equals(getline(1), 'OK 2569')
+    End
+
+    It takes 'regex' shorthand option
+      " From switch.vim
+      call cycle#test#reset_default_groups([
+            \   [['"\(\k\+\)"', '''\(\k\+\)', ':\(\k\+\)'], #{regex: ['''\1', ':\1', '"\1"\2'], name: 'clojure_string'}],
+            \ ])
+      let line = "ooo 'bar xxx"
+      "           123456789 12
+      call setline(1, line)
+
+      call cursor(1, 7)
+      execute 'normal \a'
+      Assert Equals(getline(1), 'ooo :bar xxx')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'ooo "bar" xxx')
+      Assert Equals(col('.'), 7)
+    End
+
+    It keeps previous jumps and visual area untouched
+      call cycle#test#reset_default_groups([
+            \   [['fo\+', 'dummy'],
+            \    #{regex: ['ccc', 'eee']}],
+            \ ])
+
+      let lines =<< trim END
+        1 fooooo  fuel
+        2
+        3 pooo fighter
+      END
+      call setline(1, lines)
+
+      " Jump to line3, and visual select 'fighter'
+      normal! 3gg
+      execute "normal! ffve\<Esc>"
+
+      " Start cycle on 'fuel'
+      normal! gg$b
+      execute 'normal \a'
+      Assert Equals(getline(1), lines[0], 'No match, unchanged')
+      Assert Equals(col('.'), 11, 'Expect unchanged')
+
+      normal! ``
+      Assert Equals(line('.'), 3)
+      Assert Equals(col('.'), 14)
+
+      normal! gv"ay
+      Assert Equals(getreg('a', 1, 1), ['fighter'])
+    End
+  End
+
+  Context nested dict definition
+    It takes dict key as {pattern} and value as {sub}
+      call cycle#test#reset_default_groups([
+            \   [[
+            \     '\<[a-z0-9]\+_\k\+\>',
+            \     '\<[a-z0-9]\+[A-Z]\k\+\>',
+            \    ], #{regex: [
+            \     { '_\(.\)': '\U\1' },
+            \     { '\([A-Z]\)': '_\l\1' },
+            \    ]}],
+            \ ])
+      let line = 'GG foo_bar_baz XX'
+      call setline(1, line)
+
+      call search('baz', 'eW')
+      execute 'normal \a'
+      Assert Equals(getline(1), 'GG fooBarBaz XX')
+      Assert Equals(col('.'), 12)
+      execute 'normal \a'
+      Assert Equals(getline(1), 'GG foo_bar_baz XX')
+      Assert Equals(col('.'), 12)
+    End
+  End
+
+  Context sub patterns
+    It can't directly handle patterns with \@<=
+      " From switch.vim (builtins.coffee_dictionary_shorthand)
+      call cycle#test#reset_default_groups([
+            \   [['\([{,]\_s*\)\@<=\(\k\+\)\(\s*[},]\)', '\([{,]\_s*\)\@<=\(\k\+\): \?\2\(\s*[},]\)'],
+            \    #{regex: ['\2: \2\3', '\2\3']}],
+            \ ])
+      let line = 'foo = {one, two}'
+      call setline(1, line)
+
+      call search('one')
+      execute 'normal \a'
+      Assert Equals(getline(1), line, "Unchanged, doesn't support this.")
+    End
+
+    It handles CoffeeScript dictionary shorthand (has pattern with \@<=)
+      call cycle#test#reset_default_groups([
+            \   [['\([{,]\_s*\)\@<=\(\k\+\)\(\s*[},]\)', '\([{,]\_s*\)\@<=\(\k\+\): \?\2\(\s*[},]\)'],
+            \    #{regex: {
+            \       'to': ['\1: \1\2', '\1\2'],
+            \       'subp': ['\(\k\+\)\(\s*[},]\)', '\(\k\+\): \?\1\(\s*[},]\)'],
+            \     }}]
+            \ ])
+      let line = 'foo = {one, two}'
+      call setline(1, line)
+
+      call search('one')
+      execute 'normal \a'
+      Assert Equals(getline(1), "foo = {one: one, two}")
+    End
+  End
+
+  Context integration case
+    Before each
+      " From othree's switchCase.vim https://gist.github.com/othree/5655583
+      " or https://blog.othree.net/log/2017/11/16/naming-cases/
+      let switch_case_group = [[
+            \   '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>',
+            \   '\<\(\u\l\+\)\(\u\l\+\)\+\>',
+            \   '\<\(\l\+\)\(_\l\+\)\+\>',
+            \   '\<\(\u\+\)\(_\u\+\)\+\>',
+            \   '\<\(\l\+\)\(-\l\+\)\+\>',
+            \ ], #{regex: [
+            \   '\=toupper(submatch(1)) . submatch(2)',
+            \   "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
+            \   '\U\0',
+            \   "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
+            \   "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')",
+            \ ], name: "othree's switch case"}]
+
+      call cycle#test#reset_default_groups([
+            \   [['bar', 'PAPA', 'TNR']],
+            \   switch_case_group,
+            \ ])
+    End
+
+    After each
+      unlet! g:cycle_test_conflict
+      bwipeout!
+    End
+
+    After all
+      let g:cycle_max_conflict = 1
+    End
+
+    It select UI
+      let line = '一一 FOO_BAR ✕✕'
+      call setline(1, line)
+
+      call search('BAR', 'eW')
+      execute 'normal \s'
+      Assert Exists('g:cycle_test_select.items')
+      Assert Equals(g:cycle_test_select.items, ['PAPA', 'TNR', 'foo-bar', 'fooBar', 'FooBar', 'foo_bar'])
+    End
+
+    It conflict UI
+      let g:cycle_max_conflict = 100
+
+      let line = '一一 FOO_BAR ✕✕'
+      call setline(1, line)
+
+      call search('BAR', 'eW')
+      execute 'normal \a'
+      Assert Exists('g:cycle_test_conflict.items')
+      Assert Equals(g:cycle_test_conflict.items, ['PAPA', 'foo-bar'])
+    End
+  End
+End
