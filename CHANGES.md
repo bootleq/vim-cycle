@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-## 1.?.? (2025-??-??)
+## 1.4.0 (2025-09-13)
 
 * Add `regex` group option, can cycle more complicated patterns like switch.vim (https://github.com/AndrewRadev/switch.vim)
 
