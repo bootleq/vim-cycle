@@ -17,7 +17,7 @@ CONTENTS                                                      *cycle-contents*
         regex .............................. |cycle-group-option-regex|
       Phased search  ....................... |cycle-phased-search|
       Fallback mapping  .................... |cycle-fallback-mapping|
-      Examples  ............................ |cycle-examples|
+      Examples  ............................ |cycle-config-examples|
     Events  ................................ |cycle-events|
     Limitations  ........................... |cycle-limitations|
     Credits  ............................... |cycle-credits|
