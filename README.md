@@ -191,6 +191,7 @@ Blog Posts
   - [開發背景](https://bootleq.blogspot.com/2011/09/vim-plugin-cycle.html "Vim plugin - cycle 開發背景 - 沒穿方服") (2011)
   - [簡易使用說明](https://bootleq.blogspot.com/2011/09/cyclevim.html "cycle.vim 簡易使用說明 - 沒穿方服") (2011)
   - [Group 設定簡介](https://bootleq.blogspot.com/2011/10/cyclevim-group.html "cycle.vim - group 設定簡介 - 沒穿方服") (2011)
+  - [支援 pattern 搜尋、自訂轉換](https://bootleq.blogspot.com/2025/09/vim-cycle-2025-evolution-search-pattern-and-matcher-changer.html "vim-cycle 大幅進化，支援 pattern 搜尋、自訂轉換 - 沒穿方服") (2025)
 
 
 TODO
