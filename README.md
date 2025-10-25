@@ -114,7 +114,7 @@ let g:cycle_default_groups_for_ruby = [
 " For "jsx" only (not real filetype, but linked from typescriptreact)
 let g:cycle_default_groups_for_jsx = [
       \   [['\v\="([^"]+)"', '\v\=''([^'']+)''', '\v\=\{`\$@!([^}]+)`}'], #{regex: ['=''\1''', '={`\1`}', '="\1"']}],
-      \   [['={`${\(.\+\)}`}', '={`\@!\(.\+\)}'], #{regex: ['={\1}', '={`${\1}`}']}],
+      \   [['={`${\([^}]\+\)}`}', '={`\@!\([^}]\+\)}'], #{regex: ['={\1}', '={`${\1}`}']}],
       \ ]
 
 " For fileType "markdown" only
